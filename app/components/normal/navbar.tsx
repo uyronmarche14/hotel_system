@@ -1,7 +1,6 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import Home from "@/app/page";
 import Button from "@/app/components/ui/buttons";
 
 const Navbar = () => {
