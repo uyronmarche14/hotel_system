@@ -1,4 +1,31 @@
-export const topRatedRooms = [
+interface RoomType {
+  title: string;
+  price: number;
+  location: string;
+  imageUrl: string;
+  href: string;
+  rating?: number;
+  reviews?: number;
+  description?: string;
+  size?: string;
+  amenities?: string[];
+}
+
+export const topRatedRooms: RoomType[] = [
+  {
+    title: "Prestige Suite",
+    price: 15000,
+    location: "Singapore",
+    imageUrl:
+      "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744677524/Rectangle_4170_oxttii.png", // Replace with actual image URL
+    href: "/rooms/prestige-suite",
+    rating: 5.0,
+    reviews: 120,
+    description:
+      "With a stay at The Fullerton Hotel Singapore, you'll be centrally located in Singapore, steps from Cavenagh Bridge and Anderson Bridge. This 5-star hotel is close to Chinatown Heritage Center and Universal Studios Singapore.",
+    size: "285 x 200",
+    amenities: ["Pool", "Restaurant", "Free Wifi"],
+  },
   {
     title: "Superior Room",
     price: 3200,
