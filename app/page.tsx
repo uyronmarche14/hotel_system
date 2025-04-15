@@ -4,7 +4,6 @@ import Header from "@/app/components/normal/header";
 import RoomCard from "@/app/components/RoomCard";
 import { topRatedRooms, categoryRooms } from "./data/rooms";
 import { useState } from "react";
-import HotelSearchResults from "@/app/pages/publicView/page";
 
 export default function Home() {
   const router = useRouter();

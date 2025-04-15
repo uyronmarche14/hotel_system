@@ -17,7 +17,7 @@ const Navbar = () => {
           className="object-contain"
         />
         <h1 className="cinzel text-3xl text-white font-bold">
-          THE ANETOS PALACE
+          THE SOLACE MANOR
         </h1>
       </div>
 
