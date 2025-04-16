@@ -1,21 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
+import { RoomType } from "@/app/data/rooms";
 
-interface RoomCardProps {
-  title: string;
-  price: number;
-  location: string;
-  imageUrl: string;
-  href: string;
-}
-
-const RoomCard = ({
+const RoomCard: React.FC<RoomType> = ({
   title,
   price,
   location,
   imageUrl,
   href,
-}: RoomCardProps) => {
+}) => {
   return (
     <Link href={href}>
       <div className="rounded-lg overflow-hidden">

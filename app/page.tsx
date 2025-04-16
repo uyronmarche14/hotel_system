@@ -2,8 +2,16 @@
 import { useRouter } from "next/navigation";
 import Header from "@/app/components/normal/header";
 import RoomCard from "@/app/components/RoomCard";
-import { topRatedRooms, categoryRooms } from "./data/rooms";
+import { getTopRatedRooms, getRoomsByCategory, RoomType } from "./data/rooms";
 import { useState } from "react";
+
+const CATEGORIES = [
+  "standard",
+  "executive",
+  "family-friendly",
+  "luxury",
+  "palace-inspired",
+];
 
 export default function Home() {
   const router = useRouter();
@@ -120,8 +128,8 @@ export default function Home() {
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-            {topRatedRooms.map((room, index) => (
-              <RoomCard key={index} {...room} />
+            {getTopRatedRooms().map((room: RoomType) => (
+              <RoomCard key={room.title} {...room} />
             ))}
           </div>
         </section>
@@ -134,9 +142,10 @@ export default function Home() {
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-            {categoryRooms.map((room, index) => (
-              <RoomCard key={index} {...room} />
-            ))}
+            {CATEGORIES.map((category) => {
+              const [room] = getRoomsByCategory(category);
+              return room ? <RoomCard key={room.title} {...room} /> : null;
+            })}
           </div>
         </section>
       </div>

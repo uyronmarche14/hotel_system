@@ -10,7 +10,7 @@ import {
   FaRegStar,
 } from "react-icons/fa";
 import Image from "next/image";
-import { topRatedRooms } from "@/app/data/rooms";
+import { getAllRooms } from "@/app/data/rooms";
 import Button from "@/app/components/ui/buttons";
 
 const StarRating = ({ rating }: { rating: number }) => {
@@ -50,7 +50,7 @@ const HotelSearchResults = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [priceRange, setPriceRange] = useState<string[]>([]);
   const [starRating, setStarRating] = useState<number[]>([]);
-  const [filteredRooms, setFilteredRooms] = useState(topRatedRooms);
+  const [filteredRooms, setFilteredRooms] = useState(getAllRooms());
 
   // Filter handlers
   const handlePriceRangeChange = (range: string) => {
@@ -69,7 +69,7 @@ const HotelSearchResults = () => {
 
   // Filter logic
   useEffect(() => {
-    let filtered = [...topRatedRooms];
+    let filtered = [...getAllRooms()];
 
     if (searchQuery) {
       filtered = filtered.filter((room) =>
@@ -96,7 +96,7 @@ const HotelSearchResults = () => {
   }, [searchQuery, priceRange, starRating]);
 
   return (
-    <main className="w-full   min-h-screen overflow-x-hidden bg-gray-50">
+    <main className="w-full min-h-screen overflow-x-hidden bg-gray-50">
       {/* Search Bar Section */}
       <div className="w-full mx-auto relative z-30 mt-[12px]">
         <div className="container mx-auto">
@@ -160,9 +160,9 @@ const HotelSearchResults = () => {
 
       {/* Results Section with Sidebar */}
       <div className="flex flex-col items-start pl-32 px-4 py-8">
-        <div className="flex gap-6 h-[400px]">
+        <div className="flex gap-6">
           {/* Filter Sidebar */}
-          <div className="w-[295px] p-4 rounded-lg border border-gray-200">
+          <div className="w-[295px] h-[400px] p-4 rounded-lg border border-gray-200">
             <div className="mb-6">
               <h3 className="font-semibold mb-3 text-black">Price Range</h3>
               {[
@@ -278,7 +278,7 @@ const HotelSearchResults = () => {
                     </div>
 
                     {/* Description */}
-                    <p className="text-sm text-gray-600 line-clamp-2 mb-4">
+                    <p className="text-sm text-black my-4">
                       {room.description}
                     </p>
 
