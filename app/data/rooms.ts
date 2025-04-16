@@ -15,12 +15,7 @@ import {
   FaConciergeBell,
 } from "react-icons/fa";
 
-interface Amenity {
-  icon: React.ElementType;
-  label: string;
-}
-
-interface RoomType {
+export interface RoomType {
   title: string;
   price: number;
   location: string;
@@ -30,33 +25,10 @@ interface RoomType {
   reviews?: number;
   description?: string;
   size?: string;
-  amenities?: Amenity[];
+  amenities?: string[];
 }
 
-export const topRatedRooms: RoomType[] = [
-  {
-    title: "Prestige Suite",
-    price: 15000,
-    location: "Singapore",
-    imageUrl:
-      "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744677524/Rectangle_4170_oxttii.png", // Replace with actual image URL
-    href: "/rooms/prestige-suite",
-    rating: 5.0,
-    reviews: 120,
-    description:
-      "With a stay at The Fullerton Hotel Singapore, you'll be centrally located in Singapore, steps from Cavenagh Bridge and Anderson Bridge. This 5-star hotel is close to Chinatown Heritage Center and Universal Studios Singapore.",
-    size: "285 x 200",
-    amenities: [
-      { icon: FaSwimmingPool, label: "Pool Access" },
-      { icon: FaWifi, label: "Free High-Speed WiFi" },
-      { icon: FaParking, label: "Free Parking" },
-      { icon: FaUtensils, label: "Fine Dining" },
-      { icon: FaSpa, label: "Spa Services" },
-      { icon: FaCocktail, label: "Mini Bar" },
-      { icon: FaConciergeBell, label: "24/7 Concierge" },
-      { icon: FaBath, label: "Luxury Bathroom" },
-    ],
-  },
+const topRatedRooms: RoomType[] = [
   {
     title: "Superior Room",
     price: 3200,
@@ -64,11 +36,12 @@ export const topRatedRooms: RoomType[] = [
     imageUrl:
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744677524/Rectangle_4170_oxttii.png",
     href: "/rooms/superior",
+    rating: 4.0,
+    reviews: 85,
     amenities: [
-      { icon: FaWifi, label: "Free WiFi" },
-      { icon: FaTv, label: "Smart TV" },
-      { icon: FaSnowflake, label: "Air Conditioning" },
-      { icon: FaCoffee, label: "Coffee Maker" },
+      "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766963/Vector-1_tjpgwl.png",
+      "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766965/Vector-2_hhc5s7.png",
+      "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766963/Vector_vursrq.png",
     ],
   },
   {
@@ -78,12 +51,12 @@ export const topRatedRooms: RoomType[] = [
     imageUrl:
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744677523/Rectangle_4179_diz8hh.png",
     href: "/rooms/business-elite",
+    rating: 4.5,
+    reviews: 95,
     amenities: [
-      { icon: FaWifi, label: "High-Speed WiFi" },
-      { icon: FaParking, label: "Reserved Parking" },
-      { icon: FaCoffee, label: "Premium Coffee Bar" },
-      { icon: FaUtensils, label: "Room Service" },
-      { icon: FaConciergeBell, label: "Business Concierge" },
+      "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766963/Vector-1_tjpgwl.png",
+      "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766965/Vector-2_hhc5s7.png",
+      "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766963/Vector_vursrq.png",
     ],
   },
   {
@@ -93,12 +66,12 @@ export const topRatedRooms: RoomType[] = [
     imageUrl:
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744677522/Rectangle_4180_lptud5.png",
     href: "/rooms/family-haven",
+    rating: 4.8,
+    reviews: 110,
     amenities: [
-      { icon: FaWifi, label: "Free WiFi" },
-      { icon: FaBed, label: "Extra Beds" },
-      { icon: FaUtensils, label: "Kitchenette" },
-      { icon: FaTv, label: "Multiple TVs" },
-      { icon: FaParking, label: "Family Parking" },
+      "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766963/Vector-1_tjpgwl.png",
+      "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766965/Vector-2_hhc5s7.png",
+      "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766963/Vector_vursrq.png",
     ],
   },
   {
@@ -108,13 +81,12 @@ export const topRatedRooms: RoomType[] = [
     imageUrl:
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744677522/Rectangle_4181_d5siz2.png",
     href: "/rooms/grand-royale",
+    rating: 4.9,
+    reviews: 150,
     amenities: [
-      { icon: FaSwimmingPool, label: "Private Pool" },
-      { icon: FaSpa, label: "In-Room Spa" },
-      { icon: FaUtensils, label: "Personal Chef" },
-      { icon: FaCar, label: "Luxury Transport" },
-      { icon: FaConciergeBell, label: "Butler Service" },
-      { icon: FaCocktail, label: "Premium Bar" },
+      "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766963/Vector-1_tjpgwl.png",
+      "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766965/Vector-2_hhc5s7.png",
+      "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766963/Vector_vursrq.png",
     ],
   },
   {
@@ -124,19 +96,17 @@ export const topRatedRooms: RoomType[] = [
     imageUrl:
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744677522/Rectangle_4182_f1afdf.png",
     href: "/rooms/imperial-palace",
+    rating: 5.0,
+    reviews: 200,
     amenities: [
-      { icon: FaSwimmingPool, label: "Private Pool & Jacuzzi" },
-      { icon: FaSpa, label: "Private Spa" },
-      { icon: FaUtensils, label: "Gourmet Kitchen" },
-      { icon: FaCar, label: "Chauffeur Service" },
-      { icon: FaConciergeBell, label: "24/7 Butler" },
-      { icon: FaDumbbell, label: "Private Gym" },
-      { icon: FaCocktail, label: "Wine Cellar" },
+      "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766963/Vector-1_tjpgwl.png",
+      "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766965/Vector-2_hhc5s7.png",
+      "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766963/Vector_vursrq.png",
     ],
   },
 ];
 
-export const categoryRooms = [
+const categoryRooms: RoomType[] = [
   {
     title: "Standard Rooms",
     price: 2800,
@@ -144,6 +114,8 @@ export const categoryRooms = [
     imageUrl:
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744677523/Rectangle_4170_1_rbpgkp.png",
     href: "/category/standard",
+    rating: 4.0,
+    reviews: 75,
   },
   {
     title: "Executive / Business Rooms",
@@ -152,6 +124,8 @@ export const categoryRooms = [
     imageUrl:
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744678121/Rectangle_4179_1_ccdrgd.png",
     href: "/category/executive",
+    rating: 4.3,
+    reviews: 90,
   },
   {
     title: "Family-Friendly Rooms",
@@ -160,6 +134,8 @@ export const categoryRooms = [
     imageUrl:
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744677523/Rectangle_4180_1_ucplwd.png",
     href: "/category/family",
+    rating: 4.6,
+    reviews: 120,
   },
   {
     title: "Luxury Rooms",
@@ -168,6 +144,8 @@ export const categoryRooms = [
     imageUrl:
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744677522/Rectangle_4181_1_xvlrwu.png",
     href: "/category/luxury",
+    rating: 4.8,
+    reviews: 180,
   },
   {
     title: "Palace-Inspired / Royal Suites",
@@ -176,5 +154,9 @@ export const categoryRooms = [
     imageUrl:
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744677522/Rectangle_4182_1_n68tmf.png",
     href: "/category/palace",
+    rating: 5.0,
+    reviews: 220,
   },
 ];
+
+export { topRatedRooms, categoryRooms };
