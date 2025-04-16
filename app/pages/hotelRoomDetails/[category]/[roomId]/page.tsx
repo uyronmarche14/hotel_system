@@ -1,6 +1,9 @@
 "use client";
+import React, { useEffect } from "react";
 import { useParams } from "next/navigation";
 import { rooms, RoomType } from "@/app/data/rooms";
+import Image from "next/image";
+import { FaStar, FaStarHalf, FaRegStar, FaLocationArrow } from "react-icons/fa";
 
 const RoomDetails = () => {
   const params = useParams();
@@ -13,43 +16,64 @@ const RoomDetails = () => {
     return <div>Room not found</div>;
   }
 
+  const StarRating = ({ rating }: { rating: number }) => {
+    const stars = [];
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 !== 0;
+
+    // Add full stars
+    for (let i = 0; i < fullStars; i++) {
+      stars.push(<FaStar key={`star-${i}`} className="text-[#F2994A]" />);
+    }
+
+    // Add half star if needed
+    if (hasHalfStar) {
+      stars.push(<FaStarHalf key="half-star" className="text-[#F2994A]" />);
+    }
+
+    // Add empty stars
+    const emptyStars = 5 - Math.ceil(rating);
+    for (let i = 0; i < emptyStars; i++) {
+      stars.push(
+        <FaRegStar key={`empty-star-${i}`} className="text-[#F2994A]" />,
+      );
+    }
+
+    return <div className="flex gap-0.5">{stars}</div>;
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-black mb-6">{room.title}</h1>
+      <div className="relative h-[446px] w-full mb-6">
+        <img
+          src={room.imageUrl}
+          alt={room.title}
+          className="object-cover h-full w-full"
+        />
+      </div>
+      <div className="mb-6">
+        <h1 className="text-[40px] font-bold inter text-black ">
+          {room.title}
+        </h1>
+        <StarRating rating={room.rating || 9.5} />
+      </div>
+      <div className="flex flex-row items-center justify-start gap-2 my-4">
+        <FaLocationArrow className="text-[#1C3F32] h-5 w-5" />
+        <p className="text-lg text-black">
+          123 Acacia Street, Central Signal Village, Taguig City, Metro Manila,
+          1630, Philippines
+        </p>
+      </div>
 
       {/* Room details */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div>
+      <div className="w-full h-full flex flex-row items-start justify-between gap-8">
+        <div className="max-w-4xl w-full">
+          <p className="text-2xl font-bold text-black mb-2">Overview</p>
           <p className="text-lg mb-4 text-black">{room.fullDescription}</p>
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-3 text-black">
-              Room Features
-            </h2>
-            <ul className="list-disc pl-5 text-black">
-              {room.features?.map((feature, index) => (
-                <li key={index}>{feature}</li>
-              ))}
-            </ul>
-          </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h2 className="font-semibold mb-2 text-black">Room Details</h2>
-            <p className="text-black">Size: {room.roomSize}</p>
-            <p className="text-black">
-              Max Occupancy: {room.maxOccupancy} persons
-            </p>
-            <p className="text-black">Bed Type: {room.bedType}</p>
-            <p className="text-black">View: {room.viewType}</p>
-          </div>
-
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h2 className="font-semibold mb-2 text-black">Price</h2>
-            <p className="text-2xl font-bold text-black">
-              ₱{room.price.toLocaleString()} / night
-            </p>
-          </div>
+        <div className="flex flex-col gap-2 bg-amber-300 h-[451px] w-[458px]">
+          <div className=""></div>
         </div>
       </div>
     </div>

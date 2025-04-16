@@ -9,7 +9,7 @@
   --foreground: #171717;
   --navbar-bg: #1c3f32e5;
   --font-cinzel: "Cinzel Decorative", cursive;
-  --font-inter: "Inter", sans-serif;
+  --font-inter: "Inter";
   --font-geist-sans: "Geist", sans-serif;
 }
 
@@ -34,4 +34,8 @@ body {
 
 .cinzel {
   font-family: var(--font-cinzel);
+}
+
+.inter {
+  font-family: var(--font-inter);
 }

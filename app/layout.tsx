@@ -11,7 +11,6 @@ const geistSans = Geist({
 });
 
 const inter = Inter({
-  weight: ["400"],
   subsets: ["latin"],
   variable: "--font-inter",
 });
@@ -36,7 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`w-full min-h-screen overflow-x-hidden ${geistSans.variable} ${inter.variable} ${cinzelDecorative.variable} font-sans antialiased`}
+        className={`inter w-full min-h-screen overflow-x-hidden ${geistSans.variable} ${inter.variable} ${cinzelDecorative.variable} font-sans antialiased`}
       >
         <Navbar />
         {children}
