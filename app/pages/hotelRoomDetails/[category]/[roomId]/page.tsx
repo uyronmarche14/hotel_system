@@ -1,9 +1,13 @@
 "use client";
-import React, { useEffect } from "react";
 import { useParams } from "next/navigation";
-import { rooms, RoomType } from "@/app/data/rooms";
-import Image from "next/image";
-import { FaStar, FaStarHalf, FaRegStar, FaLocationArrow } from "react-icons/fa";
+import { rooms } from "@/app/data/rooms";
+import {
+  FaStar,
+  FaStarHalf,
+  FaRegStar,
+  FaLocationArrow,
+  FaSwimmingPool,
+} from "react-icons/fa";
 
 const RoomDetails = () => {
   const params = useParams();
@@ -69,12 +73,17 @@ const RoomDetails = () => {
       <div className="w-full h-full flex flex-row items-start justify-between gap-8">
         <div className="max-w-4xl w-full">
           <p className="text-2xl font-bold text-black mb-2">Overview</p>
-          <p className="text-lg mb-4 text-black">{room.fullDescription}</p>
+          <p className="text-[17px] mb-4 text-black">{room.fullDescription}</p>
+          <div>
+            <p className="text-2xl font-bold text-black mb-2">Amenities</p>
+            <div className="w-[257px] h-[62px] flex flex-row items-center justify-center bg-white shadow-xl gap-2 rounded-md">
+              <FaSwimmingPool className="text-[#1C3F32] h-5 w-5" />
+              <p className="text-sm text-black">Swimming</p>
+            </div>
+          </div>
         </div>
 
-        <div className="flex flex-col gap-2 bg-amber-300 h-[451px] w-[458px]">
-          <div className=""></div>
-        </div>
+        <div className="flex flex-col gap-2 bg-amber-300 h-[451px] w-[458px]"></div>
       </div>
     </div>
   );
