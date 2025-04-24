@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   FaMapMarkerAlt,
@@ -39,7 +39,8 @@ const StarRating = ({ rating }: { rating: number }) => {
   return <div className="flex gap-0.5">{stars}</div>;
 };
 
-const HotelSearchResults = () => {
+// This component uses useSearchParams and will be wrapped in Suspense
+const SearchResultsContent = () => {
   const searchParams = useSearchParams();
   const location = searchParams.get("location");
   const checkIn = searchParams.get("checkIn");
@@ -96,7 +97,7 @@ const HotelSearchResults = () => {
   }, [searchQuery, priceRange, starRating]);
 
   return (
-    <main className="w-full min-h-screen overflow-x-hidden bg-gray-50">
+    <>
       {/* Search Bar Section */}
       <div className="w-full mx-auto relative z-30 mt-[12px]">
         <div className="container mx-auto">
@@ -309,6 +310,28 @@ const HotelSearchResults = () => {
           </div>
         </div>
       </div>
+    </>
+  );
+};
+
+// Loading component to show while the SearchResultsContent is loading
+const SearchResultsLoading = () => {
+  return (
+    <div className="flex items-center justify-center h-screen">
+      <div className="text-center">
+        <p className="text-lg font-medium">Loading search results...</p>
+      </div>
+    </div>
+  );
+};
+
+// Main component that wraps the content with Suspense
+const HotelSearchResults = () => {
+  return (
+    <main className="w-full min-h-screen overflow-x-hidden bg-gray-50">
+      <Suspense fallback={<SearchResultsLoading />}>
+        <SearchResultsContent />
+      </Suspense>
     </main>
   );
 };
