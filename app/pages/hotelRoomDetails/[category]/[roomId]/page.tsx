@@ -1,6 +1,7 @@
 "use client";
 import { useParams } from "next/navigation";
 import { rooms } from "@/app/data/rooms";
+import SuggestionCard from "@/app/components/suggestionCard";
 import {
   FaStar,
   FaStarHalf,
@@ -214,6 +215,9 @@ const RoomDetails = () => {
               </div>
             </div>
           </div>
+        </div>
+        <div className="w-full">
+          <SuggestionCard />
         </div>
         <div className="bg-background/50 p-4 rounded-2xl shadow-lg backdrop-blur-sm border border-primary/10">
           <h2 className="text-2xl font-bold mb-8 text-black border-b border-primary/10 pb-4">
