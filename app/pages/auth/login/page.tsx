@@ -78,7 +78,12 @@ const Login = () => {
           </div>
         </div>
       </div>
-      <div className="w-1/2 h-full bg-[#1C3F32]"></div>
+      <div className="w-1/2 h-full bg-[#1C3F32]">
+        <img
+          src="https://res.cloudinary.com/ddnxfpziq/image/upload/v1745569291/Image_ux4eej.png"
+          className="w-full h-full object-cover"
+        />
+      </div>
     </div>
   );
 };
