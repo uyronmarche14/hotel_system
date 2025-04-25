@@ -1,4 +1,5 @@
 import React from "react";
+import { getAllRooms } from "@/app/data/rooms";
 
 const page = () => {
   return (
