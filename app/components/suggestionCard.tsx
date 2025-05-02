@@ -36,7 +36,7 @@ const SuggestionCard = () => {
 
               {/* Middle: Room Details */}
               <div className="w-1/2 p-4 justify-between flex flex-col">
-                <h2 className="text-xl font-bold text-blue-800 mb-2">
+                <h2 className="text-xl font-bold text-[#1C3F32] mb-2">
                   {room.title}
                 </h2>
                 <p className="text-gray-600 mb-4">{room.description}</p>
@@ -45,11 +45,6 @@ const SuggestionCard = () => {
                 <div className="mt-auto">
                   <div className="inline-block border border-blue-300 text-blue-600 px-2 py-1 text-sm rounded">
                     Free Cancellation, Breakfast Included
-                  </div>
-                  <div className="text-gray-500 text-sm mt-2">
-                    <span className="bg-blue-100 text-blue-600 px-1">
-                      279 × 20
-                    </span>
                   </div>
                 </div>
               </div>
@@ -76,12 +71,14 @@ const SuggestionCard = () => {
           </div>
         ))}
       </div>
-      <button
-        className="h-10 w-32 bg-gray-500 hover:bg-gray-600 rounded-lg text-white mt-4"
-        onClick={toggle}
-      >
-        {isExpanded ? "View Less" : "View More"}
-      </button>
+      <div className="flex justify-start items-start w-full">
+        <button
+          className="h-10 w-32 bg-gray-500 hover:bg-gray-600 rounded-lg text-white mt-2"
+          onClick={toggle}
+        >
+          {isExpanded ? "View Less" : "View More"}
+        </button>
+      </div>
     </div>
   );
 };
