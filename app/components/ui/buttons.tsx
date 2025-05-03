@@ -12,9 +12,9 @@ interface ButtonProps extends BaseProps {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    " hover:bg-[var(--primary-hover)] text-white border-1 border-white rounded-[4px] w-[140px] h-[40px] flex items-center justify-center text-center font-bold",
+    "bg-[#1C3F32] hover:bg-[#15302a] text-white border border-transparent rounded-md w-[140px] h-[40px] flex items-center justify-center text-center font-medium",
   secondary:
-    "bg-white text-black border-1 border-black rounded-[4px] w-[140px] h-[40px] flex items-center justify-center text-center font-bold hover:opacity-90",
+    "bg-white text-[#1C3F32] border border-[#1C3F32] rounded-md w-[140px] h-[40px] flex items-center justify-center text-center font-medium hover:bg-gray-100",
   danger: "bg-red-600 hover:bg-red-700 text-white",
   success: "bg-green-600 hover:bg-green-700 text-white",
   warning: "bg-yellow-500 hover:bg-yellow-600 text-white",
@@ -44,7 +44,7 @@ export default function Button({
       disabled={disabled}
       type={type}
       className={cn(
-        "rounded-lg font-medium transition-colors duration-200",
+        "rounded-md font-medium transition-all duration-200 cursor-pointer",
         variantStyles[variant],
         sizeStyles[size],
         fullWidth && "w-full",

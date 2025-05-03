@@ -8,6 +8,8 @@
   --background: #ffffff;
   --foreground: #171717;
   --navbar-bg: #1c3f32e5;
+  --brand-green: #1c3f32;
+  --brand-green-hover: #2a5a4a;
   --font-cinzel: "Cinzel Decorative", cursive;
   --font-inter: "Inter", sans-serif;
   --font-geist-sans: "Geist", sans-serif;
@@ -25,6 +27,22 @@
     background-color: var(--navbar-bg);
     opacity: 0.9;
   }
+
+  .text-brand-green {
+    color: var(--brand-green);
+  }
+
+  .bg-brand-green {
+    background-color: var(--brand-green);
+  }
+
+  .hover-brand-green:hover {
+    background-color: var(--brand-green-hover);
+  }
+
+  .border-brand-green {
+    border-color: var(--brand-green);
+  }
 }
 
 body {
@@ -34,4 +52,24 @@ body {
 
 .cinzel {
   font-family: var(--font-cinzel);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--brand-green);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--brand-green-hover);
 }
