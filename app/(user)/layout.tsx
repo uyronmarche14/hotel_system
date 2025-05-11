@@ -1,25 +1,16 @@
 import { ReactNode } from "react";
 import type { Metadata } from "next";
-import "../globals.css";
-import UserNavbar from "@/app/components/user/UserNavbar";
-import Footer from "@/app/components/normal/footer";
+import UserLayout from "@/app/components/layouts/UserLayout";
 
 export const metadata: Metadata = {
   title: "User Portal | The Anetos Palace",
   description: "Your personal portal for The Anetos Palace",
 };
 
-export default function UserLayout({
+export default function UserRouteLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-  // This layout uses the UserNavbar which has profile and notification elements
-  return (
-    <>
-      <UserNavbar />
-      {children}
-      <Footer />
-    </>
-  );
+  return <UserLayout>{children}</UserLayout>;
 } 

@@ -8,10 +8,8 @@ export const metadata: Metadata = {
 
 export default function RegisterPage() {
   return (
-    <main className="flex min-h-screen">
-      <div className="flex flex-1">
-        <RegisterForm />
-      </div>
+    <main className="w-full">
+      <RegisterForm />
     </main>
   );
 } 

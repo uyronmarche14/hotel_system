@@ -73,25 +73,25 @@ export default function BookingsPage() {
   };
 
   return (
-    <main className="container mx-auto px-4 py-8 max-w-6xl">
-      <h1 className="text-3xl font-bold text-[#1C3F32] mb-8">My Bookings</h1>
+    <main className="container mx-auto px-4 py-6 sm:py-8 max-w-6xl">
+      <h1 className="text-2xl sm:text-3xl font-bold text-[#1C3F32] mb-6 sm:mb-8">My Bookings</h1>
       
       {/* Upcoming Bookings */}
-      <div className="mb-12">
-        <h2 className="text-2xl font-bold text-[#1C3F32] mb-6">Upcoming Stays</h2>
+      <div className="mb-8 sm:mb-12">
+        <h2 className="text-xl sm:text-2xl font-bold text-[#1C3F32] mb-4 sm:mb-6">Upcoming Stays</h2>
         
         {upcomingBookings.length === 0 ? (
-          <div className="bg-white p-6 rounded-lg shadow text-center">
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow text-center">
             <p className="text-gray-600">You don't have any upcoming bookings.</p>
-            <button className="mt-4 bg-[#1C3F32] text-white px-6 py-2 rounded-md hover:bg-[#1C3F32]/90 transition-colors">
+            <button className="mt-4 bg-[#1C3F32] text-white px-4 sm:px-6 py-2 rounded-md hover:bg-[#1C3F32]/90 transition-colors">
               Book a Room
             </button>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {upcomingBookings.map((booking) => (
-              <div key={booking.id} className="bg-white p-6 rounded-lg shadow">
-                <div className="flex flex-col md:flex-row gap-6">
+              <div key={booking.id} className="bg-white p-4 sm:p-6 rounded-lg shadow">
+                <div className="flex flex-col md:flex-row gap-4 sm:gap-6">
                   {/* Room Image */}
                   <div className="w-full md:w-1/4">
                     <div className="relative w-full h-32 md:h-full rounded-lg overflow-hidden">
@@ -109,63 +109,63 @@ export default function BookingsPage() {
                   
                   {/* Booking Details */}
                   <div className="w-full md:w-2/4">
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
                       <span className="inline-block px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
                         Upcoming
                       </span>
-                      <span className="text-sm text-gray-500">Booking ID: {booking.id}</span>
+                      <span className="text-xs sm:text-sm text-gray-500">Booking ID: {booking.id}</span>
                     </div>
                     
-                    <h3 className="text-xl font-bold mb-3">{booking.roomType}</h3>
+                    <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3">{booking.roomType}</h3>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className="flex items-center gap-2">
-                        <FaCalendarAlt className="text-[#1C3F32]" />
+                    <div className="grid grid-cols-2 sm:grid-cols-2 gap-2 sm:gap-3">
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <FaCalendarAlt className="text-[#1C3F32] min-w-4" />
                         <div>
-                          <p className="text-sm text-gray-500">Check-in</p>
-                          <p>{formatDate(booking.checkIn)}</p>
+                          <p className="text-xs sm:text-sm text-gray-500">Check-in</p>
+                          <p className="text-sm sm:text-base">{formatDate(booking.checkIn)}</p>
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-2">
-                        <FaCalendarAlt className="text-[#1C3F32]" />
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <FaCalendarAlt className="text-[#1C3F32] min-w-4" />
                         <div>
-                          <p className="text-sm text-gray-500">Check-out</p>
-                          <p>{formatDate(booking.checkOut)}</p>
+                          <p className="text-xs sm:text-sm text-gray-500">Check-out</p>
+                          <p className="text-sm sm:text-base">{formatDate(booking.checkOut)}</p>
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-2">
-                        <FaUsers className="text-[#1C3F32]" />
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <FaUsers className="text-[#1C3F32] min-w-4" />
                         <div>
-                          <p className="text-sm text-gray-500">Guests</p>
-                          <p>{booking.guests} {booking.guests === 1 ? 'Guest' : 'Guests'}</p>
+                          <p className="text-xs sm:text-sm text-gray-500">Guests</p>
+                          <p className="text-sm sm:text-base">{booking.guests} {booking.guests === 1 ? 'Guest' : 'Guests'}</p>
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-2">
-                        <FaMapMarkerAlt className="text-[#1C3F32]" />
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <FaMapMarkerAlt className="text-[#1C3F32] min-w-4" />
                         <div>
-                          <p className="text-sm text-gray-500">Location</p>
-                          <p>{booking.location}</p>
+                          <p className="text-xs sm:text-sm text-gray-500">Location</p>
+                          <p className="text-sm sm:text-base truncate">{booking.location}</p>
                         </div>
                       </div>
                     </div>
                   </div>
                   
                   {/* Price and Actions */}
-                  <div className="w-full md:w-1/4 flex flex-col justify-between">
+                  <div className="w-full md:w-1/4 flex flex-col justify-between mt-4 md:mt-0">
                     <div>
-                      <p className="text-sm text-gray-500">Total Price</p>
-                      <p className="text-2xl font-bold text-[#1C3F32]">{formatPrice(booking.totalPrice)}</p>
-                      <p className="text-sm text-gray-500">{booking.nights} {booking.nights === 1 ? 'night' : 'nights'}</p>
+                      <p className="text-xs sm:text-sm text-gray-500">Total Price</p>
+                      <p className="text-xl sm:text-2xl font-bold text-[#1C3F32]">{formatPrice(booking.totalPrice)}</p>
+                      <p className="text-xs sm:text-sm text-gray-500">{booking.nights} {booking.nights === 1 ? 'night' : 'nights'}</p>
                     </div>
                     
-                    <div className="space-y-2 mt-4 md:mt-0">
-                      <button className="w-full bg-[#1C3F32] text-white py-2 rounded-md hover:bg-[#1C3F32]/90 transition-colors">
+                    <div className="space-y-2 mt-3 md:mt-0">
+                      <button className="w-full bg-[#1C3F32] text-white py-2 rounded-md hover:bg-[#1C3F32]/90 transition-colors text-sm sm:text-base">
                         Manage Booking
                       </button>
-                      <button className="w-full border border-[#1C3F32] text-[#1C3F32] py-2 rounded-md hover:bg-gray-50 transition-colors">
+                      <button className="w-full border border-[#1C3F32] text-[#1C3F32] py-2 rounded-md hover:bg-gray-50 transition-colors text-sm sm:text-base">
                         Cancel Booking
                       </button>
                     </div>
@@ -179,17 +179,17 @@ export default function BookingsPage() {
       
       {/* Past Bookings */}
       <div>
-        <h2 className="text-2xl font-bold text-[#1C3F32] mb-6">Past Stays</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-[#1C3F32] mb-4 sm:mb-6">Past Stays</h2>
         
         {pastBookings.length === 0 ? (
-          <div className="bg-white p-6 rounded-lg shadow text-center">
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow text-center">
             <p className="text-gray-600">You don't have any past bookings.</p>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {pastBookings.map((booking) => (
-              <div key={booking.id} className="bg-white p-6 rounded-lg shadow">
-                <div className="flex flex-col md:flex-row gap-6">
+              <div key={booking.id} className="bg-white p-4 sm:p-6 rounded-lg shadow">
+                <div className="flex flex-col md:flex-row gap-4 sm:gap-6">
                   {/* Room Image */}
                   <div className="w-full md:w-1/4">
                     <div className="relative w-full h-32 md:h-full rounded-lg overflow-hidden">
@@ -211,60 +211,60 @@ export default function BookingsPage() {
                       <span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">
                         Completed
                       </span>
-                      <span className="text-sm text-gray-500">Booking ID: {booking.id}</span>
+                      <span className="text-xs sm:text-sm text-gray-500">Booking ID: {booking.id}</span>
                     </div>
                     
-                    <h3 className="text-xl font-bold mb-3">{booking.roomType}</h3>
+                    <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3">{booking.roomType}</h3>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className="flex items-center gap-2">
-                        <FaCalendarAlt className="text-[#1C3F32]" />
+                    <div className="grid grid-cols-2 sm:grid-cols-2 gap-2 sm:gap-3">
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <FaCalendarAlt className="text-[#1C3F32] min-w-4" />
                         <div>
-                          <p className="text-sm text-gray-500">Check-in</p>
-                          <p>{formatDate(booking.checkIn)}</p>
+                          <p className="text-xs sm:text-sm text-gray-500">Check-in</p>
+                          <p className="text-sm sm:text-base">{formatDate(booking.checkIn)}</p>
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-2">
-                        <FaCalendarAlt className="text-[#1C3F32]" />
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <FaCalendarAlt className="text-[#1C3F32] min-w-4" />
                         <div>
-                          <p className="text-sm text-gray-500">Check-out</p>
-                          <p>{formatDate(booking.checkOut)}</p>
+                          <p className="text-xs sm:text-sm text-gray-500">Check-out</p>
+                          <p className="text-sm sm:text-base">{formatDate(booking.checkOut)}</p>
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-2">
-                        <FaUsers className="text-[#1C3F32]" />
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <FaUsers className="text-[#1C3F32] min-w-4" />
                         <div>
-                          <p className="text-sm text-gray-500">Guests</p>
-                          <p>{booking.guests} {booking.guests === 1 ? 'Guest' : 'Guests'}</p>
+                          <p className="text-xs sm:text-sm text-gray-500">Guests</p>
+                          <p className="text-sm sm:text-base">{booking.guests} {booking.guests === 1 ? 'Guest' : 'Guests'}</p>
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-2">
-                        <FaMapMarkerAlt className="text-[#1C3F32]" />
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <FaMapMarkerAlt className="text-[#1C3F32] min-w-4" />
                         <div>
-                          <p className="text-sm text-gray-500">Location</p>
-                          <p>{booking.location}</p>
+                          <p className="text-xs sm:text-sm text-gray-500">Location</p>
+                          <p className="text-sm sm:text-base truncate">{booking.location}</p>
                         </div>
                       </div>
                     </div>
                   </div>
                   
                   {/* Price and Actions */}
-                  <div className="w-full md:w-1/4 flex flex-col justify-between">
+                  <div className="w-full md:w-1/4 flex flex-col justify-between mt-4 md:mt-0">
                     <div>
-                      <p className="text-sm text-gray-500">Total Price</p>
-                      <p className="text-2xl font-bold text-[#1C3F32]">{formatPrice(booking.totalPrice)}</p>
-                      <p className="text-sm text-gray-500">{booking.nights} {booking.nights === 1 ? 'night' : 'nights'}</p>
+                      <p className="text-xs sm:text-sm text-gray-500">Total Price</p>
+                      <p className="text-xl sm:text-2xl font-bold text-[#1C3F32]">{formatPrice(booking.totalPrice)}</p>
+                      <p className="text-xs sm:text-sm text-gray-500">{booking.nights} {booking.nights === 1 ? 'night' : 'nights'}</p>
                     </div>
                     
-                    <div className="space-y-2 mt-4 md:mt-0">
-                      <button className="w-full bg-[#1C3F32] text-white py-2 rounded-md hover:bg-[#1C3F32]/90 transition-colors">
-                        View Receipt
-                      </button>
-                      <button className="w-full border border-[#1C3F32] text-[#1C3F32] py-2 rounded-md hover:bg-gray-50 transition-colors">
+                    <div className="flex space-x-2 mt-3 md:mt-0">
+                      <button className="flex-1 bg-[#1C3F32] text-white py-2 rounded-md hover:bg-[#1C3F32]/90 transition-colors text-sm sm:text-base">
                         Book Again
+                      </button>
+                      <button className="flex-1 border border-[#1C3F32] text-[#1C3F32] py-2 rounded-md hover:bg-gray-50 transition-colors text-sm sm:text-base">
+                        View Receipt
                       </button>
                     </div>
                   </div>

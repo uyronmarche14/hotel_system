@@ -4,18 +4,15 @@ import { FaTwitter, FaLinkedin, FaWhatsapp, FaFacebook } from "react-icons/fa";
 
 const Footer = () => {
   return (
-    <footer className="bg-[#2F4F4F] text-white py-8">
+    <footer className="bg-[#2F4F4F] text-white py-6 sm:py-8">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 sm:gap-8">
           {/* About Us Section */}
           <div>
-            <Image
-              src="/logo.png"
-              alt="The Anetos Palace"
-              width={200}
-              height={50}
-            />
-            <div className="mt-4 space-y-2">
+            <div className="w-32 sm:w-40 h-10 bg-white flex items-center justify-center rounded-md mb-4">
+              <span className="text-[#2F4F4F] font-bold text-xs sm:text-sm">THE ANETOS PALACE</span>
+            </div>
+            <div className="mt-2 sm:mt-4 space-y-1 sm:space-y-2 text-sm">
               <Link
                 href="/about/overview"
                 className="block hover:text-gray-300"
@@ -39,8 +36,8 @@ const Footer = () => {
 
           {/* Customer Service Section */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Customer Service</h3>
-            <div className="space-y-2">
+            <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">Customer Service</h3>
+            <div className="space-y-1 sm:space-y-2 text-sm">
               <Link href="/contact" className="block hover:text-gray-300">
                 Contact Us
               </Link>
@@ -64,8 +61,8 @@ const Footer = () => {
 
           {/* Explore Section */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Explore</h3>
-            <div className="space-y-2">
+            <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">Explore</h3>
+            <div className="space-y-1 sm:space-y-2 text-sm">
               <Link href="/destinations" className="block hover:text-gray-300">
                 Destinations
               </Link>
@@ -89,8 +86,8 @@ const Footer = () => {
 
           {/* Support Section */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Support</h3>
-            <div className="space-y-2">
+            <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">Support</h3>
+            <div className="space-y-1 sm:space-y-2 text-sm">
               <Link href="/privacy" className="block hover:text-gray-300">
                 Privacy Policy
               </Link>
@@ -109,10 +106,10 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Membership Section */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Membership</h3>
-            <div className="space-y-2">
+          {/* Membership Section - Hidden on smallest screens */}
+          <div className="hidden sm:block">
+            <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">Membership</h3>
+            <div className="space-y-1 sm:space-y-2 text-sm">
               <Link href="/loyalty" className="block hover:text-gray-300">
                 Loyalty Program
               </Link>
@@ -127,22 +124,22 @@ const Footer = () => {
         </div>
 
         {/* Bottom Section */}
-        <div className="mt-8 pt-8 border-t border-gray-600 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm">
+        <div className="mt-6 sm:mt-8 pt-4 sm:pt-8 border-t border-gray-600 flex flex-col md:flex-row justify-between items-center">
+          <p className="text-xs sm:text-sm text-center md:text-left">
             © 2025 The Anetos Palace. All rights reserved.
           </p>
           <div className="flex space-x-4 mt-4 md:mt-0">
             <Link href="#" className="hover:opacity-80">
-              <FaTwitter size={24} />
+              <FaTwitter size={20} />
             </Link>
             <Link href="#" className="hover:opacity-80">
-              <FaLinkedin size={24} />
+              <FaLinkedin size={20} />
             </Link>
             <Link href="#" className="hover:opacity-80">
-              <FaWhatsapp size={24} />
+              <FaWhatsapp size={20} />
             </Link>
             <Link href="#" className="hover:opacity-80">
-              <FaFacebook size={24} />
+              <FaFacebook size={20} />
             </Link>
           </div>
         </div>

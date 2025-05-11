@@ -2,47 +2,62 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FaBell, FaUserCircle } from "react-icons/fa";
+import { FaBell, FaUserCircle, FaBars, FaTimes } from "react-icons/fa";
 import Button from "@/app/components/ui/buttons";
 
 const UserNavbar = () => {
   const [notificationCount, setNotificationCount] = useState(3);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  const logo = "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744609832/Vintage_and_Luxury_Hotel_Decorative_Ornamental_Logo_3_jm9wzq.png";
-  const userProfilePic = "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744609832/user-profile-default.jpg";
+  const logo = "/images/hotel-logo.png";
+  const userProfilePic = "https://res.cloudinary.com/ddnxfpziq/image/upload/v1746281526/photo_2025-04-08_20-22-13_z7mxk8.jpg";
 
   const toggleProfileMenu = () => {
     setShowProfileMenu(!showProfileMenu);
   };
 
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const navLinks = [
+    { name: "Home", path: "/dashboard" },
+    { name: "Rooms", path: "/dashboard" },
+    { name: "Bookings", path: "/bookings" },
+    { name: "Profile", path: "/profile" }
+  ];
+
   return (
-    <nav className="w-full h-24 flex items-center justify-between bg-custom-nav px-8">
-      <div className="flex items-center gap-4">
-        <Link href="/dashboard" className="flex items-center gap-4 hover:opacity-90 transition-opacity">
-          <Image
-            alt="logo"
-            src={logo}
-            width={70}
-            height={70}
-            className="object-contain"
-            onError={(e) => {
-              e.currentTarget.src = "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744609832/Vintage_and_Luxury_Hotel_Decorative_Ornamental_Logo_3_jm9wzq.png";
-            }}
-          />
-          <h1 className="cinzel text-3xl text-white font-bold">
+    <nav className="w-full h-auto sm:h-24 flex flex-wrap items-center justify-between bg-[#1C3F32] px-4 sm:px-8 py-3 sm:py-0">
+      <div className="flex items-center gap-2 sm:gap-4">
+        <Link href="/dashboard" className="flex items-center gap-2 sm:gap-4 hover:opacity-90 transition-opacity">
+          <div className="flex items-center justify-center w-10 h-10 sm:w-16 sm:h-16 bg-white rounded-full">
+            <span className="text-[#1C3F32] font-bold text-sm sm:text-xl">AP</span>
+          </div>
+          <h1 className="cinzel text-lg sm:text-2xl md:text-3xl text-white font-bold truncate">
             THE ANETOS PALACE
           </h1>
         </Link>
       </div>
 
+      {/* Mobile menu button */}
+      <div className="flex md:hidden items-center">
+        <button 
+          onClick={toggleMobileMenu}
+          className="text-white hover:text-gray-200 transition-colors p-2"
+        >
+          {mobileMenuOpen ? (
+            <FaTimes className="text-2xl" />
+          ) : (
+            <FaBars className="text-2xl" />
+          )}
+        </button>
+      </div>
+
+      {/* Desktop Navigation */}
       <div className="hidden md:flex space-x-8">
-        {[
-          { name: "Home", path: "/dashboard" },
-          { name: "Rooms", path: "/dashboard" },
-          { name: "Bookings", path: "/bookings" },
-          { name: "Profile", path: "/profile" }
-        ].map((item, index) => (
+        {navLinks.map((item, index) => (
           <Link
             key={index}
             href={item.path}
@@ -53,13 +68,31 @@ const UserNavbar = () => {
         ))}
       </div>
 
-      <div className="flex items-center gap-6">
+      {/* Mobile Navigation */}
+      {mobileMenuOpen && (
+        <div className="md:hidden w-full mt-4 pb-2">
+          <div className="flex flex-col space-y-4">
+            {navLinks.map((item, index) => (
+              <Link
+                key={index}
+                href={item.path}
+                className="text-white hover:text-gray-200 transition-colors duration-200 font-medium hover:underline px-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {item.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center gap-4 sm:gap-6 order-3 md:order-none">
         {/* Notification Bell */}
         <div className="relative">
           <button className="text-white hover:text-gray-200 transition-colors">
-            <FaBell className="text-2xl" />
+            <FaBell className="text-xl sm:text-2xl" />
             {notificationCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center">
                 {notificationCount}
               </span>
             )}
@@ -72,14 +105,15 @@ const UserNavbar = () => {
             onClick={toggleProfileMenu}
             className="flex items-center gap-2 text-white hover:text-gray-200 transition-colors"
           >
-            <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-white">
+            <div className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-white">
               <Image
                 src={userProfilePic}
                 alt="User Profile"
-                fill
+                width={40}
+                height={40}
                 className="object-cover"
                 onError={(e) => {
-                  e.currentTarget.src = "https://via.placeholder.com/40";
+                  e.currentTarget.src = "/images/default-user.png";
                 }}
               />
             </div>

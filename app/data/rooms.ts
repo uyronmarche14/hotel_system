@@ -73,6 +73,24 @@ const rooms: RoomType[] = [
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766965/Vector-2_hhc5s7.png",
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766963/Vector_vursrq.png",
     ],
+    fullDescription:
+      "Our Business Elite Room is thoughtfully designed for the discerning professional. This spacious accommodation provides an ideal environment for work and relaxation. The room features a large executive desk with ergonomic chair, high-speed WiFi, and multiple charging ports. After a productive day, unwind on the premium king-size bed or enjoy the panoramic views of the bustling business district.",
+    features: [
+      "Executive work desk",
+      "Ergonomic office chair",
+      "Multiple charging ports",
+      "LED desk lamp",
+    ],
+    maxOccupancy: 2,
+    bedType: "1 King-size bed",
+    roomSize: "38 sq.m",
+    viewType: "Business district view",
+    additionalAmenities: [
+      "Complimentary breakfast",
+      "Express check-in/out",
+      "Nespresso coffee machine",
+      "Evening turndown service",
+    ],
   },
   {
     title: "Family Haven Suite",
@@ -90,6 +108,24 @@ const rooms: RoomType[] = [
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766963/Vector-1_tjpgwl.png",
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766965/Vector-2_hhc5s7.png",
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766963/Vector_vursrq.png",
+    ],
+    fullDescription:
+      "The Family Haven Suite offers the perfect retreat for families seeking comfort and convenience. This spacious two-bedroom suite provides ample space for everyone to relax and enjoy. The master bedroom features a king-size bed, while the second bedroom comes with two twin beds ideal for children. The separate living area includes a comfortable sofa, dining table, and entertainment center to create lasting family memories.",
+    features: [
+      "Two separate bedrooms",
+      "Spacious living area",
+      "Child-friendly furniture",
+      "Family entertainment system",
+    ],
+    maxOccupancy: 4,
+    bedType: "1 King-size bed and 2 Twin beds",
+    roomSize: "65 sq.m",
+    viewType: "Park view",
+    additionalAmenities: [
+      "Children's welcome kit",
+      "Baby cot available on request",
+      "Family board games",
+      "Kid-friendly menu options",
     ],
   },
   {
@@ -109,6 +145,24 @@ const rooms: RoomType[] = [
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766965/Vector-2_hhc5s7.png",
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766963/Vector_vursrq.png",
     ],
+    fullDescription:
+      "The Grand Royale Room represents the pinnacle of luxury accommodation. Each detail has been meticulously designed to create an atmosphere of opulence and refinement. The room features hand-selected furnishings, premium bedding, and floor-to-ceiling windows that frame spectacular city views. Step onto your private balcony to savor the panoramic vistas, or unwind in the marble-clad bathroom with deep soaking tub and separate rain shower.",
+    features: [
+      "Private balcony",
+      "Marble bathroom",
+      "Deep soaking tub",
+      "Walk-in closet",
+    ],
+    maxOccupancy: 2,
+    bedType: "1 King-size bed with premium linens",
+    roomSize: "52 sq.m",
+    viewType: "Premium city skyline view",
+    additionalAmenities: [
+      "VIP lounge access",
+      "Personal concierge service",
+      "Premium toiletries",
+      "Complimentary champagne",
+    ],
   },
   {
     title: "Imperial Palace Suite",
@@ -126,6 +180,24 @@ const rooms: RoomType[] = [
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766963/Vector-1_tjpgwl.png",
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766965/Vector-2_hhc5s7.png",
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766963/Vector_vursrq.png",
+    ],
+    fullDescription:
+      "The Imperial Palace Suite represents the pinnacle of luxury accommodation, offering an unparalleled experience of opulence and sophistication. This magnificent suite features a grand master bedroom with a custom king-size bed, a separate living room with designer furnishings, and a formal dining area that can seat up to eight guests. The palatial bathroom includes a Jacuzzi tub, steam shower, and dual vanities with premium fixtures. Throughout your stay, enjoy the attentive service of your dedicated butler, available 24/7 to fulfill your every request.",
+    features: [
+      "Separate living and dining areas",
+      "Master bedroom with walk-in wardrobe",
+      "Palatial bathroom with Jacuzzi",
+      "Kitchenette with premium appliances",
+    ],
+    maxOccupancy: 2,
+    bedType: "1 Custom king-size bed with Egyptian cotton sheets",
+    roomSize: "98 sq.m",
+    viewType: "360° panoramic view",
+    additionalAmenities: [
+      "24/7 private butler service",
+      "In-suite dining experience",
+      "Luxury car airport transfer",
+      "Exclusive access to all hotel facilities",
     ],
   },
   {
@@ -145,6 +217,24 @@ const rooms: RoomType[] = [
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766965/Vector-2_hhc5s7.png",
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766963/Vector_vursrq.png",
     ],
+    fullDescription:
+      "Our Standard Rooms provide a perfect blend of comfort and convenience at great value. These thoughtfully designed spaces feature contemporary décor and all the essential amenities needed for a relaxing stay. Each room offers a comfortable double bed with quality linens, a well-appointed bathroom with shower, and a work desk for those needing to stay productive. The warm lighting and neutral color palette create a welcoming atmosphere for guests to unwind after a day of exploration or business.",
+    features: [
+      "LCD TV with cable channels",
+      "Work desk and chair",
+      "Electronic safe",
+      "Blackout curtains",
+    ],
+    maxOccupancy: 2,
+    bedType: "1 Double bed",
+    roomSize: "28 sq.m",
+    viewType: "City view",
+    additionalAmenities: [
+      "Complimentary WiFi",
+      "Daily housekeeping",
+      "Tea and coffee making facilities",
+      "Hair dryer",
+    ],
   },
   {
     title: "Executive / Business Rooms",
@@ -162,6 +252,24 @@ const rooms: RoomType[] = [
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766963/Vector-1_tjpgwl.png",
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766965/Vector-2_hhc5s7.png",
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766963/Vector_vursrq.png",
+    ],
+    fullDescription:
+      "Our Executive / Business Rooms are meticulously designed to meet the needs of today's business travelers. These rooms provide an ideal environment for productivity and relaxation, featuring a dedicated work area with an ergonomic chair and ample desk space. The rooms are equipped with enhanced technological amenities including high-speed WiFi, multiple power outlets, and a multimedia hub. After a productive day, relax in the comfortable king-size bed or unwind in the well-appointed sitting area with views of the business district.",
+    features: [
+      "Large work desk",
+      "Ergonomic office chair",
+      "In-room laptop safe",
+      "USB charging ports",
+    ],
+    maxOccupancy: 2,
+    bedType: "1 King-size bed",
+    roomSize: "36 sq.m",
+    viewType: "Business district view",
+    additionalAmenities: [
+      "Business center access",
+      "Express check-in/out",
+      "Complimentary shoe shine",
+      "Press reader access",
     ],
   },
   {
@@ -181,6 +289,24 @@ const rooms: RoomType[] = [
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766965/Vector-2_hhc5s7.png",
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766963/Vector_vursrq.png",
     ],
+    fullDescription:
+      "Our Family-Friendly Rooms are specially designed to ensure a comfortable and enjoyable stay for guests of all ages. These spacious accommodations feature a master area with a king-size bed for parents and a separate sleeping area with bunk beds or twin beds for children. The rooms include thoughtful amenities such as child-proof electrical outlets, step stools in the bathroom, and a designated play corner with age-appropriate toys and games. Parents will appreciate the convenience of a mini-refrigerator, microwave, and extra storage space for family essentials.",
+    features: [
+      "Separate sleeping areas",
+      "Child play corner",
+      "Family entertainment system",
+      "Extra storage space",
+    ],
+    maxOccupancy: 4,
+    bedType: "1 King-size bed and bunk beds/twin beds",
+    roomSize: "58 sq.m",
+    viewType: "Garden view",
+    additionalAmenities: [
+      "Child-friendly bathroom amenities",
+      "Mini-refrigerator",
+      "Microwave",
+      "Baby cot available on request",
+    ],
   },
   {
     title: "Luxury Rooms",
@@ -199,6 +325,24 @@ const rooms: RoomType[] = [
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766965/Vector-2_hhc5s7.png",
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766963/Vector_vursrq.png",
     ],
+    fullDescription:
+      "Our Luxury Rooms represent the epitome of sophisticated comfort and elegance. Each room is meticulously designed with handpicked furnishings, original artwork, and bespoke décor elements that create a sense of refined luxury. The plush king-size bed features premium linens and a pillow menu to ensure the perfect night's sleep. Step onto your private balcony to enjoy spectacular views while sipping a beverage from the premium mini-bar. The marble bathroom offers both a deep soaking tub and a separate rain shower, complemented by luxury toiletries and plush bathrobes.",
+    features: [
+      "Private furnished balcony",
+      "Designer furniture",
+      "Marble bathroom",
+      "Premium entertainment system",
+    ],
+    maxOccupancy: 2,
+    bedType: "1 King-size bed with pillow menu",
+    roomSize: "46 sq.m",
+    viewType: "Premium skyline view",
+    additionalAmenities: [
+      "Spa access",
+      "Evening turndown service",
+      "Premium mini-bar",
+      "Luxury bath amenities",
+    ],
   },
   {
     title: "Palace-Inspired / Royal Suites",
@@ -216,6 +360,24 @@ const rooms: RoomType[] = [
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766963/Vector-1_tjpgwl.png",
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766965/Vector-2_hhc5s7.png",
       "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744766963/Vector_vursrq.png",
+    ],
+    fullDescription:
+      "Our Palace-Inspired / Royal Suites offer an extraordinary experience of grandeur and sophistication. These magnificent accommodations feature a spacious master bedroom with a custom emperor-size bed, a separate living room with opulent furnishings, and a formal dining area perfect for entertaining. The extravagant bathroom features gold-plated fixtures, a Jacuzzi tub, and a steam shower. Throughout your stay, enjoy the attentive service of your dedicated butler, ready to fulfill your every wish. Each suite is adorned with crystal chandeliers, hand-painted murals, and luxury fabrics that create an atmosphere of regal splendor.",
+    features: [
+      "Grand living and dining areas",
+      "Master bedroom with canopy bed",
+      "Crystal chandeliers",
+      "Decorative fireplaces",
+    ],
+    maxOccupancy: 2,
+    bedType: "1 Emperor-size bed with luxury linens",
+    roomSize: "120 sq.m",
+    viewType: "Panoramic city and sea view",
+    additionalAmenities: [
+      "Dedicated butler service",
+      "Chauffeur-driven limousine service",
+      "In-suite dining with private chef option",
+      "Private check-in/out in suite",
     ],
   },
 ];

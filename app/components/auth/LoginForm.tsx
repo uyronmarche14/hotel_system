@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { FaFacebook, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaFacebook, FaEye, FaEyeSlash, FaArrowRight } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 
 export default function LoginForm() {
@@ -11,22 +11,23 @@ export default function LoginForm() {
   const [rememberMe, setRememberMe] = useState(false);
 
   return (
-    <div className="flex w-full">
+    <div className="w-full flex flex-col md:flex-row h-full">
       {/* Left form section */}
-      <div className="flex flex-col w-full md:w-1/2 p-8 lg:p-12 justify-center">
-        <div className="max-w-md mx-auto w-full">
-          <h1 className="text-brand-green text-2xl font-medium mb-2">Login.</h1>
-          <p className="text-sm text-gray-700 mb-6">
-            Don't have an account? <Link href="/register" className="text-brand-green hover:underline">Sign up</Link>
+      <div className="flex flex-col w-full md:w-1/2 p-4 md:p-8 lg:p-12 justify-center bg-white">
+        <div className="max-w-xl w-full mx-auto">
+          <h1 className="text-brand-green text-3xl font-medium mb-2">Login.</h1>
+          <p className="text-sm text-gray-700 mb-8">
+            Don't have an account? <Link href="/register" className="text-brand-green font-medium hover:underline">Sign up</Link>
           </p>
 
-          <form className="space-y-4">
+          <form className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm text-gray-700 mb-1">Email address</label>
               <input
                 type="email"
                 id="email"
-                className="w-full p-2 text-brand-green border border-brand-green rounded focus:outline-none focus:ring-1 focus:ring-brand-green"
+                className="w-full p-3 text-brand-green border border-brand-green rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green"
+                placeholder="your@email.com"
               />
             </div>
 
@@ -36,7 +37,8 @@ export default function LoginForm() {
                 <input
                   type={showPassword ? "text" : "password"}
                   id="password"
-                  className="w-full p-2 text-brand-green border border-brand-green rounded focus:outline-none focus:ring-1 focus:ring-brand-green"
+                  className="w-full p-3 text-brand-green border border-brand-green rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green"
+                  placeholder="••••••••"
                 />
                 <button 
                   type="button"
@@ -72,37 +74,43 @@ export default function LoginForm() {
 
             <button
               type="submit"
-              className="w-full flex justify-center items-center gap-2 py-2.5 px-4 bg-brand-green hover:bg-brand-green-hover text-white font-medium rounded transition"
+              className="w-full flex justify-center items-center gap-2 py-3 px-4 bg-brand-green hover:bg-brand-green-hover text-white font-medium rounded-md transition"
             >
               Sign In <span className="text-xl">→</span>
             </button>
           </form>
 
-          <div className="my-6 flex items-center">
+          <div className="my-8 flex items-center">
             <div className="flex-grow border-t border-gray-200"></div>
             <span className="flex-shrink mx-4 text-gray-600 text-sm">or</span>
             <div className="flex-grow border-t border-gray-200"></div>
           </div>
 
-          <div className="space-y-3">
-            <button className="text-brand-green w-full flex items-center justify-center gap-2 py-2 px-4 border border-brand-green rounded transition hover:bg-gray-50">
+          <div className="space-y-4">
+            <button className="text-brand-green w-full flex items-center justify-center gap-2 py-3 px-4 border border-brand-green rounded-md transition hover:bg-gray-50">
               <FcGoogle className="text-xl" />
               <span>Sign in with Google</span>
             </button>
-            <button className="text-brand-green w-full flex items-center justify-center gap-2 py-2 px-4 border border-brand-green rounded transition hover:bg-gray-50">
+            <button className="text-brand-green w-full flex items-center justify-center gap-2 py-3 px-4 border border-brand-green rounded-md transition hover:bg-gray-50">
               <FaFacebook className="text-xl text-blue-600" />
               <span>Sign in with Facebook</span>
             </button>
+          </div>
+
+          <div className="mt-8 pt-6 border-t border-gray-200">
+            <Link href="/register" className="w-full flex justify-center items-center gap-2 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-brand-green font-medium rounded-md transition">
+              New user? Create an account <FaArrowRight className="text-sm" />
+            </Link>
           </div>
         </div>
       </div>
 
       {/* Right image section */}
       <div className="hidden md:block md:w-1/2 relative">
-        <div className="absolute inset-0 flex flex-col">
-          <div className="relative w-full h-full overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="relative w-full h-full">
             <Image
-              src="https://res.cloudinary.com/ddnxfpziq/image/upload/v1745569291/Image_ux4eej.png" 
+              src="https://res.cloudinary.com/ddnxfpziq/image/upload/v1746813924/2_vkjogl.jpg" 
               alt="The Anetos Palace"
               fill
               className="object-cover"
@@ -110,18 +118,7 @@ export default function LoginForm() {
             />
             <div className="absolute inset-0 bg-black/30"></div>
             <div className="absolute bottom-0 left-0 right-0 p-8 text-white text-center">
-              <div className="bg-white/10 backdrop-blur-sm p-6 rounded">
-                <div className="flex justify-center mb-3">
-                  <img 
-                    src="/logo.png" 
-                    alt="Anetos Palace Logo" 
-                    className="h-16 w-16"
-                    onError={(e) => {
-                      e.currentTarget.src ="https://res.cloudinary.com/ddnxfpziq/image/upload/v1744609832/Vintage_and_Luxury_Hotel_Decorative_Ornamental_Logo_3_jm9wzq.png";
-
-                    }}
-                  />
-                </div>
+              <div className="bg-white/10 backdrop-blur-sm p-6 rounded-md">
                 <h2 className="text-2xl font-cinzel mb-2">THE ANETOS PALACE</h2>
                 <p className="text-sm opacity-80">Experience luxury beyond comparison</p>
               </div>

@@ -1,6 +1,6 @@
 "use client";
 import { useParams } from "next/navigation";
-import { rooms } from "@/app/data/rooms";
+import { rooms, getRoomsByCategory } from "@/app/data/rooms";
 import RoomCard from "@/app/components/RoomCard";
 import Link from "next/link";
 
@@ -9,7 +9,7 @@ const CategoryPage = () => {
   const category = params.category as string;
   
   // Filter rooms by the current category
-  const categoryRooms = rooms.filter((room) => room.category === category);
+  const categoryRooms = getRoomsByCategory(category);
   
   // Format category name for display (replace hyphens with spaces and capitalize)
   const formattedCategoryName = category
@@ -76,4 +76,4 @@ const CategoryPage = () => {
   );
 };
 
-export default CategoryPage; 
+export default CategoryPage;

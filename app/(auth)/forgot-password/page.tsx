@@ -8,10 +8,8 @@ export const metadata: Metadata = {
 
 export default function ForgotPasswordPage() {
   return (
-    <main className="flex min-h-screen">
-      <div className="flex flex-1">
-        <ForgotPasswordForm />
-      </div>
+    <main className="w-full">
+      <ForgotPasswordForm />
     </main>
   );
 } 

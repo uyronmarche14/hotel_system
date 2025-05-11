@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Inter } from "next/font/google";
 import { Cinzel_Decorative } from "next/font/google";
-import "../globals.css";
+import AuthLayout from "@/app/components/layouts/AuthLayout";
+import type { ReactNode } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,15 +27,14 @@ export const metadata: Metadata = {
   description: "Login or register for The Anetos Palace",
 };
 
-export default function AuthLayout({
+export default function AuthRouteLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  // This layout doesn't include Navbar or Footer components
+}: {
+  children: ReactNode;
+}) {
   return (
-    <div className={`w-full min-h-screen ${geistSans.variable} ${inter.variable} ${cinzelDecorative.variable} font-sans antialiased`}>
-      {children}
+    <div className={`${geistSans.variable} ${inter.variable} ${cinzelDecorative.variable} font-sans antialiased`}>
+      <AuthLayout>{children}</AuthLayout>
     </div>
   );
 } 

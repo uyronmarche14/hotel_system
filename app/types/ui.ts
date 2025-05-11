@@ -4,11 +4,15 @@ export type ButtonVariant =
   | "danger"
   | "success"
   | "warning"
-  | "info";
+  | "info"
+  | "ghost"
+  | "link";
 
 export type ALinkVariant = "primary" | "secondary" | "link";
 
 export type Size = "sm" | "md" | "lg";
+
+export type ButtonSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 export interface BaseProps {
   className?: string;
