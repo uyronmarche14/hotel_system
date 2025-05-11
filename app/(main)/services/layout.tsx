@@ -2,8 +2,8 @@ import React from "react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Our Services | The Anetos Palace",
-  description: "Explore our wide range of luxury accommodations and services at The Anetos Palace.",
+  title: "Our Services | The Solace Manor",
+  description: "Explore our wide range of luxury accommodations and services at The Solace Manor.",
 };
 
 export default function ServicesLayout({

@@ -3,15 +3,18 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FaBell, FaUserCircle, FaBars, FaTimes } from "react-icons/fa";
-import Button from "@/app/components/ui/buttons";
+import { useAuth } from "@/app/context/AuthContext";
+import { usePathname } from "next/navigation";
 
 const UserNavbar = () => {
   const [notificationCount, setNotificationCount] = useState(3);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  const logo = "/images/hotel-logo.png";
-  const userProfilePic = "https://res.cloudinary.com/ddnxfpziq/image/upload/v1746281526/photo_2025-04-08_20-22-13_z7mxk8.jpg";
+  const { user, logout } = useAuth();
+  const pathname = usePathname();
+  
+  const userProfilePic = user?.profilePic || "https://res.cloudinary.com/ddnxfpziq/image/upload/v1746281526/photo_2025-04-08_20-22-13_z7mxk8.jpg";
 
   const toggleProfileMenu = () => {
     setShowProfileMenu(!showProfileMenu);
@@ -25,8 +28,14 @@ const UserNavbar = () => {
     { name: "Home", path: "/dashboard" },
     { name: "Rooms", path: "/dashboard" },
     { name: "Bookings", path: "/bookings" },
-    { name: "Profile", path: "/profile" }
+    { name: "Profile", path: "/profile" },
+    { name: "About", path: "/about" },
+    { name: "Contact", path: "/contact" }
   ];
+
+  const isActive = (path: string) => {
+    return pathname === path;
+  };
 
   return (
     <nav className="w-full h-auto sm:h-24 flex flex-wrap items-center justify-between bg-[#1C3F32] px-4 sm:px-8 py-3 sm:py-0">
@@ -36,7 +45,7 @@ const UserNavbar = () => {
             <span className="text-[#1C3F32] font-bold text-sm sm:text-xl">AP</span>
           </div>
           <h1 className="cinzel text-lg sm:text-2xl md:text-3xl text-white font-bold truncate">
-            THE ANETOS PALACE
+            THE SOLACE MANOR
           </h1>
         </Link>
       </div>
@@ -61,7 +70,9 @@ const UserNavbar = () => {
           <Link
             key={index}
             href={item.path}
-            className="text-white hover:text-gray-200 transition-colors duration-200 font-medium hover:underline"
+            className={`text-white transition-colors duration-200 font-medium hover:underline ${
+              isActive(item.path) ? 'underline font-bold' : ''
+            }`}
           >
             {item.name}
           </Link>
@@ -76,7 +87,9 @@ const UserNavbar = () => {
               <Link
                 key={index}
                 href={item.path}
-                className="text-white hover:text-gray-200 transition-colors duration-200 font-medium hover:underline px-2"
+                className={`text-white transition-colors duration-200 font-medium hover:underline px-2 ${
+                  isActive(item.path) ? 'underline font-bold' : ''
+                }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.name}
@@ -117,7 +130,7 @@ const UserNavbar = () => {
                 }}
               />
             </div>
-            <span className="hidden md:inline">John Doe</span>
+            <span className="hidden md:inline">{user?.name || "Guest"}</span>
           </button>
           
           {/* Profile Dropdown Menu */}
@@ -127,27 +140,33 @@ const UserNavbar = () => {
                 <Link 
                   href="/profile" 
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => setShowProfileMenu(false)}
                 >
                   My Profile
                 </Link>
                 <Link 
                   href="/bookings" 
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => setShowProfileMenu(false)}
                 >
                   My Bookings
                 </Link>
                 <Link 
                   href="/settings" 
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => setShowProfileMenu(false)}
                 >
                   Settings
                 </Link>
-                <Link 
-                  href="/login" 
-                  className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                <button 
+                  onClick={() => {
+                    logout();
+                    setShowProfileMenu(false);
+                  }}
+                  className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                 >
                   Sign Out
-                </Link>
+                </button>
               </div>
             </div>
           )}

@@ -10,7 +10,7 @@ const Footer = () => {
           {/* About Us Section */}
           <div>
             <div className="w-32 sm:w-40 h-10 bg-white flex items-center justify-center rounded-md mb-4">
-              <span className="text-[#2F4F4F] font-bold text-xs sm:text-sm">THE ANETOS PALACE</span>
+              <span className="text-[#2F4F4F] font-bold text-xs sm:text-sm">THE SOLACE MANOR</span>
             </div>
             <div className="mt-2 sm:mt-4 space-y-1 sm:space-y-2 text-sm">
               <Link
@@ -126,7 +126,7 @@ const Footer = () => {
         {/* Bottom Section */}
         <div className="mt-6 sm:mt-8 pt-4 sm:pt-8 border-t border-gray-600 flex flex-col md:flex-row justify-between items-center">
           <p className="text-xs sm:text-sm text-center md:text-left">
-            © 2025 The Anetos Palace. All rights reserved.
+            © 2025 The Solace Manor. All rights reserved.
           </p>
           <div className="flex space-x-4 mt-4 md:mt-0">
             <Link href="#" className="hover:opacity-80">

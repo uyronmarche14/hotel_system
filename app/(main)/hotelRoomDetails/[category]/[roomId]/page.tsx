@@ -1,8 +1,9 @@
 "use client";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { rooms } from "@/app/data/rooms";
 import SuggestionCard from "@/app/components/ui/suggestionCard";
 import Link from "next/link";
+import { useAuth } from "@/app/context/AuthContext";
 import {
   FaStar,
   FaStarHalf,
@@ -27,6 +28,9 @@ const RoomDetails = () => {
   const urlLocation =
     "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3861.802548850809!2d121.04155931482183!3d14.553551689828368!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397c8efd99f5459%3A0xf26e2c5e8a39bc!2sTaguig%2C%20Metro%20Manila!5e0!3m2!1sen!2sph!4v1629789045693!5m2!1sen!2sph";
   const params = useParams();
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
+  
   const category = params.category as string;
   const roomId = params.roomId as string;
   
@@ -37,6 +41,21 @@ const RoomDetails = () => {
       return r.category === category && (titleSlug === roomId || r.href.includes(roomId));
     }
   );
+
+  const handleBookNow = () => {
+    if (isAuthenticated) {
+      // Proceed with booking if authenticated - use the path in the user route group
+      router.push(`/bookings/new?roomId=${roomId}&category=${category}`);
+    } else {
+      // Redirect to login if not authenticated
+      router.push(`/login?redirect=/bookings/new?roomId=${roomId}&category=${category}`);
+    }
+  };
+
+  const handleCheckAvailability = () => {
+    // This is available to all users, authenticated or not
+    router.push(`/hotelRoomDetails/${category}/${roomId}/availability`);
+  };
 
   if (!room) {
     return (
@@ -177,7 +196,10 @@ const RoomDetails = () => {
         <div className="mb-6">
           <div className="flex flex-row justify-between items-center">
             <h1 className="text-4xl font-bold text-black">{room.title}</h1>
-            <button className="w-[273px] bg-[#1C3F32] text-white py-3 rounded-md hover:bg-[#15332a] transition-colors">
+            <button 
+              onClick={handleCheckAvailability}
+              className="w-[273px] bg-[#1C3F32] text-white py-3 rounded-md hover:bg-[#15332a] transition-colors"
+            >
               See Room Availability
             </button>
           </div>
@@ -243,11 +265,31 @@ const RoomDetails = () => {
           </div>
 
           {/* Right Column - Booking Widget & Highlights */}
-          <div className="w-full lg:w-1/3 mt-8 lg:mt-0 flex justify-end items-end">
+          <div className="w-full lg:w-1/3 mt-8 lg:mt-0 flex flex-col">
             {/* Booking Widget */}
+            <div className="w-full bg-white shadow-lg rounded-lg p-6 mb-6">
+              <h3 className="text-xl font-bold text-black mb-4">Book This Room</h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">Price per night:</span>
+                  <span className="text-2xl font-bold text-[#1C3F32]">${room.price || 199}</span>
+                </div>
+                <button
+                  onClick={handleBookNow}
+                  className="w-full bg-[#1C3F32] text-white py-3 rounded-md hover:bg-[#15332a] transition-colors"
+                >
+                  {isAuthenticated ? "Book Now" : "Login to Book"}
+                </button>
+                {!isAuthenticated && (
+                  <p className="text-sm text-gray-600 text-center mt-2">
+                    You need to be logged in to book a room.
+                  </p>
+                )}
+              </div>
+            </div>
 
             {/* Highlights */}
-            <div className="w-[400px] h-[300px] bg-white shadow-lg rounded-lg p-6 gap-y-4">
+            <div className="w-full bg-white shadow-lg rounded-lg p-6">
               <h3 className="text-xl font-bold text-black mb-4">Highlights</h3>
               <div className="space-y-4">
                 {highlights.map((highlight, index) => (

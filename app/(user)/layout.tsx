@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import UserLayout from "@/app/components/layouts/UserLayout";
 
 export const metadata: Metadata = {
-  title: "User Portal | The Anetos Palace",
-  description: "Your personal portal for The Anetos Palace",
+  title: "User Portal | The Solace Manor",
+  description: "Your personal portal for The Solace Manor",
 };
 
 export default function UserRouteLayout({

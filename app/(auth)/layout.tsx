@@ -23,8 +23,8 @@ const cinzelDecorative = Cinzel_Decorative({
 });
 
 export const metadata: Metadata = {
-  title: "Authentication | The Anetos Palace",
-  description: "Login or register for The Anetos Palace",
+  title: "Authentication | The Solace Manor",
+  description: "Login or register for The Solace Manor",
 };
 
 export default function AuthRouteLayout({

@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import "../../globals.css";
 
 export const metadata: Metadata = {
-  title: "Rooms | The Anetos Palace",
-  description: "Explore our luxurious rooms and suites at The Anetos Palace",
+  title: "Rooms | The Solace Manor",
+  description: "Explore our luxurious rooms and suites at The Solace Manor",
 };
 
 export default function RoomsLayout({

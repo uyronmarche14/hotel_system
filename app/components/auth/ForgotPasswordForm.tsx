@@ -83,7 +83,7 @@ export default function ForgotPasswordForm() {
           <div className="relative w-full h-full">
             <Image
               src="https://res.cloudinary.com/ddnxfpziq/image/upload/v1745569291/Image_ux4eej.png" 
-              alt="The Anetos Palace"
+              alt="The Solace Manor"
               fill
               className="object-cover"
               priority
@@ -91,7 +91,7 @@ export default function ForgotPasswordForm() {
             <div className="absolute inset-0 bg-black/30"></div>
             <div className="absolute bottom-0 left-0 right-0 p-8 text-white text-center">
               <div className="bg-white/10 backdrop-blur-sm p-6 rounded-md">
-                <h2 className="text-2xl font-cinzel mb-2">THE ANETOS PALACE</h2>
+                <h2 className="text-2xl font-cinzel mb-2">THE SOLACE MANOR</h2>
                 <p className="text-sm opacity-80">Experience luxury beyond comparison</p>
               </div>
             </div>

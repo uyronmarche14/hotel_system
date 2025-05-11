@@ -2,8 +2,8 @@ import RegisterForm from "@/app/components/auth/RegisterForm";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Create Account | The Anetos Palace",
-  description: "Register for a new account at The Anetos Palace",
+  title: "Create Account | The Solace Manor",
+  description: "Register for a new account at The Solace Manor",
 };
 
 export default function RegisterPage() {

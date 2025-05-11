@@ -1,16 +1,23 @@
 import { ReactNode } from "react";
 import type { Metadata } from "next";
-import MainLayout from "@/app/components/layouts/MainLayout";
+import Navbar from "@/app/components/normal/navbar";
+import Footer from "@/app/components/normal/footer";
 
 export const metadata: Metadata = {
-  title: "The Anetos Palace",
-  description: "Experience luxury beyond comparison at The Anetos Palace",
+  title: "The Solace Manor - Rooms & Suites",
+  description: "Explore our luxurious rooms and suites",
 };
 
-export default function MainRouteLayout({
+export default function MainLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-  return <MainLayout>{children}</MainLayout>;
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      <main className="flex-grow">{children}</main>
+      <Footer />
+    </div>
+  );
 } 
