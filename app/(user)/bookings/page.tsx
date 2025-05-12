@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaCheck, FaExclamationCircle } from "react-icons/fa";
+import { FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaCheck, FaExclamationCircle, FaChartBar } from "react-icons/fa";
 import { getUserBookings, cancelBooking, Booking } from "@/app/lib/bookingService";
+
+const FALLBACK_IMAGE = "/images/room-placeholder.jpg";
 
 export default function BookingsPage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -103,6 +105,21 @@ export default function BookingsPage() {
     }).format(price);
   };
 
+  // Function to safely get image URLs - handles fallbacks for external URLs
+  const getImageUrl = (url: string) => {
+    // If URL is empty or undefined, return fallback
+    if (!url) return FALLBACK_IMAGE;
+    
+    // If URL is already a relative path (local image), use it
+    if (url.startsWith('/')) return url;
+    
+    // Handle known domains
+    if (url.includes('res.cloudinary.com')) return url;
+    
+    // For other URLs, use fallback
+    return FALLBACK_IMAGE;
+  };
+
   // Loading state
   if (isLoading && email) {
     return (
@@ -171,18 +188,24 @@ export default function BookingsPage() {
     <main className="container mx-auto px-4 py-6 sm:py-8 max-w-6xl">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold text-[#1C3F32]">My Bookings</h1>
-        <div className="text-sm text-gray-600">
-          Viewing bookings for: <span className="font-medium">{email}</span>
-          <button 
-            onClick={() => {
-              setEmail('');
-              localStorage.removeItem('userEmail');
-              sessionStorage.removeItem('userEmail');
-            }}
-            className="ml-2 text-[#1C3F32] underline"
-          >
-            Change
-          </button>
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-gray-600">
+            Viewing bookings for: <span className="font-medium">{email}</span>
+            <button 
+              onClick={() => {
+                setEmail('');
+                localStorage.removeItem('userEmail');
+                sessionStorage.removeItem('userEmail');
+              }}
+              className="ml-2 text-[#1C3F32] underline"
+            >
+              Change
+            </button>
+          </div>
+          <Link href="/bookings/history" className="text-[#1C3F32] hover:underline text-sm">
+            <FaChartBar className="inline mr-1" />
+            View Booking History
+          </Link>
         </div>
       </div>
       
@@ -206,12 +229,13 @@ export default function BookingsPage() {
                   <div className="w-full md:w-1/4">
                     <div className="relative w-full h-32 md:h-full rounded-lg overflow-hidden">
                       <Image
-                        src={booking.roomImage}
+                        src={getImageUrl(booking.roomImage)}
                         alt={booking.roomTitle}
                         fill
                         className="object-cover"
                         onError={(e) => {
-                          e.currentTarget.src = "https://via.placeholder.com/300x200";
+                          const target = e.target as HTMLImageElement;
+                          target.src = FALLBACK_IMAGE;
                         }}
                       />
                     </div>
@@ -311,12 +335,13 @@ export default function BookingsPage() {
                   <div className="w-full md:w-1/4">
                     <div className="relative w-full h-32 md:h-full rounded-lg overflow-hidden">
                       <Image
-                        src={booking.roomImage}
+                        src={getImageUrl(booking.roomImage)}
                         alt={booking.roomTitle}
                         fill
                         className="object-cover"
                         onError={(e) => {
-                          e.currentTarget.src = "https://via.placeholder.com/300x200";
+                          const target = e.target as HTMLImageElement;
+                          target.src = FALLBACK_IMAGE;
                         }}
                       />
                     </div>

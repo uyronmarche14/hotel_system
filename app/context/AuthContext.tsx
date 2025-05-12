@@ -22,7 +22,7 @@ type AuthContextType = {
   login: (email: string, password: string, redirectUrl?: string) => Promise<boolean>;
   logout: () => void;
   confirmLogout: () => Promise<boolean>;
-  register: (name: string, email: string, password: string, redirectUrl?: string) => Promise<boolean>;
+  register: (name: string, email: string, password: string, confirmPassword?: string, redirectUrl?: string) => Promise<boolean>;
   loading: boolean;
   error: string | null;
 };
@@ -215,9 +215,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Register function
-  const register = async (name: string, email: string, password: string, redirectUrl?: string): Promise<boolean> => {
+  const register = async (name: string, email: string, password: string, confirmPassword?: string, redirectUrl?: string): Promise<boolean> => {
     setLoading(true);
     setError(null);
+    
+    // Validate password confirmation if provided
+    if (confirmPassword && password !== confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return false;
+    }
+    
+    // Validate password length
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      setLoading(false);
+      return false;
+    }
     
     console.log(`Attempting registration for user: ${email}`);
     console.log(`API URL: ${API_URL}/auth/register`);
@@ -227,9 +241,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name,
         email,
         password,
+      }, {
+        timeout: 15000,
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       
       console.log('Registration response:', response.data);
+      
+      if (!response.data.success) {
+        setLoading(false);
+        setError(response.data.message || 'Registration failed');
+        return false;
+      }
+      
       const { user, token } = response.data;
       
       // Instead of storing user data and redirecting to dashboard,
@@ -245,14 +271,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return true;
     } catch (error: any) {
       setLoading(false);
-      const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
+      
+      // Improved error handling
+      let errorMessage = 'Registration failed. Please try again.';
+      
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        console.error('Server error response status:', error.response.status);
+        console.error('Server error response data:', error.response.data);
+        
+        errorMessage = error.response.data?.message || 'Server error during registration';
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.error('No response received:', error.request);
+        errorMessage = 'No response from server. Please check your connection.';
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        console.error('Request error:', error.message);
+        errorMessage = 'Request failed. Please try again.';
+      }
+      
       setError(errorMessage);
-      console.error('Registration failed', error);
-      console.error('Error details:', {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message
-      });
+      console.error('Registration failed:', error.toString());
       return false;
     }
   };

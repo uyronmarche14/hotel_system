@@ -5,6 +5,7 @@ import SuggestionCard from "@/app/components/ui/suggestionCard";
 import Link from "next/link";
 import { useAuth } from "@/app/context/AuthContext";
 import Image from "next/image";
+import { useState } from "react";
 import {
   FaStar,
   FaStarHalf,
@@ -22,9 +23,11 @@ import {
   FaTv,
   FaVoicemail,
   FaShieldAlt,
+  FaArrowRight,
 } from "react-icons/fa";
 
 const RoomDetails = () => {
+  const [showMoreSuggestions, setShowMoreSuggestions] = useState(false);
   const urlLocation =
     "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3861.802548850809!2d121.04155931482183!3d14.553551689828368!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397c8efd99f5459%3A0xf26e2c5e8a39bc!2sTaguig%2C%20Metro%20Manila!5e0!3m2!1sen!2sph!4v1629789045693!5m2!1sen!2sph";
   const params = useParams();
@@ -199,12 +202,7 @@ const RoomDetails = () => {
         <div className="mb-6">
           <div className="flex flex-row justify-between items-center">
             <h1 className="text-4xl font-bold text-black">{room.title}</h1>
-            <button 
-              onClick={handleCheckAvailability}
-              className="w-[273px] bg-[#1C3F32] text-white py-3 rounded-md hover:bg-[#15332a] transition-colors"
-            >
-              See Room Availability
-            </button>
+           
           </div>
 
           <div className="flex items-center gap-2">
@@ -306,52 +304,152 @@ const RoomDetails = () => {
                 ))}
               </ul>
             </div>
-
-            {/* Map */}
-            <div className="border border-green-200 rounded-lg p-6 bg-white shadow-md">
-              <h3 className="text-xl font-bold text-[#1C3F32] mb-4">
-                Location
-              </h3>
-              <div className="w-full h-40 bg-gray-200 mb-2 overflow-hidden rounded-md">
-                <iframe
-                  src={urlLocation}
-                  className="w-full h-full border-0"
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title="Hotel Location Map"
-                />
-              </div>
-              <p className="text-sm text-gray-600">
-                Central Signal Village, Taguig City, Metro Manila, Philippines
-              </p>
-            </div>
           </div>
         </div>
 
+        {/* Map Section - Full Width */}
+        <section className="mt-8 mb-12">
+          <div className="border border-green-200 rounded-lg p-6 bg-white shadow-md">
+            <h3 className="text-2xl font-bold text-[#1C3F32] mb-4">
+              Location
+            </h3>
+            <div className="w-full h-[400px] bg-gray-200 mb-4 overflow-hidden rounded-md">
+              <iframe
+                src={urlLocation}
+                className="w-full h-full border-0"
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Hotel Location Map"
+              />
+            </div>
+            <p className="text-gray-600">
+              123 Acacia Street, Central Signal Village, Taguig City, Metro Manila, 1630, Philippines
+            </p>
+          </div>
+        </section>
+
         {/* Related Rooms Section */}
         <section className="my-12">
-          <h2 className="text-2xl font-bold text-black mb-6">
-            You May Also Like
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Related rooms component here */}
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-black">
+              You May Also Like
+            </h2>
+            <Link
+              href={`/hotelRoomDetails/${category}`}
+              className="text-[#1C3F32] font-medium hover:underline flex items-center"
+            >
+              View All {formattedCategoryName} Rooms
+              <FaArrowRight className="ml-2 h-3 w-3" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {rooms
               .filter(
                 (r) => r.category === room.category && r.title !== room.title,
               )
-              .slice(0, 3)
+              .slice(0, showMoreSuggestions ? 12 : 6)
               .map((relatedRoom, index) => (
-                <SuggestionCard
-                  key={index}
-                  title={relatedRoom.title}
-                  price={relatedRoom.price}
-                  location={relatedRoom.location}
-                  imageUrl={relatedRoom.imageUrl}
-                  href={`/hotelRoomDetails/${category}/${relatedRoom.title
-                    .toLowerCase()
-                    .replace(/ /g, "-")}`}
-                />
+                <div key={index} className="h-full">
+                  <SuggestionCard
+                    title={relatedRoom.title}
+                    price={relatedRoom.price}
+                    location={relatedRoom.location}
+                    imageUrl={relatedRoom.imageUrl}
+                    href={`/hotelRoomDetails/${category}/${relatedRoom.title
+                      .toLowerCase()
+                      .replace(/ /g, "-")}`}
+                  />
+                </div>
+              ))}
+          </div>
+          
+          {/* Show More Button */}
+          {rooms.filter((r) => r.category === room.category && r.title !== room.title).length > 6 && (
+            <div className="flex justify-center mt-8">
+              <button
+                onClick={() => setShowMoreSuggestions(!showMoreSuggestions)}
+                className="bg-[#1C3F32] text-white px-6 py-3 rounded-md hover:bg-[#15332a] transition-colors flex items-center"
+              >
+                {showMoreSuggestions ? "Show Less" : "Show More Suggestions"}
+                {!showMoreSuggestions && <FaArrowRight className="ml-2 h-3 w-3" />}
+              </button>
+            </div>
+          )}
+        </section>
+
+        {/* Popular Choices Section */}
+        <section className="my-12 pt-12 border-t border-gray-200">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-black">
+              Popular Choices
+            </h2>
+            <Link
+              href="/dashboard"
+              className="text-[#1C3F32] font-medium hover:underline flex items-center"
+            >
+              Explore All Rooms
+              <FaArrowRight className="ml-2 h-3 w-3" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {rooms
+              .filter(
+                (r) => r.category !== room.category && r.rating && r.rating >= 4.5
+              )
+              .slice(0, 3)
+              .map((popularRoom, index) => (
+                <div key={index} className="h-full">
+                  <SuggestionCard
+                    title={popularRoom.title}
+                    price={popularRoom.price}
+                    location={popularRoom.location}
+                    imageUrl={popularRoom.imageUrl}
+                    href={`/hotelRoomDetails/${popularRoom.category}/${popularRoom.title
+                      .toLowerCase()
+                      .replace(/ /g, "-")}`}
+                  />
+                </div>
+              ))}
+          </div>
+        </section>
+        
+        {/* Special Offers Section */}
+        <section className="my-12 pt-12 border-t border-gray-200 bg-green-50 p-8 rounded-xl">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-2xl font-bold text-[#1C3F32]">
+                Special Offers
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">Limited time deals on select rooms</p>
+            </div>
+            <Link
+              href="/specials"
+              className="text-[#1C3F32] font-medium hover:underline flex items-center"
+            >
+              View All Offers
+              <FaArrowRight className="ml-2 h-3 w-3" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {rooms
+              .filter((r) => r.price > 5000) // Assuming higher priced rooms can have discounts
+              .slice(0, 3)
+              .map((specialRoom, index) => (
+                <div key={index} className="h-full relative">
+                  <div className="absolute top-4 right-4 bg-red-500 text-white px-4 py-1 rounded-full z-10 font-bold">
+                    20% OFF
+                  </div>
+                  <SuggestionCard
+                    title={specialRoom.title}
+                    price={Math.round(specialRoom.price * 0.8)} // Apply 20% discount
+                    location={specialRoom.location}
+                    imageUrl={specialRoom.imageUrl}
+                    href={`/hotelRoomDetails/${specialRoom.category}/${specialRoom.title
+                      .toLowerCase()
+                      .replace(/ /g, "-")}`}
+                  />
+                </div>
               ))}
           </div>
         </section>

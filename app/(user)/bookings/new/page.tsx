@@ -9,6 +9,8 @@ import { rooms, RoomType } from '@/app/data/rooms';
 import { FaMapMarkerAlt, FaCalendarAlt, FaUser, FaCreditCard, FaCheck, FaWifi, FaCoffee, FaSnowflake } from 'react-icons/fa';
 import { createBooking } from '@/app/lib/bookingService';
 
+const FALLBACK_IMAGE = "/images/room-placeholder.jpg";
+
 export default function BookingConfirmationPage() {
   const [loading, setLoading] = useState(false);
   const [bookingCompleted, setBookingCompleted] = useState(false);
@@ -38,6 +40,12 @@ export default function BookingConfirmationPage() {
   const [checkOutDate, setCheckOutDate] = useState('Wed 7 April 2025');
   const [nightsStay, setNightsStay] = useState(2);
   const [adultsCount, setAdultsCount] = useState(2);
+  
+  // Calculate prices
+  const basePrice = room ? room.price * nightsStay : 0;
+  const taxRate = 0.12; // 12% tax
+  const taxAndFees = Math.round(basePrice * taxRate);
+  const totalPrice = basePrice + taxAndFees;
 
   // Get room info from URL parameters
   const roomId = searchParams.get('roomId');
@@ -128,10 +136,10 @@ export default function BookingConfirmationPage() {
         lastName: formData.lastName,
         email: formData.email,
         phone: formData.phone,
-        roomType: room.roomType || room.category || '',
+        roomType: room.category || '',
         roomTitle: room.title || '',
         roomCategory: room.category || '',
-        roomImage: room.imageSrc || room.imageUrl || '',
+        roomImage: room.imageUrl || '',
         checkIn: formatApiDate(checkInDate),
         checkOut: formatApiDate(checkOutDate),
         nights: Number(nightsStay),
@@ -179,6 +187,21 @@ export default function BookingConfirmationPage() {
     }
   };
 
+  // Function to safely get image URLs - handles fallbacks for external URLs
+  const getImageUrl = (url: string) => {
+    // If URL is empty or undefined, return fallback
+    if (!url) return FALLBACK_IMAGE;
+    
+    // If URL is already a relative path (local image), use it
+    if (url.startsWith('/')) return url;
+    
+    // Handle known domains
+    if (url.includes('res.cloudinary.com')) return url;
+    
+    // For other URLs, use fallback
+    return FALLBACK_IMAGE;
+  };
+
   if (!room) {
     return (
       <main className="container mx-auto px-4 py-6 sm:py-8">
@@ -224,11 +247,6 @@ export default function BookingConfirmationPage() {
       </main>
     );
   }
-
-  // Calculate pricing
-  const basePrice = room.price * nightsStay;
-  const taxAndFees = Math.round(basePrice * 0.12);
-  const totalPrice = basePrice + taxAndFees;
 
   return (
     <main className="container mx-auto px-4 py-6 sm:py-8">
@@ -499,7 +517,7 @@ export default function BookingConfirmationPage() {
           <div className="mb-6">
             <div className="relative h-40 w-full mb-4 rounded overflow-hidden">
               <img
-                src={room.imageUrl}
+                src={getImageUrl(room.imageUrl || '')}
                 alt={room.title}
                 className="object-cover w-full h-full"
               />

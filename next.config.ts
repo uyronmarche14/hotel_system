@@ -11,6 +11,26 @@ const nextConfig = {
         hostname: 'res.cloudinary.com',
         pathname: '**',
       },
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'example.com',
+        pathname: '**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: '**',
+        pathname: '**',
+      },
     ],
   },
   // Improve performance and stability
@@ -19,8 +39,6 @@ const nextConfig = {
     optimizeCss: true,
     // Ensure vendor chunks are properly created
     optimizePackageImports: ['react-icons'],
-    // Improve Fast Refresh by not invalidating modules
-    fastRefresh: true,
   },
   // Add proxy configuration to avoid CORS issues
   async rewrites() {

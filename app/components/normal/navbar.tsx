@@ -3,13 +3,15 @@ import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Button from "@/app/components/ui/buttons";
-import { FaBars, FaTimes, FaUserCircle } from "react-icons/fa";
+import { FaBars, FaTimes, FaUserCircle, FaCalendarCheck } from "react-icons/fa";
 import { useAuth } from "@/app/context/AuthContext";
 import { usePathname } from "next/navigation";
+import BookingDropdown from "../user/BookingDropdown";
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showBookingDropdown, setShowBookingDropdown] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const logo ="https://res.cloudinary.com/ddnxfpziq/image/upload/v1746767008/preview__1_-removebg-preview_xrlzgr.png";
@@ -18,6 +20,7 @@ const Navbar = () => {
   const pathname = usePathname();
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const profileButtonRef = useRef<HTMLButtonElement>(null);
+  const bookingButtonRef = useRef<HTMLButtonElement>(null);
   const navbarRef = useRef<HTMLDivElement>(null);
   const confirmLogoutRef = useRef<HTMLDivElement>(null);
   
@@ -37,6 +40,14 @@ const Navbar = () => {
     }
     
     setShowProfileMenu((prev) => !prev);
+    // Close booking dropdown if open
+    if (showBookingDropdown) setShowBookingDropdown(false);
+  };
+  
+  const toggleBookingDropdown = () => {
+    setShowBookingDropdown((prev) => !prev);
+    // Close profile menu if open
+    if (showProfileMenu) setShowProfileMenu(false);
   };
   
   const handleLogoutClick = () => {
@@ -147,6 +158,29 @@ const Navbar = () => {
             {item.name}
           </Link>
         ))}
+        
+        {/* Bookings Button with Dropdown for authenticated users */}
+        {isAuthenticated && (
+          <div className="relative">
+            <button
+              ref={bookingButtonRef}
+              onClick={toggleBookingDropdown}
+              className={`text-white transition-colors duration-200 font-medium hover:underline flex items-center ${
+                isActive('/bookings') ? 'underline font-bold' : ''
+              }`}
+            >
+              <FaCalendarCheck className="mr-1" />
+              My Bookings
+            </button>
+            {/* Booking Dropdown Component */}
+            <div className="relative">
+              <BookingDropdown 
+                isOpen={showBookingDropdown} 
+                onClose={() => setShowBookingDropdown(false)} 
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Authentication Buttons or User Profile */}
@@ -203,6 +237,13 @@ const Navbar = () => {
                   >
                     My Bookings
                   </Link>
+                  <Link 
+                    href="/bookings/history" 
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={() => setShowProfileMenu(false)}
+                  >
+                    Booking History
+                  </Link>
                   <button 
                       onClick={handleLogoutClick}
                     className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
@@ -249,74 +290,116 @@ const Navbar = () => {
               </Link>
             ))}
             
-            {isAuthenticated ? (
-              <div className="flex flex-col gap-2 px-2">
-                <Link 
-                  href="/profile" 
-                  className="text-white hover:text-gray-200 transition-colors duration-200 font-medium hover:underline"
+            {/* Add Bookings link for mobile when authenticated */}
+            {isAuthenticated && (
+              <Link
+                href="/bookings"
+                className={`text-white transition-colors duration-200 font-medium hover:underline px-2 flex items-center ${
+                  isActive('/bookings') ? 'underline font-bold' : ''
+                }`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <FaCalendarCheck className="mr-1" />
+                My Bookings
+              </Link>
+            )}
+          </div>
+          
+          {/* Mobile authentication buttons */}
+          {!isAuthenticated && (
+            <div className="flex flex-col space-y-3 mt-4 px-2">
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="bg-[#1C3F32] text-white py-2 px-4 rounded text-center font-medium"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/register"
+                onClick={() => setMobileMenuOpen(false)}
+                className="bg-white text-[#1C3F32] border border-[#1C3F32] py-2 px-4 rounded text-center font-medium"
+              >
+                Register
+              </Link>
+            </div>
+          )}
+          
+          {/* Mobile user profile options */}
+          {isAuthenticated && (
+            <div className="border-t border-white/20 mt-4 pt-3 px-2">
+              <div className="flex items-center mb-3">
+                <div className="w-8 h-8 rounded-full overflow-hidden bg-white/10 flex items-center justify-center mr-2">
+                  {user?.profilePic ? (
+                    <Image
+                      src={user.profilePic}
+                      alt="User Profile"
+                      width={32}
+                      height={32}
+                      className="object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = "/images/default-user.png";
+                      }}
+                    />
+                  ) : (
+                    <FaUserCircle className="text-white text-xl" />
+                  )}
+                </div>
+                <span className="text-white font-medium">{user?.name || "User"}</span>
+              </div>
+              
+              <div className="flex flex-col space-y-2">
+                <Link
+                  href="/profile"
                   onClick={() => setMobileMenuOpen(false)}
+                  className="text-white/90 hover:text-white text-sm py-1"
                 >
                   My Profile
                 </Link>
-                <Link 
-                  href="/bookings" 
-                  className="text-white hover:text-gray-200 transition-colors duration-200 font-medium hover:underline"
+                <Link
+                  href="/bookings/history"
                   onClick={() => setMobileMenuOpen(false)}
+                  className="text-white/90 hover:text-white text-sm py-1"
                 >
-                  My Bookings
+                  Booking History
                 </Link>
-                <button 
-                    onClick={handleLogoutClick}
-                  className="text-white hover:text-gray-200 transition-colors duration-200 font-medium hover:underline text-left"
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogoutClick();
+                  }}
+                  className="text-red-300 hover:text-red-200 text-sm py-1 text-left"
                 >
                   Sign Out
                 </button>
               </div>
-            ) : (
-              <div className="flex mt-4 gap-2 px-2">
-                <Link href="/login" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
-                  <Button
-                    label="Sign In"
-                    className="h-10 w-full hover:bg-opacity-90 transition-colors duration-200"
-                  />
-                </Link>
-                <Link href="/register" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
-                  <Button
-                    variant="secondary"
-                    label="Register"
-                    className="h-10 w-full hover:bg-opacity-90 transition-colors duration-200"
-                  />
-                </Link>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
-    </nav>
-
-      {/* Logout Confirmation Modal */}
+      </nav>
+      
+      {/* Logout confirmation dialog */}
       {showLogoutConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10000]">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
           <div 
             ref={confirmLogoutRef}
-            className="bg-white rounded-lg p-6 max-w-sm w-full mx-4"
+            className="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl"
           >
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Confirm Logout</h3>
-            <p className="text-sm text-gray-500 mb-6">
-              Are you sure you want to log out?
-            </p>
+            <h3 className="text-lg font-semibold mb-3">Confirm Logout</h3>
+            <p className="text-gray-600 mb-6">Are you sure you want to log out of your account?</p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={cancelLogout}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmLogout}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors"
               >
-                Logout
+                Log Out
               </button>
             </div>
           </div>

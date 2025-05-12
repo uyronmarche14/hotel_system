@@ -2,13 +2,15 @@
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FaBell, FaUserCircle, FaBars, FaTimes } from "react-icons/fa";
+import { FaBell, FaUserCircle, FaBars, FaTimes, FaCalendarCheck } from "react-icons/fa";
 import { useAuth } from "@/app/context/AuthContext";
 import { usePathname } from "next/navigation";
+import BookingDropdown from "./BookingDropdown";
 
 const UserNavbar = () => {
   const [notificationCount, setNotificationCount] = useState(3);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showBookingDropdown, setShowBookingDropdown] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   
@@ -16,6 +18,7 @@ const UserNavbar = () => {
   const pathname = usePathname();
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const profileButtonRef = useRef<HTMLButtonElement>(null);
+  const bookingButtonRef = useRef<HTMLButtonElement>(null);
   const navbarRef = useRef<HTMLDivElement>(null);
   
   const userProfilePic = user?.profilePic || "https://res.cloudinary.com/ddnxfpziq/image/upload/v1746281526/photo_2025-04-08_20-22-13_z7mxk8.jpg";
@@ -32,6 +35,14 @@ const UserNavbar = () => {
       });
     }
     setShowProfileMenu((prev) => !prev);
+    // Close booking dropdown if open
+    if (showBookingDropdown) setShowBookingDropdown(false);
+  };
+
+  const toggleBookingDropdown = () => {
+    setShowBookingDropdown((prev) => !prev);
+    // Close profile menu if open
+    if (showProfileMenu) setShowProfileMenu(false);
   };
 
   const toggleMobileMenu = () => {
@@ -73,7 +84,7 @@ const UserNavbar = () => {
   const navLinks = [
     { name: "Home", path: "/dashboard" },
     { name: "Rooms", path: "/dashboard" },
-    { name: "Bookings", path: "/bookings" },
+    // Remove Bookings from regular nav links since we'll add a special button for it
     { name: "Profile", path: "/profile" },
     { name: "About", path: "/about" },
     { name: "Contact", path: "/contact" }
@@ -123,6 +134,28 @@ const UserNavbar = () => {
             {item.name}
           </Link>
         ))}
+        {/* Bookings Button with Dropdown */}
+        <div className="relative">
+          <button
+            ref={bookingButtonRef}
+            onClick={toggleBookingDropdown}
+            className={`text-white transition-colors duration-200 font-medium hover:underline flex items-center ${
+              isActive('/bookings') ? 'underline font-bold' : ''
+            }`}
+          >
+            <FaCalendarCheck className="mr-1" />
+            My Bookings
+          </button>
+          {/* Booking Dropdown Component */}
+          {user && (
+            <div className="relative">
+              <BookingDropdown 
+                isOpen={showBookingDropdown} 
+                onClose={() => setShowBookingDropdown(false)} 
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Mobile Navigation */}
@@ -141,6 +174,16 @@ const UserNavbar = () => {
                 {item.name}
               </Link>
             ))}
+            <Link
+              href="/bookings"
+              className={`text-white transition-colors duration-200 font-medium hover:underline px-2 flex items-center ${
+                isActive('/bookings') ? 'underline font-bold' : ''
+              }`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <FaCalendarCheck className="mr-1" />
+              My Bookings
+            </Link>
           </div>
         </div>
       )}

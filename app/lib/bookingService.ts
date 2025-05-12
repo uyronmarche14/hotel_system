@@ -30,6 +30,39 @@ export interface Booking extends BookingFormData {
   createdAt: string;
 }
 
+// Interface for booking history
+export interface BookingHistoryItem {
+  id: string;
+  bookingId: string;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  checkIn: string;
+  checkOut: string;
+  guests: number;
+  nights: number;
+  totalPrice: number;
+  createdAt: string;
+}
+
+export interface RoomStat {
+  roomType: string;
+  roomTitle: string;
+  count: number;
+  totalRevenue: number;
+  imageUrl: string;
+  bookings: BookingHistoryItem[];
+}
+
+export interface BookingHistoryResponse {
+  success: boolean;
+  stats: {
+    totalBookings: number;
+    completedBookings: number;
+    cancelledBookings: number;
+    totalRevenue: number;
+  };
+  roomStats: RoomStat[];
+}
+
 // API Error handling helper
 async function handleResponse(response: Response) {
   const contentType = response.headers.get('content-type');
@@ -183,6 +216,42 @@ export const cancelBooking = async (
     return await handleResponse(response);
   } catch (error) {
     console.error('Failed to cancel booking:', error);
+    throw error;
+  }
+};
+
+// Function to get booking history with analytics
+export const getBookingHistory = async (): Promise<BookingHistoryResponse> => {
+  try {
+    const response = await fetch(`${API_URL}/bookings/history`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      }
+    });
+
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('Failed to fetch booking history:', error);
+    throw error;
+  }
+};
+
+// Function to get booking history for a specific user
+export const getUserBookingHistory = async (email: string): Promise<BookingHistoryResponse> => {
+  try {
+    const response = await fetch(`${API_URL}/bookings/history/${encodeURIComponent(email)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      }
+    });
+
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('Failed to fetch user booking history:', error);
     throw error;
   }
 }; 

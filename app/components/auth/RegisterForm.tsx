@@ -123,6 +123,7 @@ export default function RegisterForm() {
       `${formData.firstName} ${formData.lastName}`,
       formData.email,
       formData.password,
+      formData.confirmPassword,
       redirectUrl || undefined
     );
     

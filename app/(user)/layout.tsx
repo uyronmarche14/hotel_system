@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import type { Metadata } from "next";
-import UserLayout from "@/app/components/layouts/UserLayout";
+import Navbar from "@/app/components/normal/navbar";
+import Footer from "@/app/components/normal/footer";
 
 export const metadata: Metadata = {
   title: "User Portal | The Solace Manor",
@@ -12,5 +13,13 @@ export default function UserRouteLayout({
 }: {
   children: ReactNode;
 }) {
-  return <UserLayout>{children}</UserLayout>;
+  return (
+    <>
+      <Navbar />
+      <main className="min-h-screen">
+        {children}
+      </main>
+      <Footer />
+    </>
+  );
 } 
