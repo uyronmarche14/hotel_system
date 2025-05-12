@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
+import Cookies from 'js-cookie';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -19,6 +20,7 @@ type AuthContextType = {
   isAuthenticated: boolean;
   login: (email: string, password: string, redirectUrl?: string) => Promise<boolean>;
   logout: () => void;
+  confirmLogout: () => Promise<boolean>;
   register: (name: string, email: string, password: string, redirectUrl?: string) => Promise<boolean>;
   loading: boolean;
   error: string | null;
@@ -36,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Load user from localStorage on initial load
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
+    const token = Cookies.get('token');
     
     if (storedUser && token) {
       try {
@@ -49,10 +51,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         console.error('Failed to parse stored user data', error);
         localStorage.removeItem('user');
-        localStorage.removeItem('token');
+        Cookies.remove('token');
       }
     }
   }, []);
+  
+  // Handle browser's back button and page unload events
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Only apply this for authenticated users
+      if (isAuthenticated) {
+        // This message won't be shown in most modern browsers due to security,
+        // but it will trigger the confirmation dialog
+        const message = 'Are you sure you want to leave? You will be logged out.';
+        e.preventDefault();
+        e.returnValue = message;
+        return message;
+      }
+    };
+
+    // Add event listener for beforeunload
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Handle popstate (back/forward button)
+    const handlePopState = (e: PopStateEvent) => {
+      if (isAuthenticated) {
+        // In a real app, you would save the current route and implement a way to
+        // restore it if user cancels, but that's complex for this implementation
+        if (confirm('Are you sure you want to navigate away? You will be logged out.')) {
+          logout();
+        } else {
+          // Prevent navigation by pushing current route again
+          window.history.pushState(null, '', window.location.href);
+        }
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    // Push initial state to enable popstate handling
+    window.history.pushState(null, '', window.location.href);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [isAuthenticated]);
   
   // Verify token with backend
   const verifyToken = async (token: string) => {
@@ -76,27 +120,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     
+    console.log(`Attempting login for user: ${email}`);
+    console.log(`API URL: ${API_URL}/auth/login`);
+    
     try {
       const response = await axios.post(`${API_URL}/auth/login`, {
         email,
         password,
       });
       
+      console.log('Login response:', response.data);
       const { user, token } = response.data;
       
-      // Save user to state and localStorage
+      // Save user to state and storage
       setUser(user);
       setIsAuthenticated(true);
       localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('token', token);
+      
+      // Store token in cookies for middleware access
+      Cookies.set('token', token, { expires: 30, path: '/' });
       
       setLoading(false);
       
-      // Navigate to the redirect URL if provided, or to dashboard
+      console.log('Login successful, redirecting...');
+      
+      // Navigate to the redirect URL if provided, or to appropriate dashboard based on user role
       if (redirectUrl) {
         router.push(redirectUrl);
       } else {
-        router.push('/dashboard');
+        // Determine the correct route based on user role
+        if (user.role === 'admin') {
+          router.push('/admin/dashboard');
+        } else {
+          // Use the correct path for standard user dashboard
+          router.push('/dashboard');
+        }
       }
       
       return true;
@@ -105,6 +163,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const errorMessage = error.response?.data?.message || 'Login failed. Please try again.';
       setError(errorMessage);
       console.error('Login failed', error);
+      console.error('Error details:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
       return false;
     }
   };
@@ -114,6 +177,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     
+    console.log(`Attempting registration for user: ${email}`);
+    console.log(`API URL: ${API_URL}/auth/register`);
+    
     try {
       const response = await axios.post(`${API_URL}/auth/register`, {
         name,
@@ -121,22 +187,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
       });
       
+      console.log('Registration response:', response.data);
       const { user, token } = response.data;
       
-      // Save user to state and localStorage
-      setUser(user);
-      setIsAuthenticated(true);
-      localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('token', token);
-      
+      // Instead of storing user data and redirecting to dashboard,
+      // we'll redirect to login with a success flag
       setLoading(false);
       
-      // Navigate to the redirect URL if provided, or to dashboard
-      if (redirectUrl) {
-        router.push(redirectUrl);
-      } else {
-        router.push('/dashboard');
-      }
+      console.log('Registration successful, redirecting to login...');
+      
+      // Navigate to login page with registration_success flag
+      const loginPath = `/login${redirectUrl ? `?redirect=${encodeURIComponent(redirectUrl)}&registration_success=true` : '?registration_success=true'}`;
+      router.push(loginPath);
       
       return true;
     } catch (error: any) {
@@ -144,16 +206,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
       setError(errorMessage);
       console.error('Registration failed', error);
+      console.error('Error details:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
       return false;
     }
   };
 
+  // Confirm logout function
+  const confirmLogout = async (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const confirmed = window.confirm('Are you sure you want to log out?');
+      if (confirmed) {
+        logout();
+        resolve(true);
+      } else {
+        resolve(false);
+      }
+    });
+  };
+
   // Logout function
   const logout = () => {
+    console.log('Logging out user');
     setUser(null);
     setIsAuthenticated(false);
     localStorage.removeItem('user');
-    localStorage.removeItem('token');
+    Cookies.remove('token', { path: '/' });
     router.push('/login');
   };
 
@@ -162,7 +243,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user, 
       isAuthenticated, 
       login, 
-      logout, 
+      logout,
+      confirmLogout,
       register,
       loading,
       error

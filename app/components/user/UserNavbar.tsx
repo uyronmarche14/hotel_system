@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FaBell, FaUserCircle, FaBars, FaTimes } from "react-icons/fa";
@@ -10,19 +10,65 @@ const UserNavbar = () => {
   const [notificationCount, setNotificationCount] = useState(3);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   
   const { user, logout } = useAuth();
   const pathname = usePathname();
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const profileButtonRef = useRef<HTMLButtonElement>(null);
+  const navbarRef = useRef<HTMLDivElement>(null);
   
   const userProfilePic = user?.profilePic || "https://res.cloudinary.com/ddnxfpziq/image/upload/v1746281526/photo_2025-04-08_20-22-13_z7mxk8.jpg";
 
   const toggleProfileMenu = () => {
-    setShowProfileMenu(!showProfileMenu);
+    if (!showProfileMenu && profileButtonRef.current && navbarRef.current) {
+      // Calculate position before toggling to ensure it's positioned correctly
+      const buttonRect = profileButtonRef.current.getBoundingClientRect();
+      const navbarRect = navbarRef.current.getBoundingClientRect();
+      
+      setDropdownPosition({
+        top: navbarRect.top + navbarRect.height,
+        right: window.innerWidth - buttonRect.right
+      });
+    }
+    setShowProfileMenu((prev) => !prev);
   };
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
+
+  // Handle click outside of the profile menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        profileMenuRef.current &&
+        profileButtonRef.current &&
+        !profileMenuRef.current.contains(event.target as Node) &&
+        !profileButtonRef.current.contains(event.target as Node)
+      ) {
+        setShowProfileMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [profileMenuRef, profileButtonRef]);
+
+  // Update dropdown position when showing it
+  useEffect(() => {
+    if (showProfileMenu && profileButtonRef.current) {
+      const buttonRect = profileButtonRef.current.getBoundingClientRect();
+      const navbarRect = navbarRef.current?.getBoundingClientRect() || { top: 0, height: 0 };
+      
+      setDropdownPosition({
+        top: navbarRect.top + navbarRect.height,
+        right: window.innerWidth - buttonRect.right
+      });
+    }
+  }, [showProfileMenu]);
 
   const navLinks = [
     { name: "Home", path: "/dashboard" },
@@ -38,7 +84,7 @@ const UserNavbar = () => {
   };
 
   return (
-    <nav className="w-full h-auto sm:h-24 flex flex-wrap items-center justify-between bg-[#1C3F32] px-4 sm:px-8 py-3 sm:py-0">
+    <nav ref={navbarRef} className="w-full h-auto sm:h-24 flex flex-wrap items-center justify-between bg-[#1C3F32] px-4 sm:px-8 py-3 sm:py-0">
       <div className="flex items-center gap-2 sm:gap-4">
         <Link href="/dashboard" className="flex items-center gap-2 sm:gap-4 hover:opacity-90 transition-opacity">
           <div className="flex items-center justify-center w-10 h-10 sm:w-16 sm:h-16 bg-white rounded-full">
@@ -115,6 +161,7 @@ const UserNavbar = () => {
         {/* User Profile */}
         <div className="relative">
           <button 
+            ref={profileButtonRef}
             onClick={toggleProfileMenu}
             className="flex items-center gap-2 text-white hover:text-gray-200 transition-colors"
           >
@@ -135,7 +182,15 @@ const UserNavbar = () => {
           
           {/* Profile Dropdown Menu */}
           {showProfileMenu && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
+            <div 
+              ref={profileMenuRef}
+              style={{
+                position: 'fixed',
+                top: `${dropdownPosition.top}px`,
+                right: `${dropdownPosition.right}px`,
+              }}
+              className="w-48 bg-white rounded-md shadow-xl z-[9999] border border-gray-200 overflow-visible"
+            >
               <div className="py-1">
                 <Link 
                   href="/profile" 

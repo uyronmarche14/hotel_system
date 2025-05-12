@@ -22,19 +22,16 @@ export default function RegisterForm() {
     confirmPassword: "",
   });
   
-  const [errors, setErrors] = useState({
+  const [formErrors, setFormErrors] = useState({
     firstName: "",
     lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
     terms: "",
-    general: "",
   });
   
-  const [isLoading, setIsLoading] = useState(false);
-  
-  const { register } = useAuth();
+  const { register, loading, error } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -54,9 +51,9 @@ export default function RegisterForm() {
     });
     
     // Clear error when user types
-    if (errors[name as keyof typeof errors]) {
-      setErrors({
-        ...errors,
+    if (formErrors[name as keyof typeof formErrors]) {
+      setFormErrors({
+        ...formErrors,
         [name]: "",
       });
     }
@@ -64,7 +61,7 @@ export default function RegisterForm() {
   
   const validateForm = () => {
     let isValid = true;
-    const newErrors = { ...errors };
+    const newErrors = { ...formErrors };
     
     // Validate first name
     if (!formData.firstName.trim()) {
@@ -112,7 +109,7 @@ export default function RegisterForm() {
       isValid = false;
     }
     
-    setErrors(newErrors);
+    setFormErrors(newErrors);
     return isValid;
   };
   
@@ -123,32 +120,14 @@ export default function RegisterForm() {
       return;
     }
     
-    setIsLoading(true);
+    await register(
+      `${formData.firstName} ${formData.lastName}`,
+      formData.email,
+      formData.password,
+      redirectUrl || undefined
+    );
     
-    try {
-      const success = await register(
-        `${formData.firstName} ${formData.lastName}`,
-        formData.email,
-        formData.password,
-        redirectUrl || undefined
-      );
-      
-      if (!success) {
-        setErrors({
-          ...errors,
-          general: "Registration failed. Please try again.",
-        });
-      }
-      // No need to handle navigation here, it's now handled in the register function
-    } catch (err) {
-      setErrors({
-        ...errors,
-        general: "An error occurred during registration.",
-      });
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
+    // No need to handle navigation here, it's now handled in the register function
   };
 
   return (
@@ -167,9 +146,9 @@ export default function RegisterForm() {
             </div>
           )}
 
-          {errors.general && (
+          {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-md">
-              {errors.general}
+              {error}
             </div>
           )}
 
@@ -184,10 +163,10 @@ export default function RegisterForm() {
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleInputChange}
-                  className={`w-full p-3 border ${errors.firstName ? 'border-red-500' : 'border-brand-green'} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
+                  className={`w-full p-3 border ${formErrors.firstName ? 'border-red-500' : 'border-brand-green'} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
                   placeholder="John"
                 />
-                {errors.firstName && <p className="mt-1 text-xs text-red-500">{errors.firstName}</p>}
+                {formErrors.firstName && <p className="mt-1 text-xs text-red-500">{formErrors.firstName}</p>}
               </div>
               <div>
                 <label htmlFor="lastName" className="block text-sm text-gray-700 mb-1">Last name</label>
@@ -197,10 +176,10 @@ export default function RegisterForm() {
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleInputChange}
-                  className={`w-full p-3 border ${errors.lastName ? 'border-red-500' : 'border-brand-green'} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
+                  className={`w-full p-3 border ${formErrors.lastName ? 'border-red-500' : 'border-brand-green'} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
                   placeholder="Doe"
                 />
-                {errors.lastName && <p className="mt-1 text-xs text-red-500">{errors.lastName}</p>}
+                {formErrors.lastName && <p className="mt-1 text-xs text-red-500">{formErrors.lastName}</p>}
               </div>
             </div>
 
@@ -213,10 +192,10 @@ export default function RegisterForm() {
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className={`w-full p-3 border ${errors.email ? 'border-red-500' : 'border-brand-green'} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
+                className={`w-full p-3 border ${formErrors.email ? 'border-red-500' : 'border-brand-green'} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
                 placeholder="your@email.com"
               />
-              {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
+              {formErrors.email && <p className="mt-1 text-xs text-red-500">{formErrors.email}</p>}
             </div>
 
             {/* Password */}
@@ -229,7 +208,7 @@ export default function RegisterForm() {
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className={`w-full p-3 border ${errors.password ? 'border-red-500' : 'border-brand-green'} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
+                  className={`w-full p-3 border ${formErrors.password ? 'border-red-500' : 'border-brand-green'} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
                   placeholder="••••••••"
                 />
                 <button 
@@ -244,12 +223,12 @@ export default function RegisterForm() {
                   )}
                 </button>
               </div>
-              {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password}</p>}
+              {formErrors.password && <p className="mt-1 text-xs text-red-500">{formErrors.password}</p>}
             </div>
 
             {/* Confirm Password */}
             <div className="relative">
-              <label htmlFor="confirmPassword" className="block text-sm text-gray-700 mb-1">Confirm Password</label>
+              <label htmlFor="confirmPassword" className="block text-sm text-gray-700 mb-1">Confirm password</label>
               <div className="relative">
                 <input
                   type={showConfirmPassword ? "text" : "password"}
@@ -257,7 +236,7 @@ export default function RegisterForm() {
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
-                  className={`w-full p-3 border ${errors.confirmPassword ? 'border-red-500' : 'border-brand-green'} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
+                  className={`w-full p-3 border ${formErrors.confirmPassword ? 'border-red-500' : 'border-brand-green'} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
                   placeholder="••••••••"
                 />
                 <button 
@@ -272,7 +251,7 @@ export default function RegisterForm() {
                   )}
                 </button>
               </div>
-              {errors.confirmPassword && <p className="mt-1 text-xs text-red-500">{errors.confirmPassword}</p>}
+              {formErrors.confirmPassword && <p className="mt-1 text-xs text-red-500">{formErrors.confirmPassword}</p>}
             </div>
 
             {/* Terms and Conditions */}
@@ -288,20 +267,20 @@ export default function RegisterForm() {
               </div>
               <div className="ml-3 text-sm">
                 <label htmlFor="terms" className="text-gray-700">
-                  I agree to the <a href="#" className="text-brand-green hover:underline">Terms and Conditions</a> and <a href="#" className="text-brand-green hover:underline">Privacy Policy</a>
+                  I agree to the <Link href="/terms" className="text-brand-green hover:underline">Terms and Conditions</Link> and <Link href="/privacy" className="text-brand-green hover:underline">Privacy Policy</Link>
                 </label>
-                {errors.terms && <p className="mt-1 text-xs text-red-500">{errors.terms}</p>}
+                {formErrors.terms && <p className="mt-1 text-xs text-red-500">{formErrors.terms}</p>}
               </div>
             </div>
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={loading}
               className={`w-full flex justify-center items-center gap-2 py-3 px-4 bg-brand-green hover:bg-brand-green-hover text-white font-medium rounded-md transition ${
-                isLoading ? "opacity-70 cursor-not-allowed" : ""
+                loading ? "opacity-70 cursor-not-allowed" : ""
               }`}
             >
-              {isLoading ? "Creating account..." : "Create Account"}
+              {loading ? "Creating account..." : "Create account"} {!loading && <span className="text-xl">→</span>}
             </button>
           </form>
 
@@ -312,11 +291,17 @@ export default function RegisterForm() {
           </div>
 
           <div className="space-y-4">
-            <button type="button" className="text-brand-green w-full flex items-center justify-center gap-2 py-3 px-4 border border-brand-green rounded-md transition hover:bg-gray-50">
+            <button 
+              type="button" 
+              className="text-brand-green w-full flex items-center justify-center gap-2 py-3 px-4 border border-brand-green rounded-md transition hover:bg-gray-50"
+            >
               <FcGoogle className="text-xl" />
               <span>Sign up with Google</span>
             </button>
-            <button type="button" className="text-brand-green w-full flex items-center justify-center gap-2 py-3 px-4 border border-brand-green rounded-md transition hover:bg-gray-50">
+            <button 
+              type="button" 
+              className="text-brand-green w-full flex items-center justify-center gap-2 py-3 px-4 border border-brand-green rounded-md transition hover:bg-gray-50"
+            >
               <FaFacebook className="text-xl text-blue-600" />
               <span>Sign up with Facebook</span>
             </button>
@@ -324,7 +309,7 @@ export default function RegisterForm() {
 
           <div className="mt-8 pt-6 border-t border-gray-200">
             <Link href={redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : "/login"} className="w-full flex justify-center items-center gap-2 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-brand-green font-medium rounded-md transition">
-              <FaArrowLeft className="text-sm" /> Back to Login
+              <FaArrowLeft className="text-sm" /> Already have an account? Sign in
             </Link>
           </div>
         </div>
@@ -335,7 +320,7 @@ export default function RegisterForm() {
         <div className="absolute inset-0">
           <div className="relative w-full h-full">
             <Image
-              src="https://res.cloudinary.com/ddnxfpziq/image/upload/v1746813924/2_vkjogl.jpg" 
+              src="https://res.cloudinary.com/ddnxfpziq/image/upload/v1746813923/1_ggxjcr.jpg" 
               alt="The Solace Manor"
               fill
               className="object-cover"

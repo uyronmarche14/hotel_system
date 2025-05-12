@@ -1,8 +1,13 @@
-import Header from "@/app/components/normal/header";
+"use client";
+
 import RoomCard from "@/app/components/RoomCard";
 import { rooms } from "@/app/data/rooms";
+import { useAuth } from "@/app/context/AuthContext";
+import Navbar from "@/app/components/normal/navbar";
 
-export default function Home() {
+export default function Dashboard() {
+  const { user, isAuthenticated } = useAuth();
+  
   // Get top 5 rated rooms
   const topRatedRooms = [...rooms]
     .sort((a, b) => (b.rating || 0) - (a.rating || 0))
@@ -16,11 +21,37 @@ export default function Home() {
   });
 
   return (
-    <main className="w-full min-h-screen overflow-x-hidden">
-      <Header />
+    <main className="w-full min-h-screen overflow-x-hidden pt-0">
+      {/* Hero Section - reduced z-index to avoid conflicts with navbar dropdown */}
+      <div
+        className="w-full h-[400px] sm:h-[500px] md:h-[600px] relative overflow-hidden"
+        style={{
+          backgroundImage: `url(https://res.cloudinary.com/ddnxfpziq/image/upload/v1746813924/2_vkjogl.jpg)`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      >
+        {/* Dark overlay with lower z-index */}
+        <div className="absolute inset-0 bg-black/60 z-[5]"></div>
 
-      {/* Search Bar Section */}
-      <div className="w-full px-4 mx-auto bg-white shadow-md relative z-30 -mt-8 sm:-mt-16 max-w-[95%] sm:max-w-6xl">
+        {/* Content with lower z-index */}
+        <div className="absolute inset-0 z-[6]">
+          <div className="container mx-auto h-full flex items-center px-4">
+            <div className="max-w-full sm:max-w-[693px]">
+              <h1 className="font-bold text-2xl sm:text-3xl md:text-[40px] text-white mb-4 font-inter leading-tight">
+                Discover elegant stays. Book your perfect room with us today
+              </h1>
+              <p className="text-white text-base sm:text-lg">
+                Experience world-class stays in the heart of the Philippines.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Search Bar Section - adjusted z-index */}
+      <div className="w-full px-4 mx-auto bg-white shadow-md relative z-[20] -mt-8 sm:-mt-16 max-w-[95%] sm:max-w-6xl">
         <div className="container mx-auto">
           <div className="bg-white rounded-lg p-3 sm:p-4 flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 items-start sm:items-center justify-between">
             {/* Location Input */}

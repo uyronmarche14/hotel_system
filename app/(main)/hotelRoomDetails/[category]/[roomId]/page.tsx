@@ -4,6 +4,7 @@ import { rooms } from "@/app/data/rooms";
 import SuggestionCard from "@/app/components/ui/suggestionCard";
 import Link from "next/link";
 import { useAuth } from "@/app/context/AuthContext";
+import Image from "next/image";
 import {
   FaStar,
   FaStarHalf,
@@ -21,7 +22,6 @@ import {
   FaTv,
   FaVoicemail,
   FaShieldAlt,
-  FaArrowLeft,
 } from "react-icons/fa";
 
 const RoomDetails = () => {
@@ -62,7 +62,7 @@ const RoomDetails = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-12">
           <h1 className="text-2xl font-bold text-red-600 mb-4">Room not found</h1>
-          <p className="text-gray-600 mb-6">The room you're looking for doesn't exist or has been removed.</p>
+          <p className="text-gray-600 mb-6">The room you&apos;re looking for doesn&apos;t exist or has been removed.</p>
           <Link 
             href={`/hotelRoomDetails/${category}`} 
             className="inline-block bg-[#1C3F32] text-white px-6 py-2 rounded-md hover:bg-[#1C3F32]/90 transition-colors mr-4"
@@ -184,10 +184,13 @@ const RoomDetails = () => {
 
       {/* Hero Image */}
       <div className="relative h-[446px] w-full mb-6 rounded-lg overflow-hidden shadow-lg">
-        <img
+        <Image
           src={room.imageUrl}
           alt={room.title}
-          className="object-cover h-full w-full"
+          className="object-cover"
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 75vw"
+          priority
         />
       </div>
 
@@ -235,7 +238,7 @@ const RoomDetails = () => {
                 bathrooms with heated tiles ensure convenience meets indulgence.`}
               </p>
               <p className="text-base text-gray-700 leading-relaxed mt-4">
-                Whether you've here for a romantic escape or a high-end business
+                Whether you&apos;re here for a romantic escape or a high-end business
                 retreat, our luxury accommodations promise serenity and
                 refinement. Guests staying in these rooms also enjoy priority
                 access to exclusive lounges, personalized services, and an
@@ -248,82 +251,110 @@ const RoomDetails = () => {
             {/* Amenities Section */}
             <section>
               <h2 className="text-2xl font-bold text-black mb-4">Amenities</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {amenities.map((amenity, index) => (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {amenities.map((item, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-center p-4 bg-white shadow-md rounded-md hover:shadow-lg transition-shadow"
+                    className="flex items-center space-x-2 p-3 border border-green-100 rounded-lg bg-green-50 hover:bg-green-100 transition-colors"
                   >
-                    <div className="flex flex-row items-center gap-2">
-                      {amenity.icon}
-                      <p className="text-sm text-black">{amenity.name}</p>
-                    </div>
+                    <div className="flex-shrink-0">{item.icon}</div>
+                    <span className="text-[#1C3F32]">{item.name}</span>
                   </div>
                 ))}
               </div>
             </section>
           </div>
 
-          {/* Right Column - Booking Widget & Highlights */}
-          <div className="w-full lg:w-1/3 mt-8 lg:mt-0 flex flex-col">
-            {/* Booking Widget */}
-            <div className="w-full bg-white shadow-lg rounded-lg p-6 mb-6">
-              <h3 className="text-xl font-bold text-black mb-4">Book This Room</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">Price per night:</span>
-                  <span className="text-2xl font-bold text-[#1C3F32]">${room.price || 199}</span>
-                </div>
-                <button
-                  onClick={handleBookNow}
-                  className="w-full bg-[#1C3F32] text-white py-3 rounded-md hover:bg-[#15332a] transition-colors"
-                >
-                  {isAuthenticated ? "Book Now" : "Login to Book"}
-                </button>
-                {!isAuthenticated && (
-                  <p className="text-sm text-gray-600 text-center mt-2">
-                    You need to be logged in to book a room.
-                  </p>
-                )}
+          {/* Right Column - Booking and Highlights */}
+          <div className="w-full lg:w-1/3 space-y-6">
+            {/* Booking Box */}
+            <div className="border border-green-200 rounded-lg p-6 bg-white shadow-md">
+              <h3 className="text-xl font-bold text-[#1C3F32] mb-4">
+                Plan Your Stay
+              </h3>
+              <div className="flex justify-between mb-4 border-b border-green-100 pb-4">
+                <span className="text-gray-600">Price per night</span>
+                <span className="text-xl font-bold text-[#1C3F32]">
+                  ₱{room.price.toLocaleString()}
+                </span>
               </div>
+              <button
+                onClick={handleBookNow}
+                className="w-full bg-[#1C3F32] text-white py-3 rounded-md hover:bg-[#15332a] transition-colors mb-4"
+              >
+                Book Now
+              </button>
+              <button
+                onClick={handleCheckAvailability}
+                className="w-full border border-[#1C3F32] text-[#1C3F32] py-3 rounded-md hover:bg-green-50 transition-colors"
+              >
+                Check Availability
+              </button>
             </div>
 
             {/* Highlights */}
-            <div className="w-full bg-white shadow-lg rounded-lg p-6">
-              <h3 className="text-xl font-bold text-black mb-4">Highlights</h3>
-              <div className="space-y-4">
-                {highlights.map((highlight, index) => (
-                  <div key={index} className="flex items-start gap-3">
-                    <div className="mt-1">{highlight.icon}</div>
-                    <p className="text-gray-700">{highlight.text}</p>
-                  </div>
+            <div className="border border-green-200 rounded-lg p-6 bg-white shadow-md">
+              <h3 className="text-xl font-bold text-[#1C3F32] mb-4">
+                Highlights
+              </h3>
+              <ul className="space-y-4">
+                {highlights.map((item, index) => (
+                  <li key={index} className="flex items-start space-x-3">
+                    <div className="flex-shrink-0 mt-1">{item.icon}</div>
+                    <span className="text-gray-700">{item.text}</span>
+                  </li>
                 ))}
+              </ul>
+            </div>
+
+            {/* Map */}
+            <div className="border border-green-200 rounded-lg p-6 bg-white shadow-md">
+              <h3 className="text-xl font-bold text-[#1C3F32] mb-4">
+                Location
+              </h3>
+              <div className="w-full h-40 bg-gray-200 mb-2 overflow-hidden rounded-md">
+                <iframe
+                  src={urlLocation}
+                  className="w-full h-full border-0"
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Hotel Location Map"
+                />
               </div>
+              <p className="text-sm text-gray-600">
+                Central Signal Village, Taguig City, Metro Manila, Philippines
+              </p>
             </div>
           </div>
         </div>
-        <div className="w-full">
-          <SuggestionCard />
-        </div>
-        <div className="bg-background/50 p-4 rounded-2xl shadow-lg backdrop-blur-sm border border-primary/10">
-          <h2 className="text-2xl font-bold mb-8 text-black border-b border-primary/10 pb-4">
-            Visit Us
+
+        {/* Related Rooms Section */}
+        <section className="my-12">
+          <h2 className="text-2xl font-bold text-black mb-6">
+            You May Also Like
           </h2>
-          <a
-            href="https://maps.google.com/?q=Taguig+City,+Philippines"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block"
-          >
-            <iframe
-              src={urlLocation}
-              className="w-full h-[600px] rounded-xl shadow-md hover:shadow-lg transition-shadow"
-              style={{ border: 0 }}
-              allowFullScreen={true}
-              loading="lazy"
-            ></iframe>
-          </a>
-        </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Related rooms component here */}
+            {rooms
+              .filter(
+                (r) => r.category === room.category && r.title !== room.title,
+              )
+              .slice(0, 3)
+              .map((relatedRoom, index) => (
+                <SuggestionCard
+                  key={index}
+                  title={relatedRoom.title}
+                  price={relatedRoom.price}
+                  location={relatedRoom.location}
+                  imageUrl={relatedRoom.imageUrl}
+                  href={`/hotelRoomDetails/${category}/${relatedRoom.title
+                    .toLowerCase()
+                    .replace(/ /g, "-")}`}
+                />
+              ))}
+          </div>
+        </section>
       </div>
     </div>
   );
