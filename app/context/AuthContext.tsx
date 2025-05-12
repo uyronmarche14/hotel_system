@@ -153,7 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           router.push('/admin/dashboard');
         } else {
           // Use the correct path for standard user dashboard
-          router.push('/dashboard');
+        router.push('/dashboard');
         }
       }
       
@@ -243,7 +243,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user, 
       isAuthenticated, 
       login, 
-      logout,
+      logout, 
       confirmLogout,
       register,
       loading,

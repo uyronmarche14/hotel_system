@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { FaFacebook, FaEye, FaEyeSlash, FaArrowLeft } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { useAuth } from "@/app/context/AuthContext";
@@ -131,210 +130,185 @@ export default function RegisterForm() {
   };
 
   return (
-    <div className="w-full flex flex-col md:flex-row h-full">
-      {/* Left form section */}
-      <div className="flex flex-col w-full md:w-1/2 p-4 md:p-8 lg:p-12 justify-center bg-white">
-        <div className="max-w-xl w-full mx-auto">
-          <h1 className="text-brand-green text-3xl font-medium mb-2">Create an account.</h1>
-          <p className="text-sm text-gray-700 mb-8">
-            Already have an account? <Link href={redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : "/login"} className="text-brand-green font-medium hover:underline">Sign in</Link>
-          </p>
+    <div className="w-full">
+      <h1 className="text-brand-green text-3xl font-medium mb-2">Create an account.</h1>
+      <p className="text-sm text-gray-700 mb-8">
+        Already have an account? <Link href={redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : "/login"} className="text-brand-green font-medium hover:underline">Sign in</Link>
+      </p>
 
-          {redirectUrl && (
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-md">
-              You'll be redirected to complete your booking after registration.
-            </div>
-          )}
+      {redirectUrl && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-md">
+          You'll be redirected to complete your booking after registration.
+        </div>
+      )}
 
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-md">
-              {error}
-            </div>
-          )}
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-md">
+          {error}
+        </div>
+      )}
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* Name fields */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="firstName" className="block text-sm text-gray-700 mb-1">First name</label>
-                <input
-                  type="text"
-                  id="firstName"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleInputChange}
-                  className={`w-full p-3 border ${formErrors.firstName ? 'border-red-500' : 'border-brand-green'} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
-                  placeholder="John"
-                />
-                {formErrors.firstName && <p className="mt-1 text-xs text-red-500">{formErrors.firstName}</p>}
-              </div>
-              <div>
-                <label htmlFor="lastName" className="block text-sm text-gray-700 mb-1">Last name</label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                  className={`w-full p-3 border ${formErrors.lastName ? 'border-red-500' : 'border-brand-green'} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
-                  placeholder="Doe"
-                />
-                {formErrors.lastName && <p className="mt-1 text-xs text-red-500">{formErrors.lastName}</p>}
-              </div>
-            </div>
-
-            {/* Email */}
-            <div>
-              <label htmlFor="email" className="block text-sm text-gray-700 mb-1">Email address</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className={`w-full p-3 border ${formErrors.email ? 'border-red-500' : 'border-brand-green'} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
-                placeholder="your@email.com"
-              />
-              {formErrors.email && <p className="mt-1 text-xs text-red-500">{formErrors.email}</p>}
-            </div>
-
-            {/* Password */}
-            <div className="relative">
-              <label htmlFor="password" className="block text-sm text-gray-700 mb-1">Password</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className={`w-full p-3 border ${formErrors.password ? 'border-red-500' : 'border-brand-green'} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
-                  placeholder="••••••••"
-                />
-                <button 
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                >
-                  {showPassword ? (
-                    <FaEyeSlash className="w-5 h-5 text-gray-500" />
-                  ) : (
-                    <FaEye className="w-5 h-5 text-gray-500" />
-                  )}
-                </button>
-              </div>
-              {formErrors.password && <p className="mt-1 text-xs text-red-500">{formErrors.password}</p>}
-            </div>
-
-            {/* Confirm Password */}
-            <div className="relative">
-              <label htmlFor="confirmPassword" className="block text-sm text-gray-700 mb-1">Confirm password</label>
-              <div className="relative">
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  className={`w-full p-3 border ${formErrors.confirmPassword ? 'border-red-500' : 'border-brand-green'} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
-                  placeholder="••••••••"
-                />
-                <button 
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                >
-                  {showConfirmPassword ? (
-                    <FaEyeSlash className="w-5 h-5 text-gray-500" />
-                  ) : (
-                    <FaEye className="w-5 h-5 text-gray-500" />
-                  )}
-                </button>
-              </div>
-              {formErrors.confirmPassword && <p className="mt-1 text-xs text-red-500">{formErrors.confirmPassword}</p>}
-            </div>
-
-            {/* Terms and Conditions */}
-            <div className="flex items-start">
-              <div className="flex items-center h-5">
-                <input
-                  id="terms"
-                  type="checkbox"
-                  checked={agreeTerms}
-                  onChange={() => setAgreeTerms(!agreeTerms)}
-                  className="w-4 h-4 border border-brand-green rounded accent-green-700"
-                />
-              </div>
-              <div className="ml-3 text-sm">
-                <label htmlFor="terms" className="text-gray-700">
-                  I agree to the <Link href="/terms" className="text-brand-green hover:underline">Terms and Conditions</Link> and <Link href="/privacy" className="text-brand-green hover:underline">Privacy Policy</Link>
-                </label>
-                {formErrors.terms && <p className="mt-1 text-xs text-red-500">{formErrors.terms}</p>}
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full flex justify-center items-center gap-2 py-3 px-4 bg-brand-green hover:bg-brand-green-hover text-white font-medium rounded-md transition ${
-                loading ? "opacity-70 cursor-not-allowed" : ""
-              }`}
-            >
-              {loading ? "Creating account..." : "Create account"} {!loading && <span className="text-xl">→</span>}
-            </button>
-          </form>
-
-          <div className="my-8 flex items-center">
-            <div className="flex-grow border-t border-gray-200"></div>
-            <span className="flex-shrink mx-4 text-gray-600 text-sm">or</span>
-            <div className="flex-grow border-t border-gray-200"></div>
+      <form className="space-y-6" onSubmit={handleSubmit}>
+        {/* Name fields */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="firstName" className="block text-sm text-gray-700 mb-1">First name</label>
+            <input
+              type="text"
+              id="firstName"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleInputChange}
+              className={`w-full p-3 border ${formErrors.firstName ? 'border-red-500' : 'border-brand-green'} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
+              placeholder="John"
+            />
+            {formErrors.firstName && <p className="mt-1 text-xs text-red-500">{formErrors.firstName}</p>}
           </div>
-
-          <div className="space-y-4">
-            <button 
-              type="button" 
-              className="text-brand-green w-full flex items-center justify-center gap-2 py-3 px-4 border border-brand-green rounded-md transition hover:bg-gray-50"
-            >
-              <FcGoogle className="text-xl" />
-              <span>Sign up with Google</span>
-            </button>
-            <button 
-              type="button" 
-              className="text-brand-green w-full flex items-center justify-center gap-2 py-3 px-4 border border-brand-green rounded-md transition hover:bg-gray-50"
-            >
-              <FaFacebook className="text-xl text-blue-600" />
-              <span>Sign up with Facebook</span>
-            </button>
-          </div>
-
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <Link href={redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : "/login"} className="w-full flex justify-center items-center gap-2 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-brand-green font-medium rounded-md transition">
-              <FaArrowLeft className="text-sm" /> Already have an account? Sign in
-            </Link>
+          <div>
+            <label htmlFor="lastName" className="block text-sm text-gray-700 mb-1">Last name</label>
+            <input
+              type="text"
+              id="lastName"
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleInputChange}
+              className={`w-full p-3 border ${formErrors.lastName ? 'border-red-500' : 'border-brand-green'} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
+              placeholder="Doe"
+            />
+            {formErrors.lastName && <p className="mt-1 text-xs text-red-500">{formErrors.lastName}</p>}
           </div>
         </div>
+
+        {/* Email */}
+        <div>
+          <label htmlFor="email" className="block text-sm text-gray-700 mb-1">Email address</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value={formData.email}
+            onChange={handleInputChange}
+            className={`w-full p-3 border ${formErrors.email ? 'border-red-500' : 'border-brand-green'} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
+            placeholder="your@email.com"
+          />
+          {formErrors.email && <p className="mt-1 text-xs text-red-500">{formErrors.email}</p>}
+        </div>
+
+        {/* Password */}
+        <div className="relative">
+          <label htmlFor="password" className="block text-sm text-gray-700 mb-1">Password</label>
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleInputChange}
+              className={`w-full p-3 border ${formErrors.password ? 'border-red-500' : 'border-brand-green'} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
+              placeholder="••••••••"
+            />
+            <button 
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+            >
+              {showPassword ? (
+                <FaEyeSlash className="w-5 h-5 text-gray-500" />
+              ) : (
+                <FaEye className="w-5 h-5 text-gray-500" />
+              )}
+            </button>
+          </div>
+          {formErrors.password && <p className="mt-1 text-xs text-red-500">{formErrors.password}</p>}
+        </div>
+
+        {/* Confirm Password */}
+        <div className="relative">
+          <label htmlFor="confirmPassword" className="block text-sm text-gray-700 mb-1">Confirm password</label>
+          <div className="relative">
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              id="confirmPassword"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
+              className={`w-full p-3 border ${formErrors.confirmPassword ? 'border-red-500' : 'border-brand-green'} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
+              placeholder="••••••••"
+            />
+            <button 
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+            >
+              {showConfirmPassword ? (
+                <FaEyeSlash className="w-5 h-5 text-gray-500" />
+              ) : (
+                <FaEye className="w-5 h-5 text-gray-500" />
+              )}
+            </button>
+          </div>
+          {formErrors.confirmPassword && <p className="mt-1 text-xs text-red-500">{formErrors.confirmPassword}</p>}
+        </div>
+
+        {/* Terms and conditions */}
+        <div className="flex items-start">
+          <div className="flex items-center h-5">
+            <input
+              id="terms"
+              type="checkbox"
+              checked={agreeTerms}
+              onChange={() => setAgreeTerms(!agreeTerms)}
+              className="w-4 h-4 border border-brand-green rounded accent-green-700"
+            />
+          </div>
+          <div className="ml-3 text-sm">
+            <label htmlFor="terms" className="text-gray-700">
+              I agree to the <Link href="/terms" className="text-brand-green hover:underline">Terms and Conditions</Link> and <Link href="/privacy" className="text-brand-green hover:underline">Privacy Policy</Link>
+            </label>
+            {formErrors.terms && <p className="mt-1 text-xs text-red-500">{formErrors.terms}</p>}
+          </div>
+        </div>
+
+        <div className="pt-2">
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full flex justify-center items-center gap-2 py-3 px-4 bg-brand-green hover:bg-brand-green-hover text-white font-medium rounded-md transition ${
+              loading ? "opacity-70 cursor-not-allowed" : ""
+            }`}
+          >
+            {loading ? "Creating account..." : "Create account"}
+          </button>
+        </div>
+      </form>
+
+      <div className="my-8 flex items-center">
+        <div className="flex-grow border-t border-gray-200"></div>
+        <span className="flex-shrink mx-4 text-gray-600 text-sm">or</span>
+        <div className="flex-grow border-t border-gray-200"></div>
       </div>
 
-      {/* Right image section */}
-      <div className="hidden md:block md:w-1/2 relative">
-        <div className="absolute inset-0">
-          <div className="relative w-full h-full">
-            <Image
-              src="https://res.cloudinary.com/ddnxfpziq/image/upload/v1746813923/1_ggxjcr.jpg" 
-              alt="The Solace Manor"
-              fill
-              className="object-cover"
-              priority
-            />
-            <div className="absolute inset-0 bg-black/30"></div>
-            <div className="absolute bottom-0 left-0 right-0 p-8 text-white text-center">
-              <div className="bg-white/10 backdrop-blur-sm p-6 rounded-md">
-                <h2 className="text-2xl font-cinzel mb-2">THE SOLACE MANOR</h2>
-                <p className="text-sm opacity-80">Experience luxury beyond comparison</p>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className="space-y-4">
+        <button 
+          type="button" 
+          className="text-brand-green w-full flex items-center justify-center gap-2 py-3 px-4 border border-brand-green rounded-md transition hover:bg-gray-50"
+        >
+          <FcGoogle className="text-xl" />
+          <span>Sign up with Google</span>
+        </button>
+        <button 
+          type="button" 
+          className="text-brand-green w-full flex items-center justify-center gap-2 py-3 px-4 border border-brand-green rounded-md transition hover:bg-gray-50"
+        >
+          <FaFacebook className="text-xl text-blue-600" />
+          <span>Sign up with Facebook</span>
+        </button>
+      </div>
+
+      <div className="mt-8 pt-6 border-t border-gray-200">
+        <Link href={redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : "/login"} className="w-full flex justify-center items-center gap-2 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-brand-green font-medium rounded-md transition">
+          <FaArrowLeft className="text-sm" /> Back to login
+        </Link>
       </div>
     </div>
   );

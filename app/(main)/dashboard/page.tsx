@@ -7,7 +7,7 @@ import Navbar from "@/app/components/normal/navbar";
 
 export default function Dashboard() {
   const { user, isAuthenticated } = useAuth();
-  
+
   // Get top 5 rated rooms
   const topRatedRooms = [...rooms]
     .sort((a, b) => (b.rating || 0) - (a.rating || 0))
