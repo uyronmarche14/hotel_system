@@ -1,62 +1,93 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaCheck, FaExclamationCircle } from "react-icons/fa";
+import { getUserBookings, cancelBooking, Booking } from "@/app/lib/bookingService";
 
 export default function BookingsPage() {
-  // Example booking data - in a real app, this would come from your backend
-  const bookings = [
-    {
-      id: "BK-12345",
-      roomType: "Superior Room",
-      checkIn: "2023-08-15",
-      checkOut: "2023-08-20",
-      nights: 5,
-      guests: 2,
-      totalPrice: 16000,
-      location: "Taguig, Metro Manila",
-      status: "upcoming",
-      image: "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744677524/Rectangle_4170_oxttii.png"
-    },
-    {
-      id: "BK-12256",
-      roomType: "Business Elite Room",
-      checkIn: "2023-10-05",
-      checkOut: "2023-10-08",
-      nights: 3,
-      guests: 1,
-      totalPrice: 13500,
-      location: "Taguig, Metro Manila",
-      status: "upcoming",
-      image: "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744677523/Rectangle_4179_diz8hh.png"
-    },
-    {
-      id: "BK-10987",
-      roomType: "Family Haven Suite",
-      checkIn: "2023-05-01",
-      checkOut: "2023-05-04",
-      nights: 3,
-      guests: 4,
-      totalPrice: 24000,
-      location: "Taguig, Metro Manila",
-      status: "completed",
-      image: "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744677522/Rectangle_4180_lptud5.png"
-    },
-    {
-      id: "BK-10456",
-      roomType: "Superior Room",
-      checkIn: "2023-03-20",
-      checkOut: "2023-03-22",
-      nights: 2,
-      guests: 2,
-      totalPrice: 6400,
-      location: "Taguig, Metro Manila",
-      status: "completed",
-      image: "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744677524/Rectangle_4170_oxttii.png"
+  const [isLoading, setIsLoading] = useState(true);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState<string>('');
+  const router = useRouter();
+
+  useEffect(() => {
+    // Get email from localStorage or sessionStorage if available
+    const storedEmail = localStorage.getItem('userEmail') || sessionStorage.getItem('userEmail');
+    if (storedEmail) {
+      setEmail(storedEmail);
     }
-  ];
+  }, []);
+
+  useEffect(() => {
+    if (!email) return;
+    
+    const fetchBookings = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const response = await getUserBookings(email);
+        setBookings(response.data);
+      } catch (err) {
+        console.error("Error fetching bookings:", err);
+        setError("Failed to load your bookings. Please try again later.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchBookings();
+  }, [email]);
+
+  const handleEmailSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const submittedEmail = formData.get('email') as string;
+    if (submittedEmail) {
+      setEmail(submittedEmail);
+      // Save for future use
+      localStorage.setItem('userEmail', submittedEmail);
+    }
+  };
+
+  // Handle booking cancellation
+  const handleCancelBooking = async (bookingId: string) => {
+    try {
+      setCancellingId(bookingId);
+      
+      // Call API to cancel booking
+      await cancelBooking(bookingId);
+      
+      // Update the booking status in the UI
+      setBookings(prevBookings => 
+        prevBookings.map(booking => 
+          booking._id === bookingId 
+            ? { ...booking, status: 'cancelled', paymentStatus: 'refunded' } 
+            : booking
+        )
+      );
+      
+    } catch (err) {
+      console.error("Error cancelling booking:", err);
+      setError("Failed to cancel booking. Please try again later.");
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   // Separate upcoming and past bookings
-  const upcomingBookings = bookings.filter(booking => booking.status === "upcoming");
-  const pastBookings = bookings.filter(booking => booking.status === "completed");
+  const upcomingBookings = bookings.filter(booking => 
+    booking.status === 'confirmed' || booking.status === 'pending'
+  );
+  
+  const pastBookings = bookings.filter(booking => 
+    booking.status === 'completed' || booking.status === 'cancelled'
+  );
 
   // Format date function
   const formatDate = (dateString: string) => {
@@ -72,9 +103,88 @@ export default function BookingsPage() {
     }).format(price);
   };
 
+  // Loading state
+  if (isLoading && email) {
+    return (
+      <main className="container mx-auto px-4 py-6 sm:py-8 max-w-6xl">
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#1C3F32] mb-6 sm:mb-8">My Bookings</h1>
+        <div className="flex justify-center items-center py-12">
+          <div className="w-10 h-10 border-4 border-[#1C3F32] border-t-transparent rounded-full animate-spin"></div>
+          <span className="ml-3">Loading your bookings...</span>
+        </div>
+      </main>
+    );
+  }
+
+  // Email lookup form when no email is set
+  if (!email) {
+    return (
+      <main className="container mx-auto px-4 py-6 sm:py-8 max-w-6xl">
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#1C3F32] mb-6 sm:mb-8">My Bookings</h1>
+        <div className="bg-white p-6 rounded-lg shadow max-w-md mx-auto">
+          <h2 className="text-xl font-semibold mb-4">Find your bookings</h2>
+          <p className="text-gray-600 mb-4">Enter the email address you used to make your booking.</p>
+          
+          <form onSubmit={handleEmailSubmit}>
+            <div className="mb-4">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+              <input 
+                type="email" 
+                id="email" 
+                name="email" 
+                className="w-full p-2 border border-gray-300 rounded" 
+                required 
+              />
+            </div>
+            <button 
+              type="submit" 
+              className="w-full bg-[#1C3F32] text-white py-2 rounded-md hover:bg-[#1C3F32]/90 transition-colors"
+            >
+              Find My Bookings
+            </button>
+          </form>
+        </div>
+      </main>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <main className="container mx-auto px-4 py-6 sm:py-8 max-w-6xl">
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#1C3F32] mb-6 sm:mb-8">My Bookings</h1>
+        <div className="bg-red-50 p-4 rounded-md flex items-center text-red-700 mb-6">
+          <FaExclamationCircle className="w-5 h-5 mr-2" />
+          <p>{error}</p>
+        </div>
+        <button
+          onClick={() => window.location.reload()}
+          className="bg-[#1C3F32] text-white px-4 py-2 rounded-md hover:bg-[#1C3F32]/90 transition-colors"
+        >
+          Refresh Page
+        </button>
+      </main>
+    );
+  }
+
   return (
     <main className="container mx-auto px-4 py-6 sm:py-8 max-w-6xl">
-      <h1 className="text-2xl sm:text-3xl font-bold text-[#1C3F32] mb-6 sm:mb-8">My Bookings</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#1C3F32]">My Bookings</h1>
+        <div className="text-sm text-gray-600">
+          Viewing bookings for: <span className="font-medium">{email}</span>
+          <button 
+            onClick={() => {
+              setEmail('');
+              localStorage.removeItem('userEmail');
+              sessionStorage.removeItem('userEmail');
+            }}
+            className="ml-2 text-[#1C3F32] underline"
+          >
+            Change
+          </button>
+        </div>
+      </div>
       
       {/* Upcoming Bookings */}
       <div className="mb-8 sm:mb-12">
@@ -83,21 +193,21 @@ export default function BookingsPage() {
         {upcomingBookings.length === 0 ? (
           <div className="bg-white p-4 sm:p-6 rounded-lg shadow text-center">
             <p className="text-gray-600">You don't have any upcoming bookings.</p>
-            <button className="mt-4 bg-[#1C3F32] text-white px-4 sm:px-6 py-2 rounded-md hover:bg-[#1C3F32]/90 transition-colors">
+            <Link href="/dashboard" className="inline-block mt-4 bg-[#1C3F32] text-white px-4 sm:px-6 py-2 rounded-md hover:bg-[#1C3F32]/90 transition-colors">
               Book a Room
-            </button>
+            </Link>
           </div>
         ) : (
           <div className="space-y-4 sm:space-y-6">
             {upcomingBookings.map((booking) => (
-              <div key={booking.id} className="bg-white p-4 sm:p-6 rounded-lg shadow">
+              <div key={booking._id} className="bg-white p-4 sm:p-6 rounded-lg shadow">
                 <div className="flex flex-col md:flex-row gap-4 sm:gap-6">
                   {/* Room Image */}
                   <div className="w-full md:w-1/4">
                     <div className="relative w-full h-32 md:h-full rounded-lg overflow-hidden">
                       <Image
-                        src={booking.image}
-                        alt={booking.roomType}
+                        src={booking.roomImage}
+                        alt={booking.roomTitle}
                         fill
                         className="object-cover"
                         onError={(e) => {
@@ -111,12 +221,12 @@ export default function BookingsPage() {
                   <div className="w-full md:w-2/4">
                     <div className="flex flex-wrap items-center gap-2 mb-2">
                       <span className="inline-block px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
-                        Upcoming
+                        {booking.status === 'pending' ? 'Pending' : 'Upcoming'}
                       </span>
-                      <span className="text-xs sm:text-sm text-gray-500">Booking ID: {booking.id}</span>
+                      <span className="text-xs sm:text-sm text-gray-500">Booking ID: {booking.bookingId}</span>
                     </div>
                     
-                    <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3">{booking.roomType}</h3>
+                    <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3">{booking.roomTitle}</h3>
                     
                     <div className="grid grid-cols-2 sm:grid-cols-2 gap-2 sm:gap-3">
                       <div className="flex items-center gap-1 sm:gap-2">
@@ -162,11 +272,18 @@ export default function BookingsPage() {
                     </div>
                     
                     <div className="space-y-2 mt-3 md:mt-0">
-                      <button className="w-full bg-[#1C3F32] text-white py-2 rounded-md hover:bg-[#1C3F32]/90 transition-colors text-sm sm:text-base">
+                      <Link 
+                        href={`/bookings/${booking._id}`}
+                        className="block w-full text-center bg-[#1C3F32] text-white py-2 rounded-md hover:bg-[#1C3F32]/90 transition-colors text-sm sm:text-base"
+                      >
                         Manage Booking
-                      </button>
-                      <button className="w-full border border-[#1C3F32] text-[#1C3F32] py-2 rounded-md hover:bg-gray-50 transition-colors text-sm sm:text-base">
-                        Cancel Booking
+                      </Link>
+                      <button 
+                        onClick={() => handleCancelBooking(booking._id)}
+                        disabled={cancellingId === booking._id}
+                        className="w-full border border-[#1C3F32] text-[#1C3F32] py-2 rounded-md hover:bg-gray-50 transition-colors text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {cancellingId === booking._id ? 'Cancelling...' : 'Cancel Booking'}
                       </button>
                     </div>
                   </div>
@@ -188,14 +305,14 @@ export default function BookingsPage() {
         ) : (
           <div className="space-y-4 sm:space-y-6">
             {pastBookings.map((booking) => (
-              <div key={booking.id} className="bg-white p-4 sm:p-6 rounded-lg shadow">
+              <div key={booking._id} className="bg-white p-4 sm:p-6 rounded-lg shadow">
                 <div className="flex flex-col md:flex-row gap-4 sm:gap-6">
                   {/* Room Image */}
                   <div className="w-full md:w-1/4">
                     <div className="relative w-full h-32 md:h-full rounded-lg overflow-hidden">
                       <Image
-                        src={booking.image}
-                        alt={booking.roomType}
+                        src={booking.roomImage}
+                        alt={booking.roomTitle}
                         fill
                         className="object-cover"
                         onError={(e) => {
@@ -208,13 +325,17 @@ export default function BookingsPage() {
                   {/* Booking Details */}
                   <div className="w-full md:w-2/4">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">
-                        Completed
+                      <span className={`inline-block px-2 py-1 text-xs rounded-full ${
+                        booking.status === 'completed' 
+                          ? 'bg-gray-100 text-gray-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {booking.status === 'completed' ? 'Completed' : 'Cancelled'}
                       </span>
-                      <span className="text-xs sm:text-sm text-gray-500">Booking ID: {booking.id}</span>
+                      <span className="text-xs sm:text-sm text-gray-500">Booking ID: {booking.bookingId}</span>
                     </div>
                     
-                    <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3">{booking.roomType}</h3>
+                    <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3">{booking.roomTitle}</h3>
                     
                     <div className="grid grid-cols-2 sm:grid-cols-2 gap-2 sm:gap-3">
                       <div className="flex items-center gap-1 sm:gap-2">
@@ -251,7 +372,7 @@ export default function BookingsPage() {
                     </div>
                   </div>
                   
-                  {/* Price and Actions */}
+                  {/* Price */}
                   <div className="w-full md:w-1/4 flex flex-col justify-between mt-4 md:mt-0">
                     <div>
                       <p className="text-xs sm:text-sm text-gray-500">Total Price</p>
@@ -259,14 +380,16 @@ export default function BookingsPage() {
                       <p className="text-xs sm:text-sm text-gray-500">{booking.nights} {booking.nights === 1 ? 'night' : 'nights'}</p>
                     </div>
                     
-                    <div className="flex space-x-2 mt-3 md:mt-0">
-                      <button className="flex-1 bg-[#1C3F32] text-white py-2 rounded-md hover:bg-[#1C3F32]/90 transition-colors text-sm sm:text-base">
-                        Book Again
-                      </button>
-                      <button className="flex-1 border border-[#1C3F32] text-[#1C3F32] py-2 rounded-md hover:bg-gray-50 transition-colors text-sm sm:text-base">
-                        View Receipt
-                      </button>
-                    </div>
+                    {booking.status === 'completed' && (
+                      <div className="space-y-2 mt-3 md:mt-0">
+                        <Link
+                          href={`/bookings/${booking._id}`}
+                          className="block w-full text-center border border-[#1C3F32] text-[#1C3F32] py-2 rounded-md hover:bg-gray-50 transition-colors text-sm sm:text-base"
+                        >
+                          View Details
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

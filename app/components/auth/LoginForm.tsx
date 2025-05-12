@@ -49,8 +49,19 @@ export default function LoginForm() {
     
     try {
       console.log(`Submitting login form for: ${email}`);
-    
-    // Pass the redirectUrl to the login function
+      
+      // Add validation checks
+      if (!email.trim()) {
+        console.error('Email is required');
+        return;
+      }
+      
+      if (!password) {
+        console.error('Password is required');
+        return;
+      }
+      
+      // Pass the redirectUrl to the login function
       const success = await login(email, password, redirectUrl || undefined);
       
       console.log(`Login attempt result: ${success ? 'Success' : 'Failed'}`);
@@ -58,8 +69,8 @@ export default function LoginForm() {
       if (success) {
         console.log(`Login successful, redirecting to: ${redirectUrl || '/dashboard'}`);
         
-        // Force a reload to ensure middleware redirects properly if needed
-        window.location.href = redirectUrl || '/dashboard';
+        // The redirect is now handled by the AuthContext login function
+        // We don't need to force a reload anymore
       }
     } catch (error) {
       console.error('Error during login form submission:', error);

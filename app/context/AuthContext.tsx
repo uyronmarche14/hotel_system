@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 type User = {
   id: string;
@@ -18,6 +18,7 @@ type User = {
 type AuthContextType = {
   user: User | null;
   isAuthenticated: boolean;
+  token: string | null;
   login: (email: string, password: string, redirectUrl?: string) => Promise<boolean>;
   logout: () => void;
   confirmLogout: () => Promise<boolean>;
@@ -31,6 +32,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -38,20 +40,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Load user from localStorage on initial load
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
-    const token = Cookies.get('token');
+    const storedToken = Cookies.get('token');
     
-    if (storedUser && token) {
+    if (storedUser && storedToken) {
       try {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
         setIsAuthenticated(true);
+        setToken(storedToken);
         
         // Verify token validity with backend
-        verifyToken(token);
+        verifyToken(storedToken);
       } catch (error) {
         console.error('Failed to parse stored user data', error);
         localStorage.removeItem('user');
         Cookies.remove('token');
+        setToken(null);
       }
     }
   }, []);
@@ -124,17 +128,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log(`API URL: ${API_URL}/auth/login`);
     
     try {
+      // Add timeout to the axios request
       const response = await axios.post(`${API_URL}/auth/login`, {
         email,
         password,
+      }, { 
+        timeout: 15000,
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       
       console.log('Login response:', response.data);
+      
+      if (!response.data) {
+        console.error('Empty response from server');
+        setLoading(false);
+        setError('Empty response from server. Please try again.');
+        return false;
+      }
+      
       const { user, token } = response.data;
+      
+      if (!user) {
+        console.error('No user in response:', response.data);
+        setLoading(false);
+        setError('Invalid response from server. Please try again.');
+        return false;
+      }
       
       // Save user to state and storage
       setUser(user);
       setIsAuthenticated(true);
+      setToken(token);
       localStorage.setItem('user', JSON.stringify(user));
       
       // Store token in cookies for middleware access
@@ -153,21 +179,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           router.push('/admin/dashboard');
         } else {
           // Use the correct path for standard user dashboard
-        router.push('/dashboard');
+          router.push('/dashboard');
         }
       }
       
       return true;
     } catch (error: any) {
       setLoading(false);
-      const errorMessage = error.response?.data?.message || 'Login failed. Please try again.';
+      
+      // Improved error handling
+      let errorMessage = 'Login failed. Please try again.';
+      
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        console.error('Server error response status:', error.response.status);
+        console.error('Server error response data:', error.response.data);
+        console.error('Server error response headers:', error.response.headers);
+        
+        errorMessage = error.response.data?.message || 'Server error. Please try again.';
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.error('No response received:', error.request);
+        errorMessage = 'No response from server. Please check your connection.';
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        console.error('Request error:', error.message);
+        errorMessage = 'Request failed. Please try again.';
+      }
+      
       setError(errorMessage);
-      console.error('Login failed', error);
-      console.error('Error details:', {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message
-      });
+      console.error('Login failed:', error.toString());
       return false;
     }
   };
@@ -231,24 +273,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Logout function
   const logout = () => {
     console.log('Logging out user');
+    
+    // Clear user data and auth state
     setUser(null);
     setIsAuthenticated(false);
+    setToken(null);
+    
+    // Remove from storage
     localStorage.removeItem('user');
-    Cookies.remove('token', { path: '/' });
-    router.push('/login');
+    Cookies.remove('token');
+    
+    // Redirect to login page
+    router.push('/login?session_expired=true');
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      isAuthenticated, 
-      login, 
-      logout, 
-      confirmLogout,
-      register,
-      loading,
-      error
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated,
+        token,
+        login,
+        logout,
+        confirmLogout,
+        register,
+        loading,
+        error,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

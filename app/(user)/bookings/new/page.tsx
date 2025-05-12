@@ -7,6 +7,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/AuthContext';
 import { rooms, RoomType } from '@/app/data/rooms';
 import { FaMapMarkerAlt, FaCalendarAlt, FaUser, FaCreditCard, FaCheck, FaWifi, FaCoffee, FaSnowflake } from 'react-icons/fa';
+import { createBooking } from '@/app/lib/bookingService';
 
 export default function BookingConfirmationPage() {
   const [loading, setLoading] = useState(false);
@@ -31,7 +32,7 @@ export default function BookingConfirmationPage() {
   
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, token } = useAuth();
   const [room, setRoom] = useState<RoomType | null>(null);
   const [checkInDate, setCheckInDate] = useState('Mon 5 April 2025');
   const [checkOutDate, setCheckOutDate] = useState('Wed 7 April 2025');
@@ -90,15 +91,92 @@ export default function BookingConfirmationPage() {
     }));
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
-    // Simulate form submission
-    setTimeout(() => {
+    try {
+      // Validate the form data
+      if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone) {
+        alert('Please fill in all required fields');
+        setLoading(false);
+        return;
+      }
+      
+      // Make sure room data is valid
+      if (!room) {
+        alert('Room information is missing. Please try again.');
+        setLoading(false);
+        return;
+      }
+      
+      // Format dates properly for the API
+      const formatApiDate = (dateStr: string) => {
+        try {
+          // Try to parse the date string and format as ISO string
+          const date = new Date(dateStr);
+          return date.toISOString();
+        } catch (error) {
+          console.error('Error formatting date:', error);
+          return dateStr; // Fall back to original string if parsing fails
+        }
+      };
+      
+      // Format data for API
+      const bookingData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        roomType: room.roomType || room.category || '',
+        roomTitle: room.title || '',
+        roomCategory: room.category || '',
+        roomImage: room.imageSrc || room.imageUrl || '',
+        checkIn: formatApiDate(checkInDate),
+        checkOut: formatApiDate(checkOutDate),
+        nights: Number(nightsStay),
+        guests: Number(adultsCount),
+        specialRequests: formData.specialRequests || '',
+        basePrice: Number(basePrice),
+        taxAndFees: Number(taxAndFees),
+        totalPrice: Number(totalPrice),
+        location: "Taguig, Metro Manila"
+      };
+      
+      console.log('Submitting booking data:', bookingData);
+      
+      try {
+        // Call backend API
+        const response = await createBooking(bookingData);
+        
+        console.log('Booking response:', response);
+        
+        if (response && response.success) {
+          // Show success state
+          setBookingCompleted(true);
+        } else {
+          throw new Error('Booking response indicates failure');
+        }
+      } catch (apiError) {
+        console.error('API Error creating booking:', apiError);
+        throw apiError; // Re-throw to be caught by outer catch
+      }
+      
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      
+      // More detailed error handling
+      let errorMessage = 'There was a problem processing your booking. Please try again.';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message || errorMessage;
+      }
+      
+      // Show error to user
+      alert(errorMessage);
+    } finally {
       setLoading(false);
-      setBookingCompleted(true);
-    }, 1500);
+    }
   };
 
   if (!room) {
