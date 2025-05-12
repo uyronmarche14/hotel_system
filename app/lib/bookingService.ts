@@ -1,4 +1,5 @@
 import { API_URL } from '@/app/lib/constants';
+import Cookies from 'js-cookie';
 
 // Defining types for our booking data
 export interface BookingFormData {
@@ -63,6 +64,26 @@ export interface BookingHistoryResponse {
   roomStats: RoomStat[];
 }
 
+// Helper function to format API URLs correctly
+const getApiUrl = (endpoint: string) => {
+  // Remove any trailing slashes from API_URL
+  const baseUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+  
+  // Ensure endpoint starts with a slash
+  const formattedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  
+  // Remove duplicate "/api" if it exists in both baseUrl and endpoint
+  const cleanEndpoint = baseUrl.endsWith('/api') || baseUrl.includes('/api/') 
+    ? formattedEndpoint.replace(/^\/api/, '')
+    : formattedEndpoint;
+  
+  // Debug the URL construction
+  const fullUrl = `${baseUrl}${cleanEndpoint}`;
+  console.log('Constructed API URL:', fullUrl);
+  
+  return fullUrl;
+};
+
 // API Error handling helper
 async function handleResponse(response: Response) {
   const contentType = response.headers.get('content-type');
@@ -89,8 +110,15 @@ async function handleResponse(response: Response) {
   } else {
     // Handle non-JSON responses like HTML error pages
     const text = await response.text();
-    console.error('Received non-JSON response:', text.substring(0, 100) + '...');
-    throw new Error(`Unexpected response type: ${contentType}`);
+    console.error('Received non-JSON response:', text);
+    
+    // Check if this appears to be an HTML error with a specific message
+    const match = text.match(/<pre>([^<]+)<\/pre>/);
+    if (match && match[1]) {
+      throw new Error(`API Error: ${match[1].trim()}`);
+    }
+    
+    throw new Error(`Unexpected response type: ${contentType || 'unknown'} - The API endpoint may be incorrect`);
   }
 }
 
@@ -100,18 +128,36 @@ export const createBooking = async (
 ): Promise<{ success: boolean; data: Booking }> => {
   // Log the booking data being sent
   console.log('Sending booking data to API:', JSON.stringify(bookingData, null, 2));
-  console.log('API URL:', `${API_URL}/bookings`);
+  
+  // Get properly formatted URL
+  const bookingUrl = getApiUrl('/api/bookings');
+  
+  // Get the token from cookies
+  const token = Cookies.get('token');
+  
+  if (!token) {
+    console.error('No authentication token found');
+    throw new Error('Authentication required. Please log in again.');
+  }
   
   // Add timeout to fetch request
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
 
   try {
-    const response = await fetch(`${API_URL}/bookings`, {
+    console.log('Making POST request to:', bookingUrl);
+    console.log('With headers:', {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+    
+    const response = await fetch(bookingUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify(bookingData),
       signal: controller.signal,
@@ -141,12 +187,18 @@ export const createBooking = async (
     
     // Check if the API server is accessible
     try {
-      const pingResponse = await fetch(`${API_URL}/health`, {
+      // Use the health endpoint defined in app.js
+      const healthUrl = getApiUrl('/health');
+      console.log('Checking health at:', healthUrl);
+      
+      const pingResponse = await fetch(healthUrl, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
         },
       });
+      
+      console.log('Health check response:', pingResponse.status);
       
       if (!pingResponse.ok) {
         throw new Error('API server is unreachable. Please try again later.');
@@ -164,12 +216,22 @@ export const createBooking = async (
 export const getUserBookings = async (
   email: string
 ): Promise<{ success: boolean; count: number; data: Booking[] }> => {
+  // Get the token from cookies
+  const token = Cookies.get('token');
+  
+  if (!token) {
+    console.error('No authentication token found');
+    throw new Error('Authentication required. Please log in again.');
+  }
+  
   try {
-    const response = await fetch(`${API_URL}/bookings?email=${encodeURIComponent(email)}`, {
+    const url = getApiUrl(`/api/bookings?email=${encodeURIComponent(email)}`);
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
       }
     });
 
@@ -184,12 +246,22 @@ export const getUserBookings = async (
 export const getBookingById = async (
   bookingId: string
 ): Promise<{ success: boolean; data: Booking }> => {
+  // Get the token from cookies
+  const token = Cookies.get('token');
+  
+  if (!token) {
+    console.error('No authentication token found');
+    throw new Error('Authentication required. Please log in again.');
+  }
+  
   try {
-    const response = await fetch(`${API_URL}/bookings/${bookingId}`, {
+    const url = getApiUrl(`/api/bookings/${bookingId}`);
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
       }
     });
 
@@ -204,12 +276,22 @@ export const getBookingById = async (
 export const cancelBooking = async (
   bookingId: string
 ): Promise<{ success: boolean; data: Booking }> => {
+  // Get the token from cookies
+  const token = Cookies.get('token');
+  
+  if (!token) {
+    console.error('No authentication token found');
+    throw new Error('Authentication required. Please log in again.');
+  }
+  
   try {
-    const response = await fetch(`${API_URL}/bookings/${bookingId}/cancel`, {
+    const url = getApiUrl(`/api/bookings/${bookingId}/cancel`);
+    const response = await fetch(url, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
       }
     });
 
@@ -222,12 +304,22 @@ export const cancelBooking = async (
 
 // Function to get booking history with analytics
 export const getBookingHistory = async (): Promise<BookingHistoryResponse> => {
+  // Get the token from cookies
+  const token = Cookies.get('token');
+  
+  if (!token) {
+    console.error('No authentication token found');
+    throw new Error('Authentication required. Please log in again.');
+  }
+  
   try {
-    const response = await fetch(`${API_URL}/bookings/history`, {
+    const url = getApiUrl('/api/bookings/history');
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
       }
     });
 
@@ -240,18 +332,28 @@ export const getBookingHistory = async (): Promise<BookingHistoryResponse> => {
 
 // Function to get booking history for a specific user
 export const getUserBookingHistory = async (email: string): Promise<BookingHistoryResponse> => {
+  // Get the token from cookies
+  const token = Cookies.get('token');
+  
+  if (!token) {
+    console.error('No authentication token found');
+    throw new Error('Authentication required. Please log in again.');
+  }
+  
   try {
-    const response = await fetch(`${API_URL}/bookings/history/${encodeURIComponent(email)}`, {
+    const url = getApiUrl(`/api/bookings/history/${encodeURIComponent(email)}`);
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
       }
     });
 
     return await handleResponse(response);
   } catch (error) {
-    console.error('Failed to fetch user booking history:', error);
+    console.error('Failed to fetch booking history:', error);
     throw error;
   }
 }; 

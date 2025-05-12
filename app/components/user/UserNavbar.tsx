@@ -6,6 +6,7 @@ import { FaBell, FaUserCircle, FaBars, FaTimes, FaCalendarCheck } from "react-ic
 import { useAuth } from "@/app/context/AuthContext";
 import { usePathname } from "next/navigation";
 import BookingDropdown from "./BookingDropdown";
+import { getSafeImageUrl } from "@/app/lib/utils";
 
 const UserNavbar = () => {
   const [notificationCount, setNotificationCount] = useState(3);
@@ -21,7 +22,14 @@ const UserNavbar = () => {
   const bookingButtonRef = useRef<HTMLButtonElement>(null);
   const navbarRef = useRef<HTMLDivElement>(null);
   
-  const userProfilePic = user?.profilePic || "https://res.cloudinary.com/ddnxfpziq/image/upload/v1746281526/photo_2025-04-08_20-22-13_z7mxk8.jpg";
+  // Use the utility function to get a safe profile image URL
+  const userProfilePic = getSafeImageUrl(user?.profilePic, undefined, 'profile');
+  
+  // Function to handle profile image loading errors
+  const handleProfileImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.log("Profile image failed to load, using fallback");
+    e.currentTarget.src = "/images/default-user.png";
+  };
 
   const toggleProfileMenu = () => {
     if (!showProfileMenu && profileButtonRef.current && navbarRef.current) {
@@ -215,9 +223,7 @@ const UserNavbar = () => {
                 width={40}
                 height={40}
                 className="object-cover"
-                onError={(e) => {
-                  e.currentTarget.src = "/images/default-user.png";
-                }}
+                onError={handleProfileImageError}
               />
             </div>
             <span className="hidden md:inline">{user?.name || "Guest"}</span>

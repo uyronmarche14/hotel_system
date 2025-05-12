@@ -6,6 +6,7 @@ import Link from "next/link";
 import { getUserBookings, Booking } from "@/app/lib/bookingService";
 import { useAuth } from "@/app/context/AuthContext";
 import { FaCalendarAlt, FaChevronDown, FaChevronRight } from "react-icons/fa";
+import { getSafeImageUrl } from "@/app/lib/utils";
 
 // Fallback image path
 const FALLBACK_IMAGE = "/images/room-placeholder.jpg";
@@ -28,12 +29,9 @@ const BookingDropdown = ({ isOpen, onClose }: BookingDropdownProps) => {
     return new Date(dateString).toLocaleDateString('en-US', options);
   };
 
-  // Function to safely get image URLs
+  // Function to safely get image URLs - replaced with utility function
   const getImageUrl = (url: string) => {
-    if (!url) return FALLBACK_IMAGE;
-    if (url.startsWith('/')) return url;
-    if (url.includes('res.cloudinary.com')) return url;
-    return FALLBACK_IMAGE;
+    return getSafeImageUrl(url, FALLBACK_IMAGE, 'room');
   };
 
   useEffect(() => {

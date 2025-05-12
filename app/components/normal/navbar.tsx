@@ -7,6 +7,7 @@ import { FaBars, FaTimes, FaUserCircle, FaCalendarCheck } from "react-icons/fa";
 import { useAuth } from "@/app/context/AuthContext";
 import { usePathname } from "next/navigation";
 import BookingDropdown from "../user/BookingDropdown";
+import { getSafeImageUrl } from "@/app/lib/utils";
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -195,17 +196,24 @@ const Navbar = () => {
               <div className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-white">
                 {user?.profilePic ? (
                   <Image
-                    src={user.profilePic}
+                    src={getSafeImageUrl(user.profilePic, '/images/default-user.png', 'profile')}
                     alt="User Profile"
                     width={40}
                     height={40}
                     className="object-cover"
                     onError={(e) => {
+                      console.log("Profile image failed to load, using fallback");
                       e.currentTarget.src = "/images/default-user.png";
                     }}
                   />
                 ) : (
-                  <FaUserCircle className="w-full h-full text-white" />
+                  <Image
+                    src="/images/default-user.png"
+                    alt="Default User Profile"
+                    width={40}
+                    height={40}
+                    className="object-cover"
+                  />
                 )}
               </div>
               <span className="hidden md:inline">{user?.name || "User"}</span>
@@ -332,17 +340,24 @@ const Navbar = () => {
                 <div className="w-8 h-8 rounded-full overflow-hidden bg-white/10 flex items-center justify-center mr-2">
                   {user?.profilePic ? (
                     <Image
-                      src={user.profilePic}
+                      src={getSafeImageUrl(user.profilePic, '/images/default-user.png', 'profile')}
                       alt="User Profile"
                       width={32}
                       height={32}
                       className="object-cover"
                       onError={(e) => {
+                        console.log("Profile image failed to load, using fallback");
                         e.currentTarget.src = "/images/default-user.png";
                       }}
                     />
                   ) : (
-                    <FaUserCircle className="text-white text-xl" />
+                    <Image
+                      src="/images/default-user.png"
+                      alt="Default User Profile"
+                      width={32}
+                      height={32}
+                      className="object-cover"
+                    />
                   )}
                 </div>
                 <span className="text-white font-medium">{user?.name || "User"}</span>

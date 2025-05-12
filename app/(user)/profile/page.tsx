@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { FaUser, FaEnvelope, FaPhone, FaCalendarAlt, FaMapMarkerAlt, FaCreditCard } from "react-icons/fa";
+import { getSafeImageUrl } from "@/app/lib/utils";
 
 export default function ProfilePage() {
   // Example user data - in a real app, this would come from your backend
@@ -10,7 +11,7 @@ export default function ProfilePage() {
     joined: "January 2023",
     address: "123 Main Street, New York, NY 10001",
     membershipLevel: "Gold",
-    profilePic: "https://res.cloudinary.com/ddnxfpziq/image/upload/v1744609832/user-profile-default.jpg",
+    profilePic: "/images/default-user.png",
     upcomingBookings: 1,
     pastBookings: 3,
     loyaltyPoints: 1250
@@ -27,12 +28,12 @@ export default function ProfilePage() {
             <div className="flex flex-col items-center mb-4 sm:mb-6">
               <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-[#1C3F32] mb-3 sm:mb-4">
                 <Image
-                  src={user.profilePic}
+                  src={getSafeImageUrl(user.profilePic, '/images/default-user.png', 'profile')}
                   alt={user.name}
                   fill
                   className="object-cover"
                   onError={(e) => {
-                    e.currentTarget.src = "https://via.placeholder.com/150";
+                    e.currentTarget.src = "/images/default-user.png";
                   }}
                 />
               </div>
