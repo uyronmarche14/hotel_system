@@ -203,20 +203,7 @@ export default function LoginForm() {
           </button>
         </form>
 
-        <div className="my-8 flex items-center">
-          <div className="flex-grow border-t border-gray-200"></div>
-          <span className="flex-shrink mx-4 text-gray-600 text-sm">or</span>
-          <div className="flex-grow border-t border-gray-200"></div>
-        </div>
 
-        <div className="space-y-4">
-          <Link
-            href="/admin/login"
-            className="bg-[#1C3F32] text-white w-full flex items-center justify-center gap-2 py-3 px-4 rounded-md transition hover:bg-[#15332a]"
-          >
-            <span>Access Admin Panel</span>
-          </Link>
-        </div>
 
         <div className="mt-8 pt-6 border-t border-gray-200">
           <Link href={redirectUrl ? `/register?redirect=${encodeURIComponent(redirectUrl)}` : "/register"} className="w-full flex justify-center items-center gap-2 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-brand-green font-medium rounded-md transition">

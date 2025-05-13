@@ -46,13 +46,7 @@ export default function Dashboard() {
                 Experience world-class stays in the heart of the Philippines.
               </p>
               
-              {/* Admin Access Button */}
-              <a 
-                href="/admin/login" 
-                className="inline-block mt-6 px-6 py-2 bg-white text-[#1C3F32] font-semibold rounded-md hover:bg-gray-100 transition-colors"
-              >
-                Access Admin Portal →
-              </a>
+
             </div>
           </div>
         </div>

@@ -23,6 +23,7 @@ type AuthContextType = {
   logout: () => void;
   confirmLogout: () => Promise<boolean>;
   register: (name: string, email: string, password: string, confirmPassword?: string, redirectUrl?: string) => Promise<boolean>;
+  updateUserContext: (userData: Partial<User>) => void;
   loading: boolean;
   error: string | null;
 };
@@ -170,17 +171,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       console.log('Login successful, redirecting...');
       
-      // Navigate to the redirect URL if provided, or to appropriate dashboard based on user role
+      // Navigate to the redirect URL if provided, or to the dashboard
       if (redirectUrl) {
         router.push(redirectUrl);
       } else {
-        // Determine the correct route based on user role
-        if (user.role === 'admin') {
-          router.push('/admin/dashboard');
-        } else {
-          // Use the correct path for standard user dashboard
-          router.push('/dashboard');
-        }
+        // Use the standard user dashboard
+        router.push('/dashboard');
       }
       
       return true;
@@ -328,6 +324,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/login?session_expired=true');
   };
 
+  // Update user context
+  const updateUserContext = (userData: Partial<User>) => {
+    if (!user) return;
+    
+    const updatedUser = { ...user, ...userData };
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -338,6 +343,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         confirmLogout,
         register,
+        updateUserContext,
         loading,
         error,
       }}

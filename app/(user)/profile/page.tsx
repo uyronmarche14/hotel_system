@@ -1,38 +1,112 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { FaUser, FaEnvelope, FaPhone, FaCalendarAlt, FaMapMarkerAlt, FaCreditCard } from "react-icons/fa";
+import { FaEnvelope, FaPhone, FaCalendarAlt, FaMapMarkerAlt, FaEdit, FaHistory, FaSpinner } from "react-icons/fa";
 import { getSafeImageUrl } from "@/app/lib/utils";
 import SafeImage from "@/app/components/ui/SafeImage";
 import { useAuth } from "@/app/context/AuthContext";
 import Link from "next/link";
+import { API_URL } from "@/app/lib/constants";
+import Cookies from "js-cookie";
+
+// Extend the User type to avoid TypeScript errors
+type ExtendedUser = {
+  id: string;
+  name: string;
+  email: string;
+  profilePic?: string;
+  role?: string;
+  phone?: string;
+  createdAt?: string;
+  address?: string;
+  membershipLevel?: string;
+  upcomingBookings?: number;
+  pastBookings?: number;
+};
 
 export default function ProfilePage() {
   const router = useRouter();
   const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const [bookings, setBookings] = useState({ upcoming: 0, past: 0 });
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  
+  // Fetch user profile and booking data
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user) return;
+      
+      try {
+        const token = Cookies.get('token');
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+        
+        // Fetch user profile
+        const profileResponse = await fetch(`${API_URL}/auth/me`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!profileResponse.ok) {
+          throw new Error('Failed to fetch user profile');
+        }
+        
+        // Fetch user bookings
+        const bookingsResponse = await fetch(`${API_URL}/bookings/summary`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (bookingsResponse.ok) {
+          const bookingData = await bookingsResponse.json();
+          setBookings({
+            upcoming: bookingData.data.upcoming || 0,
+            past: bookingData.data.past || 0
+          });
+        }
+        
+      } catch (error) {
+        console.error('Error fetching profile data:', error);
+        setFetchError('Unable to load profile data. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchUserData();
+  }, [user]);
   
   // If user is not available yet, show loading
-  if (!user) {
+  if (!user || isLoading) {
     return (
       <div className="container mx-auto flex justify-center items-center min-h-[60vh]">
-        <div className="w-12 h-12 border-4 border-[#1C3F32] border-t-transparent rounded-full animate-spin"></div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-[#1C3F32] border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-600">Loading profile data...</p>
+        </div>
       </div>
     );
   }
   
+  // Cast user to extended type
+  const extendedUser = user as unknown as ExtendedUser;
+  
   // User data with defaults for missing fields
   const userData = {
-    name: user.name || "Guest User",
-    email: user.email || "No email provided",
-    phone: user.phone || "Not provided",
-    joined: user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) : "Recently",
-    address: user.address || "No address provided",
-    membershipLevel: user.membershipLevel || "Standard",
-    profilePic: user.profilePic,
-    upcomingBookings: user.upcomingBookings || 0,
-    pastBookings: user.pastBookings || 0,
-    loyaltyPoints: user.loyaltyPoints || 0
+    name: extendedUser.name || "Guest User",
+    email: extendedUser.email || "No email provided",
+    phone: extendedUser.phone || "Not provided",
+    joined: extendedUser.createdAt ? new Date(extendedUser.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) : "Recently",
+    address: extendedUser.address || "No address provided",
+    profilePic: extendedUser.profilePic && extendedUser.profilePic.startsWith('/uploads') 
+      ? `${API_URL}${extendedUser.profilePic}` 
+      : extendedUser.profilePic,
+    upcomingBookings: bookings.upcoming,
+    pastBookings: bookings.past,
   };
 
   const handleEditProfile = () => {
@@ -40,183 +114,106 @@ export default function ProfilePage() {
   };
 
   return (
-    <main className="container mx-auto px-4 py-6 sm:py-8 max-w-6xl">
-      <h1 className="text-2xl sm:text-3xl font-bold text-[#1C3F32] mb-6 sm:mb-8">My Profile</h1>
+    <main className="container mx-auto px-4 py-10 max-w-4xl">
+      <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">User Profile</h1>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-        {/* Left column - Profile Info */}
-        <div className="col-span-1">
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow mb-6">
-            <div className="flex flex-col items-center mb-4 sm:mb-6">
-              <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-[#1C3F32] mb-3 sm:mb-4">
-                <SafeImage
-                  src={userData.profilePic}
-                  imageType="profile"
-                  alt={userData.name}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <h2 className="text-xl sm:text-2xl font-bold">{userData.name}</h2>
-              <p className="text-[#1C3F32] font-medium text-sm sm:text-base">{userData.membershipLevel} Member</p>
-            </div>
-            
-            <div className="space-y-3 sm:space-y-4">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <FaEnvelope className="text-[#1C3F32] min-w-5" />
-                <div>
-                  <p className="text-xs sm:text-sm text-gray-500">Email</p>
-                  <p className="text-sm sm:text-base break-all">{userData.email}</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-2 sm:gap-3">
-                <FaPhone className="text-[#1C3F32] min-w-5" />
-                <div>
-                  <p className="text-xs sm:text-sm text-gray-500">Phone</p>
-                  <p className="text-sm sm:text-base">{userData.phone}</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-2 sm:gap-3">
-                <FaCalendarAlt className="text-[#1C3F32] min-w-5" />
-                <div>
-                  <p className="text-xs sm:text-sm text-gray-500">Member Since</p>
-                  <p className="text-sm sm:text-base">{userData.joined}</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-2 sm:gap-3">
-                <FaMapMarkerAlt className="text-[#1C3F32] min-w-5 mt-1" />
-                <div>
-                  <p className="text-xs sm:text-sm text-gray-500">Address</p>
-                  <p className="text-sm sm:text-base">{userData.address}</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="mt-4 sm:mt-6">
-              <button 
-                onClick={handleEditProfile}
-                className="w-full bg-[#1C3F32] text-white py-2 rounded-md hover:bg-[#1C3F32]/90 transition-colors text-sm sm:text-base"
-              >
-                Edit Profile
-              </button>
-            </div>
+      {fetchError && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
+          {fetchError}
+        </div>
+      )}
+      
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        {/* Header with profile image */}
+        <div className="bg-gradient-to-r from-gray-800 to-[#1C3F32] text-white p-8 flex flex-col md:flex-row items-center gap-6">
+          <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white flex-shrink-0">
+            <SafeImage
+              src={userData.profilePic}
+              imageType="profile"
+              alt={userData.name}
+              fill
+              className="object-cover"
+            />
           </div>
-          
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
-            <h3 className="text-lg sm:text-xl font-bold text-[#1C3F32] mb-3 sm:mb-4">Loyalty Program</h3>
-            <div className="mb-3 sm:mb-4">
-              <p className="text-xs sm:text-sm text-gray-500 mb-1">Your Points</p>
-              <p className="text-2xl sm:text-3xl font-bold text-[#1C3F32]">{userData.loyaltyPoints}</p>
-            </div>
-            <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">You need 750 more points to reach Platinum status</p>
-            <div className="w-full bg-gray-200 rounded-full h-2.5">
-              <div className="bg-[#1C3F32] h-2.5 rounded-full" style={{ width: "62%" }}></div>
-            </div>
-            <button className="w-full mt-3 sm:mt-4 border border-[#1C3F32] text-[#1C3F32] py-2 rounded-md hover:bg-gray-50 transition-colors text-sm sm:text-base">
-              View Benefits
-            </button>
+          <div className="text-center md:text-left">
+            <h2 className="text-3xl font-bold mb-2">{userData.name}</h2>
+            <p className="text-lg font-light">Member since {userData.joined}</p>
           </div>
         </div>
         
-        {/* Right column - Bookings & Settings */}
-        <div className="col-span-1 md:col-span-2">
-          {/* Bookings Summary */}
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow mb-6">
-            <h3 className="text-lg sm:text-xl font-bold text-[#1C3F32] mb-3 sm:mb-4">Your Bookings</h3>
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
-              <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
-                <p className="text-xs sm:text-sm text-gray-500">Upcoming</p>
-                <p className="text-2xl sm:text-3xl font-bold text-[#1C3F32]">{userData.upcomingBookings}</p>
+        {/* User information */}
+        <div className="p-8">
+          <div className="mb-8">
+            <h3 className="text-xl font-semibold text-gray-800 pb-2 mb-4 border-b border-gray-200">
+              Personal Information
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
+              <div className="space-y-2">
+                <p className="text-gray-600 font-medium">Email Address</p>
+                <div className="flex items-center gap-3">
+                  <FaEnvelope className="text-[#1C3F32] text-xl" />
+                  <p className="text-lg text-gray-800">{userData.email}</p>
+                </div>
               </div>
-              <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
-                <p className="text-xs sm:text-sm text-gray-500">Past Stays</p>
-                <p className="text-2xl sm:text-3xl font-bold text-[#1C3F32]">{userData.pastBookings}</p>
+              
+              <div className="space-y-2">
+                <p className="text-gray-600 font-medium">Phone Number</p>
+                <div className="flex items-center gap-3">
+                  <FaPhone className="text-[#1C3F32] text-xl" />
+                  <p className="text-lg text-gray-800">{userData.phone}</p>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <p className="text-gray-600 font-medium">Member Since</p>
+                <div className="flex items-center gap-3">
+                  <FaCalendarAlt className="text-[#1C3F32] text-xl" />
+                  <p className="text-lg text-gray-800">{userData.joined}</p>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <p className="text-gray-600 font-medium">Address</p>
+                <div className="flex items-start gap-3">
+                  <FaMapMarkerAlt className="text-[#1C3F32] text-xl mt-1" />
+                  <p className="text-lg text-gray-800">{userData.address}</p>
+                </div>
               </div>
             </div>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link href="/bookings" className="w-full text-center bg-white border border-[#1C3F32] text-[#1C3F32] py-2 rounded-md hover:bg-gray-50 transition-colors text-sm sm:text-base">
-                View All Bookings
+          </div>
+          
+          {/* Booking Summary */}
+          <div className="mb-8">
+            <h3 className="text-xl font-semibold text-gray-800 pb-2 mb-4 border-b border-gray-200">
+              Booking Summary
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="bg-gray-50 p-6 rounded-lg border border-gray-100">
+                <p className="text-gray-600 font-medium mb-2">Upcoming Reservations</p>
+                <p className="text-3xl font-bold text-[#1C3F32]">{userData.upcomingBookings}</p>
+              </div>
+              <div className="bg-gray-50 p-6 rounded-lg border border-gray-100">
+                <p className="text-gray-600 font-medium mb-2">Past Reservations</p>
+                <p className="text-3xl font-bold text-[#1C3F32]">{userData.pastBookings}</p>
+              </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link 
+                href="/bookings" 
+                className="flex-1 text-center bg-white border-2 border-[#1C3F32] text-[#1C3F32] py-3 px-6 rounded-md hover:bg-gray-50 transition-colors text-lg font-medium flex items-center justify-center gap-2"
+              >
+                <FaHistory /> View Booking History
               </Link>
-            </div>
-          </div>
-          
-          {/* Payment Methods */}
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow mb-6">
-            <div className="flex justify-between items-center mb-3 sm:mb-4">
-              <h3 className="text-lg sm:text-xl font-bold text-[#1C3F32]">Payment Methods</h3>
-              <button className="text-[#1C3F32] hover:underline text-sm sm:text-base">+ Add New</button>
-            </div>
-            
-            <div className="border rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <FaCreditCard className="text-lg sm:text-xl text-[#1C3F32] min-w-5" />
-                  <div>
-                    <p className="font-medium text-sm sm:text-base">Visa ending in 1234</p>
-                    <p className="text-xs sm:text-sm text-gray-500">Expires 09/25</p>
-                  </div>
-                </div>
-                <div>
-                  <span className="inline-block px-2 py-0.5 sm:py-1 text-xs bg-[#1C3F32] text-white rounded">Default</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="border rounded-lg p-3 sm:p-4">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <FaCreditCard className="text-lg sm:text-xl text-[#1C3F32] min-w-5" />
-                  <div>
-                    <p className="font-medium text-sm sm:text-base">Mastercard ending in 5678</p>
-                    <p className="text-xs sm:text-sm text-gray-500">Expires 11/26</p>
-                  </div>
-                </div>
-                <div>
-                  <button className="text-[#1C3F32] hover:underline text-xs sm:text-sm">Set as default</button>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Account Settings */}
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
-            <h3 className="text-lg sm:text-xl font-bold text-[#1C3F32] mb-3 sm:mb-4">Account Settings</h3>
-            <div className="space-y-3 sm:space-y-4">
-              <div className="border-b pb-3 sm:pb-4">
-                <div className="flex justify-between items-center">
-                  <p className="font-medium text-sm sm:text-base">Email Notifications</p>
-                  <div className="relative inline-block w-10 h-5 sm:w-12 sm:h-6">
-                    <input type="checkbox" className="opacity-0 w-0 h-0" defaultChecked />
-                    <span className="absolute cursor-pointer inset-0 bg-[#1C3F32] rounded-full"></span>
-                  </div>
-                </div>
-                <p className="text-xs sm:text-sm text-gray-500">Receive updates about your bookings and special offers</p>
-              </div>
               
-              <div className="border-b pb-3 sm:pb-4">
-                <div className="flex justify-between items-center">
-                  <p className="font-medium text-sm sm:text-base">Two-Factor Authentication</p>
-                  <div className="relative inline-block w-10 h-5 sm:w-12 sm:h-6">
-                    <input type="checkbox" className="opacity-0 w-0 h-0" />
-                    <span className="absolute cursor-pointer inset-0 bg-gray-300 rounded-full"></span>
-                  </div>
-                </div>
-                <p className="text-xs sm:text-sm text-gray-500">Add an extra layer of security to your account</p>
-              </div>
-              
-              <div>
-                <div className="flex justify-between items-center">
-                  <p className="font-medium text-sm sm:text-base">Language Preference</p>
-                  <select className="border rounded p-1 text-xs sm:text-sm">
-                    <option>English</option>
-                    <option>Spanish</option>
-                    <option>French</option>
-                  </select>
-                </div>
-              </div>
+              <button 
+                onClick={handleEditProfile}
+                className="flex-1 bg-[#1C3F32] text-white py-3 px-6 rounded-md hover:bg-[#1C3F32]/90 transition-colors text-lg font-medium flex items-center justify-center gap-2"
+              >
+                <FaEdit /> Edit Information
+              </button>
             </div>
           </div>
         </div>

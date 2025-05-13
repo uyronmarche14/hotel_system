@@ -1,11 +1,6 @@
 // API base URL
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-// If API is unavailable, admin can still log in with hardcoded credentials
-export const ADMIN_USERNAME = 'admin@admin.com';
-export const ADMIN_PASSWORD = 'admin123';
-export const ADMIN_TOKEN = 'admin-token-secure-123456';
-
 // Maximum file upload size in bytes (5MB)
 export const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
@@ -20,7 +15,6 @@ export const USER_KEY = 'solace_manor_user';
 
 // Token cookie names
 export const AUTH_TOKEN_COOKIE = 'authToken';
-export const ADMIN_TOKEN_COOKIE = 'adminToken';
 
 // Image fallbacks
 export const PROFILE_IMAGE_FALLBACK = '/images/default-avatar.png';

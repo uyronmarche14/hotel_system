@@ -8,6 +8,8 @@ import { useAuth } from "@/app/context/AuthContext";
 import { usePathname } from "next/navigation";
 import BookingDropdown from "../user/BookingDropdown";
 import { getSafeImageUrl } from "@/app/lib/utils";
+import { API_URL } from "@/app/lib/constants";
+import SafeImage from "@/app/components/ui/SafeImage";
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -108,7 +110,6 @@ const Navbar = () => {
     { name: "Services", path: "/services" },
     { name: "About", path: "/about" },
     { name: "Contact", path: "/contact" },
-    { name: "Admin Portal", path: "/admin/login" },
   ];
 
   const isActive = (path: string) => {
@@ -196,16 +197,13 @@ const Navbar = () => {
             >
               <div className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-white">
                 {user?.profilePic ? (
-                  <Image
-                    src={getSafeImageUrl(user.profilePic, '/images/default-user.png', 'profile')}
+                  <SafeImage
+                    src={user.profilePic.startsWith('/uploads') ? `${API_URL}${user.profilePic}` : user.profilePic}
                     alt="User Profile"
                     width={40}
                     height={40}
+                    imageType="profile"
                     className="object-cover"
-                    onError={(e) => {
-                      console.log("Profile image failed to load, using fallback");
-                      e.currentTarget.src = "/images/default-user.png";
-                    }}
                   />
                 ) : (
                   <Image
@@ -340,16 +338,13 @@ const Navbar = () => {
               <div className="flex items-center mb-3">
                 <div className="w-8 h-8 rounded-full overflow-hidden bg-white/10 flex items-center justify-center mr-2">
                   {user?.profilePic ? (
-                    <Image
-                      src={getSafeImageUrl(user.profilePic, '/images/default-user.png', 'profile')}
+                    <SafeImage
+                      src={user.profilePic.startsWith('/uploads') ? `${API_URL}${user.profilePic}` : user.profilePic}
                       alt="User Profile"
                       width={32}
                       height={32}
+                      imageType="profile"
                       className="object-cover"
-                      onError={(e) => {
-                        console.log("Profile image failed to load, using fallback");
-                        e.currentTarget.src = "/images/default-user.png";
-                      }}
                     />
                   ) : (
                     <Image

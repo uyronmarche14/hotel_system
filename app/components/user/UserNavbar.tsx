@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import BookingDropdown from "./BookingDropdown";
 import { getSafeImageUrl } from "@/app/lib/utils";
 import SafeImage from "@/app/components/ui/SafeImage";
+import { API_URL } from "@/app/lib/constants";
 
 const UserNavbar = () => {
   const [notificationCount, setNotificationCount] = useState(3);
@@ -23,7 +24,9 @@ const UserNavbar = () => {
   const navbarRef = useRef<HTMLDivElement>(null);
   
   // Use the utility function to get a safe profile image URL
-  const userProfilePic = getSafeImageUrl(user?.profilePic, undefined, 'profile');
+  const userProfilePic = user?.profilePic && user.profilePic.startsWith('/uploads') 
+    ? `${API_URL}${user.profilePic}`
+    : user?.profilePic;
   
   // Function to handle profile image loading errors
   const handleProfileImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {

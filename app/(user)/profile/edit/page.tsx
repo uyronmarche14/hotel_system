@@ -8,9 +8,21 @@ import SafeImage from "@/app/components/ui/SafeImage";
 import { API_URL } from "@/app/lib/constants";
 import Cookies from "js-cookie";
 
+// Extended User type with additional profile fields
+type ExtendedUser = {
+  id: string;
+  name: string;
+  email: string;
+  profilePic?: string;
+  role?: string;
+  phone?: string;
+  address?: string;
+  bio?: string;
+};
+
 export default function EditProfilePage() {
   const router = useRouter();
-  const { user, updateUserContext } = useAuth();
+  const { user } = useAuth();
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,13 +45,19 @@ export default function EditProfilePage() {
   // Initialize form with user data
   useEffect(() => {
     if (user) {
+      const extendedUser = user as unknown as ExtendedUser;
+      // Format profile picture URL properly
+      const profilePic = extendedUser.profilePic && extendedUser.profilePic.startsWith('/uploads') 
+        ? `${API_URL}${extendedUser.profilePic}` 
+        : extendedUser.profilePic;
+        
       setFormData({
-        name: user.name || "",
-        email: user.email || "",
-        phone: user.phone || "",
-        address: user.address || "",
-        bio: user.bio || "",
-        profilePic: user.profilePic || "",
+        name: extendedUser.name || "",
+        email: extendedUser.email || "",
+        phone: extendedUser.phone || "",
+        address: extendedUser.address || "",
+        bio: extendedUser.bio || "",
+        profilePic: profilePic || "",
       });
     }
   }, [user]);
@@ -102,7 +120,7 @@ export default function EditProfilePage() {
       }
       
       // Send request to update profile
-      const response = await fetch(`${API_URL}/api/auth/profile`, {
+      const response = await fetch(`${API_URL}/auth/profile`, {
         method: 'PUT',
         body: formDataToSend,
         headers: {
@@ -111,14 +129,30 @@ export default function EditProfilePage() {
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to update profile");
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to update profile");
+        } else {
+          // Handle non-JSON response (like HTML)
+          const errorText = await response.text();
+          console.error('Server returned non-JSON response:', errorText);
+          throw new Error("Server error. Please try again later.");
+        }
+      }
+      
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error("Server returned invalid response format");
       }
       
       const data = await response.json();
       
-      // Update local user context
-      updateUserContext({ ...user, ...data.data });
+      // Update local storage with updated user data
+      if (user) {
+        const updatedUser = { ...user, ...data.data };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+      }
       
       setSuccessMessage("Profile updated successfully!");
       

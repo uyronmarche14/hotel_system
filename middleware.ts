@@ -1,25 +1,18 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { ADMIN_TOKEN_COOKIE } from './app/lib/constants'
 
 // This function can be marked `async` if using `await` inside
 export function middleware(request: NextRequest) {
   const userToken = request.cookies.get('token')?.value || ''
-  const adminToken = request.cookies.get(ADMIN_TOKEN_COOKIE)?.value || ''
   
   const isUserAuthenticated = Boolean(userToken)
-  const isAdminAuthenticated = Boolean(adminToken)
   
   // Get the pathname from the URL
   const { pathname } = request.nextUrl
-  console.log('Middleware checking path:', pathname, 'user token:', isUserAuthenticated, 'admin token:', isAdminAuthenticated);
+  console.log('Middleware checking path:', pathname, 'user token:', isUserAuthenticated);
   
   // Define authentication routes
   const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('/forgot-password')
-  
-  // Admin routes
-  const isAdminLoginRoute = pathname === '/admin/login'
-  const isAdminRoute = pathname.startsWith('/admin') && !isAdminLoginRoute
   
   // Define protected routes that require user authentication
   const isUserProtectedRoute = 
@@ -39,26 +32,8 @@ export function middleware(request: NextRequest) {
   const isComingFromProtectedRoute = refererUrl && (
     refererUrl.pathname.startsWith('/dashboard') ||
     refererUrl.pathname.startsWith('/profile') ||
-    refererUrl.pathname.startsWith('/bookings') ||
-    refererUrl.pathname.startsWith('/admin')
+    refererUrl.pathname.startsWith('/bookings')
   );
-  
-  // Handle admin routes
-  if (isAdminRoute) {
-    // If accessing admin routes without admin token, redirect to admin login
-    if (!isAdminAuthenticated) {
-      console.log('Redirecting to admin login, admin route without admin token');
-      return NextResponse.redirect(new URL('/admin/login', request.url))
-    }
-    // If authenticated as admin, allow access to admin routes
-    return NextResponse.next()
-  }
-  
-  // If accessing admin login while already authenticated as admin, redirect to admin dashboard
-  if (isAdminLoginRoute && isAdminAuthenticated) {
-    console.log('Already authenticated as admin, redirecting to admin dashboard');
-    return NextResponse.redirect(new URL('/admin/dashboard', request.url))
-  }
   
   // Redirect to login if accessing a user protected route without a user token
   if (isUserProtectedRoute && !isUserAuthenticated) {
@@ -90,7 +65,6 @@ export const config = {
     '/profile/:path*',
     '/bookings/:path*',
     '/dashboard/:path*',
-    '/admin/:path*',
     '/login',
     '/register',
     '/forgot-password',
