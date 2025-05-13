@@ -16,7 +16,9 @@ const eslintConfig = [
 export default [
   ...eslintConfig,
   {
-    ignorePatterns: ['node_modules/', '.next/'],
+     ignorePatterns: ['node_modules/', '.next/'],
+    files: ['**/*.{js,mjs,cjs,ts,tsx}'],
+    ignores: ['node_modules/**', '.next/**'],
     rules: {
       '@typescript-eslint/no-unused-vars': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',

@@ -3,10 +3,10 @@ import { API_URL } from '@/app/lib/constants';
 
 export async function GET(
   request: NextRequest, 
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
+    const { id } = context.params;
     
     // Get the token from the authorization header
     const token = request.headers.get('authorization')?.split(' ')[1];
@@ -67,10 +67,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest, 
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
+    const { id } = context.params;
     
     // Get the token from the authorization header
     const token = request.headers.get('authorization')?.split(' ')[1];
@@ -134,10 +134,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest, 
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
+    const { id } = context.params;
     
     // Get the token from the authorization header
     const token = request.headers.get('authorization')?.split(' ')[1];
