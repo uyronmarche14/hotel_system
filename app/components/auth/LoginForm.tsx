@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { FaFacebook, FaEye, FaEyeSlash, FaArrowRight, FaCheckCircle, FaTimes } from "react-icons/fa";
-import { FcGoogle } from "react-icons/fc";
+import { FaEye, FaEyeSlash, FaArrowRight, FaCheckCircle, FaTimes } from "react-icons/fa";
 import { useAuth } from "@/app/context/AuthContext";
 
 export default function LoginForm() {
@@ -211,20 +210,12 @@ export default function LoginForm() {
         </div>
 
         <div className="space-y-4">
-          <button 
-            type="button" 
-            className="text-brand-green w-full flex items-center justify-center gap-2 py-3 px-4 border border-brand-green rounded-md transition hover:bg-gray-50"
+          <Link
+            href="/admin/login"
+            className="bg-[#1C3F32] text-white w-full flex items-center justify-center gap-2 py-3 px-4 rounded-md transition hover:bg-[#15332a]"
           >
-            <FcGoogle className="text-xl" />
-            <span>Sign in with Google</span>
-          </button>
-          <button 
-            type="button" 
-            className="text-brand-green w-full flex items-center justify-center gap-2 py-3 px-4 border border-brand-green rounded-md transition hover:bg-gray-50"
-          >
-            <FaFacebook className="text-xl text-blue-600" />
-            <span>Sign in with Facebook</span>
-          </button>
+            <span>Access Admin Panel</span>
+          </Link>
         </div>
 
         <div className="mt-8 pt-6 border-t border-gray-200">

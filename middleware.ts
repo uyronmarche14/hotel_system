@@ -1,25 +1,32 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { ADMIN_TOKEN_COOKIE } from './app/lib/constants'
 
 // This function can be marked `async` if using `await` inside
 export function middleware(request: NextRequest) {
-  const token = request.cookies.get('token')?.value || ''
-  const isTokenPresent = Boolean(token)
+  const userToken = request.cookies.get('token')?.value || ''
+  const adminToken = request.cookies.get(ADMIN_TOKEN_COOKIE)?.value || ''
+  
+  const isUserAuthenticated = Boolean(userToken)
+  const isAdminAuthenticated = Boolean(adminToken)
   
   // Get the pathname from the URL
   const { pathname } = request.nextUrl
-  console.log('Middleware checking path:', pathname, 'token present:', isTokenPresent);
+  console.log('Middleware checking path:', pathname, 'user token:', isUserAuthenticated, 'admin token:', isAdminAuthenticated);
   
   // Define authentication routes
   const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('/forgot-password')
   
-  // Define protected routes that require authentication
-  const isProtectedRoute = 
+  // Admin routes
+  const isAdminLoginRoute = pathname === '/admin/login'
+  const isAdminRoute = pathname.startsWith('/admin') && !isAdminLoginRoute
+  
+  // Define protected routes that require user authentication
+  const isUserProtectedRoute = 
     pathname === '/profile' || 
     pathname.startsWith('/profile/') || 
     pathname.startsWith('/bookings') || 
-    pathname.startsWith('/dashboard') ||
-    pathname.startsWith('/admin')
+    pathname.startsWith('/dashboard')
   
   // Check for the special navigation header that indicates navigation via back button
   const isBackNavigation = request.headers.get('Sec-Fetch-Dest') === 'document' &&
@@ -36,9 +43,26 @@ export function middleware(request: NextRequest) {
     refererUrl.pathname.startsWith('/admin')
   );
   
-  // Redirect to login if accessing a protected route without a token
-  if (isProtectedRoute && !isTokenPresent) {
-    console.log('Redirecting to login, protected route without token');
+  // Handle admin routes
+  if (isAdminRoute) {
+    // If accessing admin routes without admin token, redirect to admin login
+    if (!isAdminAuthenticated) {
+      console.log('Redirecting to admin login, admin route without admin token');
+      return NextResponse.redirect(new URL('/admin/login', request.url))
+    }
+    // If authenticated as admin, allow access to admin routes
+    return NextResponse.next()
+  }
+  
+  // If accessing admin login while already authenticated as admin, redirect to admin dashboard
+  if (isAdminLoginRoute && isAdminAuthenticated) {
+    console.log('Already authenticated as admin, redirecting to admin dashboard');
+    return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+  }
+  
+  // Redirect to login if accessing a user protected route without a user token
+  if (isUserProtectedRoute && !isUserAuthenticated) {
+    console.log('Redirecting to login, protected route without user token');
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('redirect', pathname)
     
@@ -48,9 +72,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
   
-  // Redirect to dashboard if accessing auth routes with a valid token
-  if (isAuthRoute && isTokenPresent) {
-    console.log('Redirecting to dashboard, auth route with token');
+  // Redirect to dashboard if accessing auth routes with a valid user token
+  if (isAuthRoute && isUserAuthenticated) {
+    console.log('Redirecting to dashboard, auth route with user token');
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
   

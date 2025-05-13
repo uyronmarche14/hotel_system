@@ -108,6 +108,7 @@ const Navbar = () => {
     { name: "Services", path: "/services" },
     { name: "About", path: "/about" },
     { name: "Contact", path: "/contact" },
+    { name: "Admin Portal", path: "/admin/login" },
   ];
 
   const isActive = (path: string) => {
