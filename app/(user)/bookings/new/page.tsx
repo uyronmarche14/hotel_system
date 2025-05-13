@@ -532,7 +532,6 @@ export default function BookingConfirmationPage() {
                 {room.rating && !Number.isInteger(room.rating) && <span>½</span>}
               </div>
               <span className="ml-2 text-gray-600 text-sm font-medium">{room.rating || 5}-star rating</span>
-              {room.reviews && <span className="ml-1 text-gray-500 text-xs">({room.reviews} reviews)</span>}
             </div>
             
             <div className="flex items-start gap-2 mb-2">

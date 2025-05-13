@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { FaUser, FaEnvelope, FaPhone, FaCalendarAlt, FaMapMarkerAlt, FaCreditCard, FaStar } from "react-icons/fa";
+import { FaUser, FaEnvelope, FaPhone, FaCalendarAlt, FaMapMarkerAlt, FaCreditCard } from "react-icons/fa";
 import { getSafeImageUrl } from "@/app/lib/utils";
 import SafeImage from "@/app/components/ui/SafeImage";
 import { useAuth } from "@/app/context/AuthContext";
@@ -139,9 +139,6 @@ export default function ProfilePage() {
             <div className="flex flex-col sm:flex-row gap-3">
               <Link href="/bookings" className="w-full text-center bg-white border border-[#1C3F32] text-[#1C3F32] py-2 rounded-md hover:bg-gray-50 transition-colors text-sm sm:text-base">
                 View All Bookings
-              </Link>
-              <Link href="/reviews" className="w-full text-center flex items-center justify-center bg-white border border-[#1C3F32] text-[#1C3F32] py-2 rounded-md hover:bg-gray-50 transition-colors text-sm sm:text-base">
-                <FaStar className="mr-2" /> My Reviews
               </Link>
             </div>
           </div>

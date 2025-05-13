@@ -468,9 +468,6 @@ const SearchResultsContent = () => {
                         <span className="text-sm text-gray-700">
                           {room.rating}
                         </span>
-                        <span className="text-sm text-gray-600">
-                          ({room.reviews || "120"} Reviews)
-                        </span>
                       </div>
 
                       <div className="mt-2">

@@ -25,7 +25,6 @@ import {
   FaShieldAlt,
   FaArrowRight,
 } from "react-icons/fa";
-import ReviewList from "@/app/components/ui/ReviewList";
 
 const RoomDetails = () => {
   const [showMoreSuggestions, setShowMoreSuggestions] = useState(false);
@@ -307,11 +306,6 @@ const RoomDetails = () => {
             </div>
           </div>
         </div>
-
-        {/* Reviews Section */}
-        <section className="mt-8 mb-8">
-          <ReviewList category={category} roomTitle={room.title} />
-        </section>
 
         {/* Map Section - Full Width */}
         <section className="mt-8 mb-12">
