@@ -42,7 +42,7 @@
   --brand-green: #1c3f32;
   --brand-green-hover: #2a5a4a;
   --font-cinzel: "Cinzel Decorative", cursive;
-  --font-inter: "Inter", sans-serif;
+  --font-inter: "Inter";
   --font-geist-sans: "Geist", sans-serif;
 }
 
@@ -161,4 +161,8 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--brand-green-hover);
+}
+
+.inter {
+  font-family: var(--font-inter);
 }
