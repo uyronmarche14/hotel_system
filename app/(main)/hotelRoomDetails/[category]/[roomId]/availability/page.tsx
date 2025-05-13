@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FaArrowLeft, FaCalendarAlt, FaUser, FaCheck, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import { rooms } from '@/app/data/rooms';
+import { getAllRooms, RoomType, checkRoomAvailability } from '@/app/services/roomService';
 import { getSafeImageUrl } from '@/app/lib/utils';
 import { API_URL } from '@/app/lib/constants';
 import Cookies from 'js-cookie';
@@ -28,7 +28,7 @@ interface CalendarDay {
 const CheckAvailabilityPage = () => {
   const params = useParams();
   const router = useRouter();
-  const [room, setRoom] = useState<any>(null);
+  const [room, setRoom] = useState<RoomType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -51,21 +51,32 @@ const CheckAvailabilityPage = () => {
   
   // Load room data
   useEffect(() => {
-    // Find room that matches either by title slug or by roomId
-    const foundRoom = rooms.find(
-      (r) => {
-        const titleSlug = r.title.toLowerCase().replace(/ /g, "-");
-        return r.category === category && (titleSlug === roomId || r.href.includes(roomId));
+    const fetchRoom = async () => {
+      try {
+        const allRooms = await getAllRooms();
+        
+        // Find room that matches either by title slug or by roomId
+        const foundRoom = allRooms.find(
+          (r) => {
+            const titleSlug = r.title.toLowerCase().replace(/ /g, "-");
+            return r.category === category && (titleSlug === roomId || r.href?.includes(roomId));
+          }
+        );
+        
+        if (foundRoom) {
+          setRoom(foundRoom);
+        } else {
+          setError("Room not found");
+        }
+      } catch (error) {
+        console.error("Failed to fetch room data:", error);
+        setError("Failed to load room data");
+      } finally {
+        setLoading(false);
       }
-    );
+    };
     
-    if (foundRoom) {
-      setRoom(foundRoom);
-    } else {
-      setError("Room not found");
-    }
-    
-    setLoading(false);
+    fetchRoom();
   }, [category, roomId]);
   
   // Fetch availability data when component mounts
@@ -99,6 +110,10 @@ const CheckAvailabilityPage = () => {
       // Log the API URL for debugging
       console.log("API URL config:", API_URL);
       
+      if (!room) {
+        throw new Error("Room data not available");
+      }
+
       // Construct API endpoint - ensure no double slashes in URL
       const apiBase = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
       const endpoint = `${apiBase}/api/bookings/check-availability?roomCategory=${category}&roomTitle=${encodeURIComponent(room.title)}&checkIn=${formattedFirstDay}&checkOut=${formattedLastDay}`;
@@ -150,7 +165,7 @@ const CheckAvailabilityPage = () => {
   
   // Verify date availability with backend before proceeding
   const verifyAvailabilityBeforeBooking = async () => {
-    if (!checkInDate || !checkOutDate) return false;
+    if (!checkInDate || !checkOutDate || !room) return false;
     
     setIsChecking(true);
     try {
@@ -461,10 +476,14 @@ const CheckAvailabilityPage = () => {
           {category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
         </Link>
         <span className="mx-2">›</span>
-        <Link href={`/hotelRoomDetails/${category}/${roomId}`} className="hover:underline">
-          {room.title}
-        </Link>
-        <span className="mx-2">›</span>
+        {room && (
+          <>
+            <Link href={`/hotelRoomDetails/${category}/${roomId}`} className="hover:underline">
+              {room.title}
+            </Link>
+            <span className="mx-2">›</span>
+          </>
+        )}
         <span className="font-medium">Check Availability</span>
       </div>
       
@@ -489,54 +508,58 @@ const CheckAvailabilityPage = () => {
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-xl font-bold mb-4 text-[#1C3F32]">Room Information</h2>
             
-            <div className="relative h-48 w-full mb-4 rounded-lg overflow-hidden">
-              <SafeImage
-                src={room.imageUrl}
-                fallbackSrc="/images/room-placeholder.jpg"
-                imageType="room"
-                alt={room.title}
-                fill
-                className="object-cover"
-              />
-            </div>
-            
-            <h3 className="text-lg font-semibold mb-2">{room.title}</h3>
-            <p className="text-gray-600 mb-4 text-sm">{room.description}</p>
-            
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Category:</span>
-                <span className="font-medium">{category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Price per night:</span>
-                <span className="font-medium text-[#1C3F32]">₱{room.price.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Max Occupancy:</span>
-                <span className="font-medium">{room.maxOccupancy || 4} guests</span>
-              </div>
-            </div>
-            
-            {/* Number of Guests Selection */}
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <FaUser className="inline mr-2 text-[#1C3F32]" />
-                Number of Guests
-              </label>
-              <select
-                value={guests}
-                onChange={handleGuestChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3F32] focus:border-transparent"
-              >
-                {[...Array(room.maxOccupancy || 4)].map((_, i) => (
-                  <option key={i} value={i + 1}>{i + 1} {i === 0 ? 'Guest' : 'Guests'}</option>
-                ))}
-              </select>
-            </div>
+            {room && (
+              <>
+                <div className="relative h-48 w-full mb-4 rounded-lg overflow-hidden">
+                  <SafeImage
+                    src={room.imageUrl}
+                    fallbackSrc="/images/room-placeholder.jpg"
+                    imageType="room"
+                    alt={room.title}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                
+                <h3 className="text-lg font-semibold mb-2">{room.title}</h3>
+                <p className="text-gray-600 mb-4 text-sm">{room.description}</p>
+                
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Category:</span>
+                    <span className="font-medium">{category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Price per night:</span>
+                    <span className="font-medium text-[#1C3F32]">₱{room.price.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Max Occupancy:</span>
+                    <span className="font-medium">{room.maxOccupancy || 4} guests</span>
+                  </div>
+                </div>
+                
+                {/* Number of Guests Selection */}
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <FaUser className="inline mr-2 text-[#1C3F32]" />
+                    Number of Guests
+                  </label>
+                  <select
+                    value={guests}
+                    onChange={handleGuestChange}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3F32] focus:border-transparent"
+                  >
+                    {[...Array(room.maxOccupancy || 4)].map((_, i) => (
+                      <option key={i} value={i + 1}>{i + 1} {i === 0 ? 'Guest' : 'Guests'}</option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            )}
             
             {/* Booking Summary */}
-            {checkInDate && checkOutDate && (
+            {checkInDate && checkOutDate && room && (
               <div className="mt-6 bg-green-50 p-4 rounded-lg">
                 <h3 className="font-semibold text-[#1C3F32] mb-3">Booking Summary</h3>
                 <div className="space-y-2 text-sm">

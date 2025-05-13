@@ -75,7 +75,7 @@ export default function BookingsManagement() {
       if (!checkAdminAuth()) return;
       
       try {
-        const response = await fetch(`${API_URL}/admin/bookings`, {
+        const response = await fetch(`/api/admin/bookings`, {
           headers: {
             'Authorization': `Bearer ${Cookies.get('token')}`
           }

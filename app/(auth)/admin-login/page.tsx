@@ -2,10 +2,10 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaKey, FaUser } from 'react-icons/fa';
+import { FaKey, FaUser, FaLock } from 'react-icons/fa';
 import Link from 'next/link';
-import { API_URL } from '@/app/lib/constants';
 import Cookies from 'js-cookie';
+import Image from 'next/image';
 
 export default function AdminLoginPage() {
   const [username, setUsername] = useState('');
@@ -13,6 +13,7 @@ export default function AdminLoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const logo = "https://res.cloudinary.com/ddnxfpziq/image/upload/v1746767008/preview__1_-removebg-preview_xrlzgr.png";
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -20,7 +21,17 @@ export default function AdminLoginPage() {
     setError(null);
 
     try {
-      const response = await fetch(`${API_URL}/auth/admin-login`, {
+      // Validate inputs
+      if (!username.trim()) {
+        throw new Error('Username is required');
+      }
+      
+      if (!password) {
+        throw new Error('Password is required');
+      }
+
+      // Use the direct API route to avoid the proxy (fix for JSON parse issue)
+      const response = await fetch(`/api/auth/admin-login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -28,19 +39,27 @@ export default function AdminLoginPage() {
         body: JSON.stringify({ username, password }),
       });
 
+      // Check for non-JSON responses
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        console.error('Server returned non-JSON response');
+        throw new Error('Server error. Please try again later.');
+      }
+
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Admin login failed');
+        throw new Error(data.message || 'Invalid credentials. Please try again.');
       }
 
       // Store token in cookies
       Cookies.set('token', data.token, { expires: 7 });
       
-      // Store admin user in localStorage
+      // Store admin user in localStorage with secure info
       localStorage.setItem('user', JSON.stringify({
         ...data.user,
-        isAdmin: true
+        isAdmin: true,
+        isAuthenticated: true
       }));
 
       // Redirect to admin dashboard
@@ -54,21 +73,32 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Admin Login</h1>
-          <p className="text-gray-600">Enter your credentials to access the admin dashboard</p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 bg-pattern">
+      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+        <div className="text-center mb-6">
+          <div className="flex justify-center mb-3">
+            <Image 
+              src={logo} 
+              alt="Hotel Logo" 
+              width={80} 
+              height={80} 
+              className="object-contain" 
+            />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">Admin Portal</h1>
+          <p className="text-gray-600">Enter your credentials to access the dashboard</p>
+          <p className="text-sm mt-2 text-gray-500">Default: admin / admin123</p>
         </div>
 
         {error && (
-          <div className="bg-red-50 text-red-700 p-3 rounded-md mb-4 border border-red-200">
-            {error}
+          <div className="bg-red-50 text-red-700 p-4 rounded-md mb-6 border-l-4 border-red-600 flex items-start">
+            <FaLock className="mr-3 mt-1 text-red-600 flex-shrink-0" />
+            <p>{error}</p>
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
             <label htmlFor="username" className="block text-gray-700 font-medium mb-2">
               Username
             </label>
@@ -81,14 +111,14 @@ export default function AdminLoginPage() {
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3F32]"
+                className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-gray-700"
                 placeholder="admin"
                 required
               />
             </div>
           </div>
 
-          <div className="mb-6">
+          <div>
             <label htmlFor="password" className="block text-gray-700 font-medium mb-2">
               Password
             </label>
@@ -101,8 +131,8 @@ export default function AdminLoginPage() {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3F32]"
-                placeholder="admin123"
+                className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-gray-700"
+                placeholder="Enter your password"
                 required
               />
             </div>
@@ -111,18 +141,18 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-[#1C3F32] text-white py-2 px-4 rounded-md hover:bg-[#1C3F32]/90 focus:outline-none focus:ring-2 focus:ring-[#1C3F32] focus:ring-offset-2 transition duration-200 flex items-center justify-center"
+            className="w-full bg-[#1C3F32] text-white py-3 px-4 rounded-md hover:bg-[#1C3F32]/90 focus:outline-none focus:ring-2 focus:ring-[#1C3F32] focus:ring-offset-2 transition duration-200 flex items-center justify-center font-medium"
           >
             {isLoading ? (
               <span className="flex items-center">
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Logging in...
+                Authenticating...
               </span>
             ) : (
-              'Login'
+              'Login to Dashboard'
             )}
           </button>
         </form>
@@ -130,9 +160,9 @@ export default function AdminLoginPage() {
         <div className="mt-6 text-center">
           <Link 
             href="/login" 
-            className="text-[#1C3F32] hover:underline text-sm"
+            className="text-[#1C3F32] hover:underline text-sm font-medium"
           >
-            Go to user login
+            Return to guest login
           </Link>
         </div>
       </div>

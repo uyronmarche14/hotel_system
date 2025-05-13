@@ -1,16 +1,41 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { rooms } from "@/app/data/rooms";
+import { getAllRooms, RoomType } from "@/app/services/roomService";
 
 const SuggestionCard = () => {
   const [isExpanded, setExpanded] = useState(false);
+  const [rooms, setRooms] = useState<RoomType[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        const data = await getAllRooms();
+        setRooms(data);
+      } catch (error) {
+        console.error("Failed to fetch rooms:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchRooms();
+  }, []);
 
   const toggle = () => {
     setExpanded((prevState) => !prevState);
   };
 
   const moreContent = isExpanded ? rooms : rooms.slice(0, 2);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center w-full p-8">
+        <div className="w-16 h-16 border-4 border-gray-300 border-t-gray-500 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center w-full">

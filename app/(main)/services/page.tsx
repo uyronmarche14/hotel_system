@@ -11,7 +11,7 @@ import {
   FaSearch,
 } from "react-icons/fa";
 import Image from "next/image";
-import { getAllRooms, RoomType, getCategoryRooms, getRoomsByCategory } from "@/app/data/rooms";
+import { RoomType, getAllRooms, getCategoryRooms, getRoomsByCategory } from "@/app/services/roomService";
 import Button from "@/app/components/ui/buttons";
 
 const StarRating = ({ rating }: { rating: number }) => {
@@ -67,23 +67,40 @@ const SearchResultsContent = () => {
   const [allRooms, setAllRooms] = useState<RoomType[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [imageError, setImageError] = useState<Record<string, boolean>>({});
+  const [isLoading, setIsLoading] = useState(true);
 
   // Initialize data
   useEffect(() => {
-    const rooms = getAllRooms();
-    setAllRooms(rooms);
+    const fetchRooms = async () => {
+      setIsLoading(true);
+      try {
+        const rooms = await getAllRooms();
+        setAllRooms(rooms);
 
-    // If category is provided in URL, filter by it
-    if (category) {
-      const categoryRooms = getRoomsByCategory(category);
-      setFilteredRooms(categoryRooms);
-    } else {
-      setFilteredRooms(rooms);
-    }
+        // If category is provided in URL, filter by it
+        if (category) {
+          const categoryRooms = await getRoomsByCategory(category);
+          setFilteredRooms(categoryRooms);
+        } else {
+          setFilteredRooms(rooms);
+        }
+      } catch (error) {
+        console.error("Error fetching rooms:", error);
+        // Fall back to empty arrays if there's an error
+        setAllRooms([]);
+        setFilteredRooms([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRooms();
   }, [category]);
 
   // Get unique categories from rooms data
   const getCategories = (): { id: string; name: string; count: number }[] => {
+    if (allRooms.length === 0) return [];
+    
     const categories = [...new Set(allRooms.map(room => room.category))];
     return categories.map(cat => ({
       id: cat,
@@ -396,7 +413,15 @@ const SearchResultsContent = () => {
               </h1>
             </div>
 
-            {filteredRooms.length === 0 ? (
+            {/* Loading state */}
+            {isLoading && (
+              <div className="flex flex-col items-center justify-center h-64 bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1C3F32] mb-4"></div>
+                <p className="text-gray-600">Loading rooms...</p>
+              </div>
+            )}
+
+            {!isLoading && filteredRooms.length === 0 ? (
               <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm text-center">
                 <p className="text-gray-700 mb-4">No rooms found matching your criteria.</p>
                 <Button
@@ -411,91 +436,69 @@ const SearchResultsContent = () => {
                   }}
                 />
               </div>
-            ) : (
+            ) : !isLoading && (
               <div className="flex flex-col gap-6">
                 {filteredRooms.map((room, index) => (
                   <div
                     key={index}
-                    className="w-full mx-auto flex flex-col md:flex-row bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow"
+                    className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col md:flex-row hover:shadow-md transition-shadow"
                   >
-                    {/* Left side - Image */}
-                    <div className="w-full md:w-[320px] h-[200px] md:h-[226px] relative flex-shrink-0 bg-gray-100">
+                    <div className="md:w-64 h-48 md:h-full relative flex-shrink-0">
                       {!imageError[room.title] ? (
                         <Image
                           src={room.imageUrl}
                           alt={room.title}
                           fill
                           className="object-cover"
-                          priority
                           onError={() => handleImageError(room.title)}
                         />
                       ) : (
-                        <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400">
                           <p className="text-sm">Image not available</p>
                         </div>
                       )}
                     </div>
-
-                    {/* Right side - Content */}
-                    <div className="flex-1 p-4 sm:p-6 flex flex-col">
-                      {/* Title and rating section */}
-                      <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-                            {room.title}
-                          </h2>
-                          <span className="bg-[#34A853] text-white px-2 py-0.5 rounded text-sm font-medium">
-                            {room.rating}
-                          </span>
+                    
+                    <div className="p-4 md:p-6 flex-1 flex flex-col">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h2 className="text-lg font-semibold text-gray-900 mb-1">{room.title}</h2>
+                          <div className="flex items-center gap-1 mb-2">
+                            <StarRating rating={room.rating || 0} />
+                            <span className="text-sm text-gray-600">({room.reviews || 0} reviews)</span>
+                          </div>
                         </div>
-                        <div className="flex gap-2 mt-2 sm:mt-0">
-                          {room.amenities?.map((amenity, i) => (
-                            <div key={i} className="relative w-6 h-6">
-                              <Image
-                                src={amenity}
-                                alt={`Amenity ${i + 1}`}
-                                width={24}
-                                height={24}
-                                className="object-contain"
-                                onError={() => {/* Handle amenity icon error */}}
-                              />
-                            </div>
-                          ))}
+                        <div className="text-right">
+                          <div className="text-lg font-semibold text-[#1C3F32]">₱{room.price.toLocaleString()}</div>
+                          <div className="text-sm text-gray-600">per night</div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 mt-2">
-                        <StarRating rating={room.rating || 9.5} />
-                        <span className="text-sm text-gray-700">
-                          {room.rating}
-                        </span>
-                      </div>
-
-                      <div className="mt-2">
-                        <span className="inline-block px-2 py-1 bg-brand-green/10 text-brand-green text-xs rounded-full">
+                      
+                      <p className="text-gray-600 mb-4 line-clamp-2">{room.description}</p>
+                      
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
                           {room.category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                         </span>
+                        {room.bedType && (
+                          <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                            {room.bedType}
+                          </span>
+                        )}
+                        {room.maxOccupancy && (
+                          <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                            Max: {room.maxOccupancy} People
+                          </span>
+                        )}
                       </div>
-
-                      {/* Bottom section with button and price */}
-                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mt-auto pt-4 border-t border-gray-100">
+                      
+                      <div className="mt-auto">
                         <Button
-                          label="Select"
+                          label="View Details"
                           variant="primary"
-                          className="w-full sm:w-auto !w-[120px] sm:!w-[158px] !h-[40px]"
+                          className="!w-full md:!w-[180px] !h-[40px]"
                           onClick={() => handleSelectRoom(room)}
                         />
-                        <div className="text-left sm:text-right w-full sm:w-auto">
-                          <div className="text-sm text-gray-600">
-                            1 room 1 night
-                          </div>
-                          <div className="text-xl sm:text-2xl font-semibold text-[#1C3F32]">
-                            ₱{room.price.toLocaleString()} /{" "}
-                            <span className="text-sm text-[#1C3F32]/80">
-                              Night
-                            </span>
-                          </div>
-                          <div className="text-xs text-gray-600">Taxes incl.</div>
-                        </div>
                       </div>
                     </div>
                   </div>

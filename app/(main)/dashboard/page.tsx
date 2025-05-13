@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import RoomCard from "@/app/components/RoomCard";
 import { useAuth } from "@/app/context/AuthContext";
 import Navbar from "@/app/components/normal/navbar";
-import { getTopRatedRooms, getCategoryRooms, RoomType } from "@/app/services/roomService";
+import { getTopRatedRooms, getCategoryRooms, RoomType, checkApiConnection } from "@/app/services/roomService";
 import ErrorToast from "@/app/components/ErrorToast";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
 import Button from "@/app/components/Button";
@@ -17,11 +17,34 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showErrorToast, setShowErrorToast] = useState(false);
+  const [apiConnected, setApiConnected] = useState<boolean | null>(null);
 
   useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const connected = await checkApiConnection();
+        setApiConnected(connected);
+        return connected;
+      } catch (e) {
+        console.error("API connection check failed:", e);
+        setApiConnected(false);
+        return false;
+      }
+    };
+
     const fetchRooms = async () => {
       try {
         setIsLoading(true);
+        
+        // First check if the API is connected
+        const isConnected = await checkConnection();
+        if (!isConnected) {
+          setError("Unable to connect to the server. Please try again later.");
+          setShowErrorToast(true);
+          setIsLoading(false);
+          return;
+        }
+        
         const [topRated, byCategory] = await Promise.all([
           getTopRatedRooms(5),
           getCategoryRooms()
@@ -162,6 +185,11 @@ export default function Dashboard() {
           </h2>
           {isLoading ? (
             <LoadingSpinner size="md" message="Loading top rated rooms..." className="h-60" />
+          ) : apiConnected === false ? (
+            <div className="bg-red-50 p-6 rounded-lg text-center">
+              <p className="text-red-700 mb-2 font-medium">Unable to connect to the server</p>
+              <p className="text-gray-700">We're showing you sample rooms instead. Please try again later.</p>
+            </div>
           ) : topRatedRooms.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
               {topRatedRooms.map((room, index) => (
@@ -182,6 +210,11 @@ export default function Dashboard() {
           <h2 id="categories-heading" className="text-2xl font-bold text-[#1C3F32] mb-6">Categories</h2>
           {isLoading ? (
             <LoadingSpinner size="md" message="Loading room categories..." className="h-60" />
+          ) : apiConnected === false ? (
+            <div className="bg-red-50 p-6 rounded-lg text-center">
+              <p className="text-red-700 mb-2 font-medium">Unable to connect to the server</p>
+              <p className="text-gray-700">We're showing you sample rooms instead. Please try again later.</p>
+            </div>
           ) : categoryRooms.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
               {categoryRooms.map((room, index) => (

@@ -1,11 +1,11 @@
 "use client";
 import { useParams, useRouter } from "next/navigation";
-import { rooms } from "@/app/data/rooms";
+import { getAllRooms, getRoomById, getRoomsByCategory, RoomType } from "@/app/services/roomService";
 import SuggestionCard from "@/app/components/ui/suggestionCard";
 import Link from "next/link";
 import { useAuth } from "@/app/context/AuthContext";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FaStar,
   FaStarHalf,
@@ -28,6 +28,12 @@ import {
 
 const RoomDetails = () => {
   const [showMoreSuggestions, setShowMoreSuggestions] = useState(false);
+  const [room, setRoom] = useState<RoomType | null>(null);
+  const [relatedRooms, setRelatedRooms] = useState<RoomType[]>([]);
+  const [popularRooms, setPopularRooms] = useState<RoomType[]>([]);
+  const [specialRooms, setSpecialRooms] = useState<RoomType[]>([]);
+  const [loading, setLoading] = useState(true);
+  
   const urlLocation =
     "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3861.802548850809!2d121.04155931482183!3d14.553551689828368!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397c8efd99f5459%3A0xf26e2c5e8a39bc!2sTaguig%2C%20Metro%20Manila!5e0!3m2!1sen!2sph!4v1629789045693!5m2!1sen!2sph";
   const params = useParams();
@@ -37,13 +43,50 @@ const RoomDetails = () => {
   const category = params.category as string;
   const roomId = params.roomId as string;
   
-  // Find room that matches either by title slug or by roomId
-  const room = rooms.find(
-    (r) => {
-      const titleSlug = r.title.toLowerCase().replace(/ /g, "-");
-      return r.category === category && (titleSlug === roomId || r.href.includes(roomId));
-    }
-  );
+  useEffect(() => {
+    const fetchRoomData = async () => {
+      setLoading(true);
+      try {
+        const allRooms = await getAllRooms();
+        
+        // Find room that matches either by title slug or by roomId
+        const foundRoom = allRooms.find(
+          (r) => {
+            const titleSlug = r.title.toLowerCase().replace(/ /g, "-");
+            return r.category === category && (titleSlug === roomId || r.href?.includes(roomId));
+          }
+        );
+        
+        if (foundRoom) {
+          setRoom(foundRoom);
+          
+          // Filter related rooms (same category, different room)
+          const related = allRooms.filter(
+            (r) => r.category === foundRoom.category && r.id !== foundRoom.id
+          );
+          setRelatedRooms(related);
+          
+          // Filter popular rooms (different category, high rating)
+          const popular = allRooms.filter(
+            (r) => r.category !== foundRoom.category && r.rating && r.rating >= 4.5
+          ).slice(0, 3);
+          setPopularRooms(popular);
+          
+          // Filter special offers (high price rooms for discount)
+          const special = allRooms.filter(
+            (r) => r.price > 5000
+          ).slice(0, 3);
+          setSpecialRooms(special);
+        }
+      } catch (error) {
+        console.error("Error fetching room data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchRoomData();
+  }, [category, roomId]);
 
   const handleBookNow = () => {
     if (isAuthenticated) {
@@ -59,6 +102,17 @@ const RoomDetails = () => {
     // This is available to all users, authenticated or not
     router.push(`/hotelRoomDetails/${category}/${roomId}/availability`);
   };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center py-12">
+          <h1 className="text-2xl font-bold text-[#1C3F32] mb-4">Loading room details...</h1>
+          <div className="w-16 h-16 border-4 border-[#1C3F32] border-t-transparent rounded-full animate-spin mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
 
   if (!room) {
     return (
@@ -344,10 +398,7 @@ const RoomDetails = () => {
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {rooms
-              .filter(
-                (r) => r.category === room.category && r.title !== room.title,
-              )
+            {relatedRooms
               .slice(0, showMoreSuggestions ? 12 : 6)
               .map((relatedRoom, index) => (
                 <div key={index} className="h-full">
@@ -365,7 +416,7 @@ const RoomDetails = () => {
           </div>
           
           {/* Show More Button */}
-          {rooms.filter((r) => r.category === room.category && r.title !== room.title).length > 6 && (
+          {relatedRooms.length > 6 && (
             <div className="flex justify-center mt-8">
               <button
                 onClick={() => setShowMoreSuggestions(!showMoreSuggestions)}
@@ -393,11 +444,7 @@ const RoomDetails = () => {
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {rooms
-              .filter(
-                (r) => r.category !== room.category && r.rating && r.rating >= 4.5
-              )
-              .slice(0, 3)
+            {popularRooms
               .map((popularRoom, index) => (
                 <div key={index} className="h-full">
                   <SuggestionCard
@@ -432,9 +479,7 @@ const RoomDetails = () => {
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {rooms
-              .filter((r) => r.price > 5000) // Assuming higher priced rooms can have discounts
-              .slice(0, 3)
+            {specialRooms
               .map((specialRoom, index) => (
                 <div key={index} className="h-full relative">
                   <div className="absolute top-4 right-4 bg-red-500 text-white px-4 py-1 rounded-full z-10 font-bold">

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { FaEye, FaEyeSlash, FaArrowRight, FaCheckCircle, FaTimes } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaArrowRight, FaCheckCircle, FaTimes, FaUserShield } from "react-icons/fa";
 import { useAuth } from "@/app/context/AuthContext";
 
 export default function LoginForm() {
@@ -205,9 +205,13 @@ export default function LoginForm() {
 
 
 
-        <div className="mt-8 pt-6 border-t border-gray-200">
+        <div className="mt-8 pt-6 border-t border-gray-200 space-y-4">
           <Link href={redirectUrl ? `/register?redirect=${encodeURIComponent(redirectUrl)}` : "/register"} className="w-full flex justify-center items-center gap-2 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-brand-green font-medium rounded-md transition">
             New user? Create an account <FaArrowRight className="text-sm" />
+          </Link>
+          
+          <Link href="/admin-login" className="w-full flex justify-center items-center gap-2 py-3 px-4 bg-gray-800 hover:bg-gray-900 text-white font-medium rounded-md transition">
+            <FaUserShield className="text-lg" /> Admin Login
           </Link>
         </div>
       </div>

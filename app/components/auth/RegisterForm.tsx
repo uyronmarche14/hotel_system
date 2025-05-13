@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { FaFacebook, FaEye, FaEyeSlash, FaArrowLeft } from "react-icons/fa";
-import { FcGoogle } from "react-icons/fc";
+import { FaEye, FaEyeSlash, FaArrowLeft } from "react-icons/fa";
 import { useAuth } from "@/app/context/AuthContext";
 
 export default function RegisterForm() {
@@ -251,66 +250,55 @@ export default function RegisterForm() {
           {formErrors.confirmPassword && <p className="mt-1 text-xs text-red-500">{formErrors.confirmPassword}</p>}
         </div>
 
-        {/* Terms and conditions */}
-        <div className="flex items-start">
-          <div className="flex items-center h-5">
-            <input
-              id="terms"
-              type="checkbox"
-              checked={agreeTerms}
-              onChange={() => setAgreeTerms(!agreeTerms)}
-              className="w-4 h-4 border border-brand-green rounded accent-green-700"
-            />
-          </div>
-          <div className="ml-3 text-sm">
-            <label htmlFor="terms" className="text-gray-700">
-              I agree to the <Link href="/terms" className="text-brand-green hover:underline">Terms and Conditions</Link> and <Link href="/privacy" className="text-brand-green hover:underline">Privacy Policy</Link>
-            </label>
-            {formErrors.terms && <p className="mt-1 text-xs text-red-500">{formErrors.terms}</p>}
+        {/* Terms and Conditions */}
+        <div>
+          <div className="flex items-start">
+            <div className="flex items-center h-5">
+              <input
+                id="terms"
+                name="terms"
+                type="checkbox"
+                checked={agreeTerms}
+                onChange={() => {
+                  setAgreeTerms(!agreeTerms);
+                  if (formErrors.terms) {
+                    setFormErrors({
+                      ...formErrors,
+                      terms: "",
+                    });
+                  }
+                }}
+                className="w-4 h-4 rounded border-gray-300 accent-green-700"
+              />
+            </div>
+            <div className="ml-3 text-sm">
+              <label htmlFor="terms" className="text-gray-700">
+                I agree to the <a href="/terms" className="text-brand-green hover:underline">Terms and Conditions</a> and <a href="/privacy" className="text-brand-green hover:underline">Privacy Policy</a>
+              </label>
+              {formErrors.terms && <p className="mt-1 text-xs text-red-500">{formErrors.terms}</p>}
+            </div>
           </div>
         </div>
 
-        <div className="pt-2">
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full flex justify-center items-center gap-2 py-3 px-4 bg-brand-green hover:bg-brand-green-hover text-white font-medium rounded-md transition ${
-              loading ? "opacity-70 cursor-not-allowed" : ""
-            }`}
+        <button
+          type="submit"
+          disabled={loading}
+          className={`w-full py-3 px-4 bg-brand-green hover:bg-brand-green-hover text-white font-medium rounded-md transition ${
+            loading ? "opacity-70 cursor-not-allowed" : ""
+          }`}
+        >
+          {loading ? "Creating account..." : "Create account"}
+        </button>
+
+        <div className="text-center mt-4">
+          <Link 
+            href={redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : "/login"} 
+            className="inline-flex items-center text-brand-green hover:underline"
           >
-            {loading ? "Creating account..." : "Create account"}
-          </button>
+            <FaArrowLeft className="mr-2 text-xs" /> Back to login
+          </Link>
         </div>
       </form>
-
-      <div className="my-8 flex items-center">
-        <div className="flex-grow border-t border-gray-200"></div>
-        <span className="flex-shrink mx-4 text-gray-600 text-sm">or</span>
-        <div className="flex-grow border-t border-gray-200"></div>
-      </div>
-
-      <div className="space-y-4">
-        <button 
-          type="button" 
-          className="text-brand-green w-full flex items-center justify-center gap-2 py-3 px-4 border border-brand-green rounded-md transition hover:bg-gray-50"
-        >
-          <FcGoogle className="text-xl" />
-          <span>Sign up with Google</span>
-        </button>
-        <button 
-          type="button" 
-          className="text-brand-green w-full flex items-center justify-center gap-2 py-3 px-4 border border-brand-green rounded-md transition hover:bg-gray-50"
-        >
-          <FaFacebook className="text-xl text-blue-600" />
-          <span>Sign up with Facebook</span>
-        </button>
-      </div>
-
-      <div className="mt-8 pt-6 border-t border-gray-200">
-        <Link href={redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : "/login"} className="w-full flex justify-center items-center gap-2 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-brand-green font-medium rounded-md transition">
-          <FaArrowLeft className="text-sm" /> Back to login
-        </Link>
-      </div>
     </div>
   );
 } 

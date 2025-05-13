@@ -34,7 +34,7 @@ const Navbar = () => {
   const toggleProfileMenu = () => {
     if (profileButtonRef.current) {
       const buttonRect = profileButtonRef.current.getBoundingClientRect();
-      
+
       // Calculate dropdown position based on button position
       setDropdownPosition({
         top: buttonRect.bottom + window.scrollY,
@@ -121,16 +121,16 @@ const Navbar = () => {
       <nav ref={navbarRef} className="w-full h-auto py-3 sm:h-24 flex flex-wrap items-center justify-between bg-custom-nav px-4 sm:px-8 relative z-[50]">
       <div className="flex items-center gap-2 sm:gap-4">
         <Link href="/dashboard" className="flex items-center gap-2 sm:gap-4 hover:opacity-90 transition-opacity">
-          <Image
-            alt="logo"
-            src={logo}
+        <Image
+          alt="logo"
+          src={logo}
             width={50}
             height={50}
             className="object-contain sm:w-[70px] sm:h-[70px]"
-          />
+        />
           <h1 className="cinzel text-xl sm:text-2xl md:text-3xl text-white font-bold truncate">
             THE SOLACE MANOR
-          </h1>
+        </h1>
         </Link>
       </div>
 
@@ -265,17 +265,17 @@ const Navbar = () => {
       ) : (
         <div className="hidden md:flex gap-4">
           <Link href="/login">
-            <Button
-              label="Sign In"
+        <Button
+          label="Sign In"
               className="h-10 w-32 hover:bg-opacity-90 transition-colors duration-200 cinzel"
-            />
+        />
           </Link>
           <Link href="/register">
-            <Button
-              variant="secondary"
-              label="Register"
+        <Button
+          variant="secondary"
+          label="Register"
               className="h-10 w-32 hover:bg-opacity-90 transition-colors duration-200 cinzel"
-            />
+        />
           </Link>
         </div>
       )}
@@ -386,9 +386,9 @@ const Navbar = () => {
               </div>
             </div>
           )}
-        </div>
+      </div>
       )}
-      </nav>
+    </nav>
       
       {/* Logout confirmation dialog */}
       {showLogoutConfirm && (

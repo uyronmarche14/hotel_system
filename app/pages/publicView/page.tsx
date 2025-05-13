@@ -10,7 +10,7 @@ import {
   FaRegStar,
 } from "react-icons/fa";
 import Image from "next/image";
-import { getAllRooms } from "@/app/data/rooms";
+import { getAllRooms, RoomType } from "@/app/services/roomService";
 import Button from "@/app/components/ui/buttons";
 
 const StarRating = ({ rating }: { rating: number }) => {
@@ -51,7 +51,26 @@ const SearchResultsContent = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [priceRange, setPriceRange] = useState<string[]>([]);
   const [starRating, setStarRating] = useState<number[]>([]);
-  const [filteredRooms, setFilteredRooms] = useState(getAllRooms());
+  const [allRooms, setAllRooms] = useState<RoomType[]>([]);
+  const [filteredRooms, setFilteredRooms] = useState<RoomType[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Fetch rooms on component mount
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        const rooms = await getAllRooms();
+        setAllRooms(rooms);
+        setFilteredRooms(rooms);
+      } catch (error) {
+        console.error("Failed to fetch rooms:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchRooms();
+  }, []);
 
   // Filter handlers
   const handlePriceRangeChange = (range: string) => {
@@ -70,7 +89,9 @@ const SearchResultsContent = () => {
 
   // Filter logic
   useEffect(() => {
-    let filtered = [...getAllRooms()];
+    if (allRooms.length === 0) return;
+    
+    let filtered = [...allRooms];
 
     if (searchQuery) {
       filtered = filtered.filter((room) =>
@@ -94,7 +115,7 @@ const SearchResultsContent = () => {
     }
 
     setFilteredRooms(filtered);
-  }, [searchQuery, priceRange, starRating]);
+  }, [searchQuery, priceRange, starRating, allRooms]);
 
   return (
     <>

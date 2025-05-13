@@ -54,7 +54,7 @@ export default function UsersManagement() {
       if (!checkAdminAuth()) return;
       
       try {
-        const response = await fetch(`${API_URL}/admin/users`, {
+        const response = await fetch(`/api/admin/users`, {
           headers: {
             'Authorization': `Bearer ${Cookies.get('token')}`
           }

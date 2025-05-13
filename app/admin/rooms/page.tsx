@@ -4,7 +4,6 @@ import { useState, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaBed, FaDoorOpen, FaEdit, FaTrash, FaPlus, FaTimes } from 'react-icons/fa';
 import AdminLayout from '@/app/components/layouts/AdminLayout';
-import { API_URL } from '@/app/lib/constants';
 import Cookies from 'js-cookie';
 
 interface Room {
@@ -49,6 +48,8 @@ interface FormRoom {
   additionalAmenities: string; // String for form input
   features: string; // String for form input
   imageUrl: string;
+  imageUrls: string[]; // Array of image URLs 
+  uploadedImages: File[]; // Array of uploaded image files
   href: string;
   rating: number;
   reviews: number;
@@ -69,7 +70,7 @@ export default function RoomsManagement() {
     title: '',
     roomNumber: '',
     type: 'standard',
-    category: 'standard',
+    category: 'standard-room',
     price: 0,
     location: 'Taguig, Metro Manila',
     description: '',
@@ -80,10 +81,12 @@ export default function RoomsManagement() {
     additionalAmenities: '',
     features: '',
     imageUrl: '',
+    imageUrls: [],
+    uploadedImages: [],
     href: '',
     rating: 4.0,
     reviews: 0,
-    bedType: '',
+    bedType: 'Queen',
     roomSize: '',
     viewType: 'City view',
     isAvailable: true
@@ -115,7 +118,8 @@ export default function RoomsManagement() {
       if (!checkAdminAuth()) return;
       
       try {
-        const response = await fetch(`${API_URL}/admin/rooms`, {
+        // Use the Next.js API route instead of direct API call
+        const response = await fetch(`/api/admin/rooms`, {
           headers: {
             'Authorization': `Bearer ${Cookies.get('token')}`
           }
@@ -147,7 +151,7 @@ export default function RoomsManagement() {
       title: '',
       roomNumber: '',
       type: 'standard',
-      category: 'standard',
+      category: 'standard-room',
       price: 0,
       location: 'Taguig, Metro Manila',
       description: '',
@@ -158,10 +162,12 @@ export default function RoomsManagement() {
       additionalAmenities: '',
       features: '',
       imageUrl: '',
+      imageUrls: [],
+      uploadedImages: [],
       href: '',
       rating: 4.0,
       reviews: 0,
-      bedType: '',
+      bedType: 'Queen',
       roomSize: '',
       viewType: 'City view',
       isAvailable: true
@@ -176,7 +182,7 @@ export default function RoomsManagement() {
       title: room.title || '',
       roomNumber: room.roomNumber,
       type: room.type,
-      category: room.category || 'standard',
+      category: room.category || 'standard-room',
       price: room.price,
       location: room.location || 'Taguig, Metro Manila',
       description: room.description || '',
@@ -187,10 +193,12 @@ export default function RoomsManagement() {
       additionalAmenities: room.additionalAmenities?.join(', ') || '',
       features: room.features?.join(', ') || '',
       imageUrl: room.imageUrl || '',
+      imageUrls: room.images || [],
+      uploadedImages: [],
       href: room.href || '',
       rating: room.rating || 4.0,
       reviews: room.reviews || 0,
-      bedType: room.bedType || '',
+      bedType: room.bedType || 'Queen',
       roomSize: room.roomSize || '',
       viewType: room.viewType || 'City view',
       isAvailable: room.isAvailable
@@ -213,6 +221,44 @@ export default function RoomsManagement() {
         : type === 'number' 
           ? parseFloat(value) 
           : value
+    }));
+  };
+
+  // Handle file upload changes
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const newFiles = Array.from(e.target.files);
+      setCurrentRoom(prev => ({
+        ...prev,
+        uploadedImages: [...prev.uploadedImages, ...newFiles]
+      }));
+    }
+  };
+
+  // Handle adding a new image URL to the list
+  const handleAddImageUrl = () => {
+    if (currentRoom.imageUrl.trim()) {
+      setCurrentRoom(prev => ({
+        ...prev,
+        imageUrls: [...prev.imageUrls, prev.imageUrl.trim()],
+        imageUrl: '' // Clear the input field after adding
+      }));
+    }
+  };
+
+  // Handle removing an image URL from the list
+  const handleRemoveImageUrl = (index: number) => {
+    setCurrentRoom(prev => ({
+      ...prev,
+      imageUrls: prev.imageUrls.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Handle removing an uploaded file
+  const handleRemoveFile = (index: number) => {
+    setCurrentRoom(prev => ({
+      ...prev,
+      uploadedImages: prev.uploadedImages.filter((_, i) => i !== index)
     }));
   };
 
@@ -247,13 +293,14 @@ export default function RoomsManagement() {
         roomSize: currentRoom.roomSize,
         viewType: currentRoom.viewType,
         isAvailable: currentRoom.isAvailable,
-        // Add an empty images array if this is a new room
-        ...(isEditing ? {} : { images: [] })
+        // Use the image URLs array for images
+        images: currentRoom.imageUrls
       };
       
+      // Use the Next.js API route instead of direct API call
       const url = isEditing 
-        ? `${API_URL}/admin/rooms/${currentRoom.id}` 
-        : `${API_URL}/admin/rooms`;
+        ? `/api/admin/rooms/${currentRoom.id}` 
+        : `/api/admin/rooms`;
       
       const method = isEditing ? 'PUT' : 'POST';
       
@@ -271,6 +318,19 @@ export default function RoomsManagement() {
       const data = await response.json();
       
       if (!response.ok) {
+        // Handle specific validation errors
+        if (response.status === 400 && data.message && data.message.includes('validation failed')) {
+          // Extract the specific validation errors if available
+          let errorMessage = 'Validation error: ';
+          if (data.errors) {
+            errorMessage += Object.entries(data.errors)
+              .map(([field, msg]) => `${field} ${msg}`)
+              .join(', ');
+          } else {
+            errorMessage += data.message;
+          }
+          throw new Error(errorMessage);
+        }
         throw new Error(data.message || (isEditing ? 'Failed to update room' : 'Failed to create room'));
       }
       
@@ -283,15 +343,15 @@ export default function RoomsManagement() {
       }, 3000);
       
       // Refresh the room list
-      const roomsResponse = await fetch(`${API_URL}/admin/rooms`, {
+      const roomsResponse = await fetch(`/api/admin/rooms`, {
         headers: {
           'Authorization': `Bearer ${Cookies.get('token')}`
         }
       });
       
       if (roomsResponse.ok) {
-        const data = await roomsResponse.json();
-        setRooms(data.data);
+        const roomsData = await roomsResponse.json();
+        setRooms(roomsData.data);
       }
       
       closeModal();
@@ -311,7 +371,8 @@ export default function RoomsManagement() {
       setError(null);
       setIsSuccess(false);
       
-      const response = await fetch(`${API_URL}/admin/rooms/${id}`, {
+      // Use the Next.js API route instead of direct API call
+      const response = await fetch(`/api/admin/rooms/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${Cookies.get('token')}`
@@ -535,7 +596,7 @@ export default function RoomsManagement() {
                         name="title"
                         value={currentRoom.title}
                         onChange={handleChange}
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32]"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-black"
                         required
                       />
                     </div>
@@ -549,7 +610,7 @@ export default function RoomsManagement() {
                         name="roomNumber"
                         value={currentRoom.roomNumber}
                         onChange={handleChange}
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32]"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-black"
                         required
                       />
                     </div>
@@ -562,7 +623,7 @@ export default function RoomsManagement() {
                         name="type"
                         value={currentRoom.type}
                         onChange={handleChange}
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32]"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-black"
                         required
                       >
                         <option value="standard">Standard</option>
@@ -581,14 +642,15 @@ export default function RoomsManagement() {
                         name="category"
                         value={currentRoom.category}
                         onChange={handleChange}
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32]"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-black"
                         required
                       >
-                        <option value="standard">Standard</option>
-                        <option value="executive">Executive</option>
-                        <option value="family-friendly">Family Friendly</option>
-                        <option value="luxury">Luxury</option>
-                        <option value="palace-inspired">Palace Inspired</option>
+                        <option value="standard-room">Standard Room</option>
+                        <option value="deluxe-room">Deluxe Room</option>
+                        <option value="executive-suite">Executive Suite</option>
+                        <option value="presidential-suite">Presidential Suite</option>
+                        <option value="honeymoon-suite">Honeymoon Suite</option>
+                        <option value="family-room">Family Room</option>
                       </select>
                     </div>
                     
@@ -603,7 +665,7 @@ export default function RoomsManagement() {
                         onChange={handleChange}
                         min="0"
                         step="0.01"
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32]"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-black"
                         required
                       />
                     </div>
@@ -617,7 +679,7 @@ export default function RoomsManagement() {
                         name="location"
                         value={currentRoom.location}
                         onChange={handleChange}
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32]"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-black"
                         required
                       />
                     </div>
@@ -637,7 +699,7 @@ export default function RoomsManagement() {
                         value={currentRoom.description}
                         onChange={handleChange}
                         rows={2}
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32]"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-black"
                         required
                       ></textarea>
                     </div>
@@ -651,7 +713,7 @@ export default function RoomsManagement() {
                         value={currentRoom.fullDescription}
                         onChange={handleChange}
                         rows={4}
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32]"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-black"
                       ></textarea>
                     </div>
                   </div>
@@ -671,7 +733,7 @@ export default function RoomsManagement() {
                         value={currentRoom.capacity}
                         onChange={handleChange}
                         min="1"
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32]"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-black"
                         required
                       />
                     </div>
@@ -686,7 +748,7 @@ export default function RoomsManagement() {
                         value={currentRoom.maxOccupancy}
                         onChange={handleChange}
                         min="1"
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32]"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-black"
                       />
                     </div>
                     
@@ -694,14 +756,21 @@ export default function RoomsManagement() {
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Bed Type
                       </label>
-                      <input
-                        type="text"
+                      <select
                         name="bedType"
                         value={currentRoom.bedType}
                         onChange={handleChange}
-                        placeholder="1 King-size bed"
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32]"
-                      />
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-black"
+                        required
+                      >
+                        <option value="">Select a bed type</option>
+                        <option value="Single">Single</option>
+                        <option value="Double">Double</option>
+                        <option value="Queen">Queen</option>
+                        <option value="King">King</option>
+                        <option value="Twin">Twin</option>
+                        <option value="Various">Various</option>
+                      </select>
                     </div>
                     
                     <div>
@@ -714,7 +783,7 @@ export default function RoomsManagement() {
                         value={currentRoom.roomSize}
                         onChange={handleChange}
                         placeholder="32 sq.m"
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32]"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-black"
                       />
                     </div>
                     
@@ -728,7 +797,7 @@ export default function RoomsManagement() {
                         value={currentRoom.viewType}
                         onChange={handleChange}
                         placeholder="City view"
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32]"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-black"
                       />
                     </div>
                     
@@ -744,7 +813,7 @@ export default function RoomsManagement() {
                         min="0"
                         max="5"
                         step="0.1"
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32]"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-black"
                       />
                     </div>
                     
@@ -758,7 +827,7 @@ export default function RoomsManagement() {
                         value={currentRoom.reviews}
                         onChange={handleChange}
                         min="0"
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32]"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-black"
                       />
                     </div>
                   </div>
@@ -778,7 +847,7 @@ export default function RoomsManagement() {
                         onChange={handleChange}
                         rows={3}
                         placeholder="Floor-to-ceiling windows, Work desk, Seating area, Mini bar"
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32]"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-black"
                       ></textarea>
                     </div>
                     
@@ -792,7 +861,7 @@ export default function RoomsManagement() {
                         onChange={handleChange}
                         rows={3}
                         placeholder="WiFi, TV, Air Conditioning, Mini Bar"
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32]"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-black"
                       ></textarea>
                     </div>
                     
@@ -806,7 +875,7 @@ export default function RoomsManagement() {
                         onChange={handleChange}
                         rows={3}
                         placeholder="24/7 room service, Daily housekeeping, High-speed WiFi, Smart TV"
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32]"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-black"
                       ></textarea>
                     </div>
                   </div>
@@ -815,37 +884,124 @@ export default function RoomsManagement() {
                 {/* Image & URL Section */}
                 <div className="md:col-span-2">
                   <h3 className="text-md font-semibold text-gray-700 mb-3 border-b pb-2">Images & URLs</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Image URL
+                  
+                  {/* Image Upload Option */}
+                  <div className="mb-4">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Option 1: Upload Images</h4>
+                    <div className="flex items-center space-x-2">
+                      <label className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer">
+                        <span>Select Files</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="sr-only"
+                          onChange={handleFileUpload}
+                        />
                       </label>
+                      <span className="text-xs text-gray-500">Supported formats: JPG, PNG, WebP (Max: 5MB each)</span>
+                    </div>
+                    
+                    {/* Show preview of uploaded files */}
+                    {currentRoom.uploadedImages.length > 0 && (
+                      <div className="mt-3">
+                        <h5 className="text-sm font-medium text-gray-700 mb-2">Selected Files</h5>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                          {currentRoom.uploadedImages.map((file, index) => (
+                            <div key={index} className="relative group">
+                              <div className="h-24 w-full bg-gray-100 rounded-md border overflow-hidden">
+                                <img
+                                  src={URL.createObjectURL(file)}
+                                  alt={`Selected ${index + 1}`}
+                                  className="h-full w-full object-cover"
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveFile(index)}
+                                className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                title="Remove"
+                              >
+                                <FaTimes size={12} />
+                              </button>
+                              <p className="text-xs text-gray-500 truncate mt-1">{file.name}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Image URL Option */}
+                  <div className="mb-4">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Option 2: Add Image URLs</h4>
+                    <div className="flex">
                       <input
                         type="text"
                         name="imageUrl"
                         value={currentRoom.imageUrl}
                         onChange={handleChange}
                         placeholder="https://example.com/image.jpg"
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32]"
+                        className="flex-1 p-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-black"
                       />
+                      <button
+                        type="button"
+                        onClick={handleAddImageUrl}
+                        className="px-4 py-2 bg-[#1C3F32] text-white rounded-r-md hover:bg-[#1C3F32]/90"
+                      >
+                        Add
+                      </button>
                     </div>
                     
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Page URL
-                      </label>
-                      <input
-                        type="text"
-                        name="href"
-                        value={currentRoom.href}
-                        onChange={handleChange}
-                        placeholder="/hotelRoomDetails/category/room-name"
-                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32]"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        Leave blank to auto-generate from category and title
-                      </p>
-                    </div>
+                    {/* Show list of added image URLs */}
+                    {currentRoom.imageUrls.length > 0 && (
+                      <div className="mt-3">
+                        <h5 className="text-sm font-medium text-gray-700 mb-2">Added Image URLs</h5>
+                        <div className="grid grid-cols-1 gap-2">
+                          {currentRoom.imageUrls.map((url, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                              <div className="flex items-center space-x-2 overflow-hidden">
+                                <div className="h-10 w-10 bg-gray-100 rounded-md border overflow-hidden flex-shrink-0">
+                                  <img
+                                    src={url}
+                                    alt={`URL ${index + 1}`}
+                                    className="h-full w-full object-cover"
+                                    onError={(e) => (e.target as HTMLImageElement).src = '/images/room-placeholder.jpg'}
+                                  />
+                                </div>
+                                <span className="text-xs text-gray-700 truncate">{url}</span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveImageUrl(index)}
+                                className="text-red-500 hover:text-red-700"
+                                title="Remove"
+                              >
+                                <FaTimes size={14} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Page URL field */}
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Page URL
+                    </label>
+                    <input
+                      type="text"
+                      name="href"
+                      value={currentRoom.href}
+                      onChange={handleChange}
+                      placeholder="/hotelRoomDetails/category/room-name"
+                      className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-black"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Leave blank to auto-generate from category and title
+                    </p>
                   </div>
                 </div>
                 

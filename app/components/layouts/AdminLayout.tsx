@@ -150,7 +150,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               height={32}
               className="rounded-md"
             />
-            <span className="text-lg font-medium text-gray-800">Solace Hotel</span>
+            <span className="text-lg font-medium text-gray-800">THE SOLACE HOTEL</span>
           </div>
           {isMobile && (
             <button 

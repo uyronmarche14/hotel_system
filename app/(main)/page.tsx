@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/app/components/normal/header";
 import RoomCard from "@/app/components/RoomCard";
-import { getTopRatedRooms, getCategoryRooms } from "../data/rooms";
 
 export default function MainPage() {
   const router = useRouter();
@@ -13,9 +12,6 @@ export default function MainPage() {
     // Redirect to dashboard
     router.push("/dashboard");
   }, [router]);
-
-  const topRatedRooms = getTopRatedRooms();
-  const categoryRooms = getCategoryRooms();
   
   return (
     <div className="min-h-screen flex items-center justify-center">

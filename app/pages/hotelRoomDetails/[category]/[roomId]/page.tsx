@@ -1,6 +1,7 @@
 "use client";
 import { useParams } from "next/navigation";
-import { rooms } from "@/app/data/rooms";
+import { useEffect, useState } from "react";
+import { getAllRooms, RoomType } from "@/app/services/roomService";
 import SuggestionCard from "@/app/components/suggestionCard";
 import {
   FaStar,
@@ -25,16 +26,43 @@ const RoomDetails = () => {
   const urlLocation =
     "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3861.802548850809!2d121.04155931482183!3d14.553551689828368!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397c8efd99f5459%3A0xf26e2c5e8a39bc!2sTaguig%2C%20Metro%20Manila!5e0!3m2!1sen!2sph!4v1629789045693!5m2!1sen!2sph";
   const params = useParams();
-  const room = rooms.find(
-    (r) =>
-      r.href === `/pages/hotelRoomDetails/${params.category}/${params.roomId}`,
-  );
+  const [room, setRoom] = useState<RoomType | null>(null);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const fetchRoomData = async () => {
+      try {
+        const allRooms = await getAllRooms();
+        const foundRoom = allRooms.find(
+          (r) => r.href === `/pages/hotelRoomDetails/${params.category}/${params.roomId}`
+        );
+        
+        if (foundRoom) {
+          setRoom(foundRoom);
+        }
+      } catch (error) {
+        console.error("Error fetching room data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchRoomData();
+  }, [params.category, params.roomId]);
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 flex justify-center items-center min-h-[400px]">
+        <div className="w-16 h-16 border-4 border-[#1C3F32] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   if (!room) {
     return <div className="container mx-auto px-4 py-8">Room not found</div>;
   }
 
-  const StarRating = ({ rating }) => {
+  const StarRating = ({ rating }: { rating: number }) => {
     const stars = [];
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 !== 0;
@@ -160,13 +188,13 @@ const RoomDetails = () => {
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-black mb-4">Overview</h2>
               <p className="text-base text-gray-700 leading-relaxed">
-                Experience unmatched elegance in our Luxury Rooms, where every
+                {room.fullDescription || room.description || `Experience unmatched elegance in our ${room.title}, where every
                 detail is crafted for discerning travelers. These suites boast
                 expansive spaces with floor-to-ceiling windows that reveal
                 breathtaking city or garden views. Sophisticated interiors,
                 premium linens, and artisan furnishings elevate your stay, while
                 modern comforts like high-speed Wi-Fi, OLED TVs, and luxurious
-                bathrooms with heated tiles ensure convenience meets indulgence.
+                bathrooms with heated tiles ensure convenience meets indulgence.`}
               </p>
               <p className="text-base text-gray-700 leading-relaxed mt-4">
                 Whether you've here for a romantic escape or a high-end business

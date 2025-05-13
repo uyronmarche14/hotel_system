@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/AuthContext';
-import { rooms, RoomType } from '@/app/data/rooms';
+import { getAllRooms, RoomType } from '@/app/services/roomService';
 import { FaMapMarkerAlt, FaCalendarAlt, FaUser, FaCreditCard, FaCheck, FaWifi, FaCoffee, FaSnowflake } from 'react-icons/fa';
 import { createBooking } from '@/app/lib/bookingService';
 
@@ -63,32 +63,43 @@ export default function BookingConfirmationPage() {
       return;
     }
 
-    // Find the room
-    const foundRoom = rooms.find(
-      (r) => {
-        const titleSlug = r.title.toLowerCase().replace(/ /g, "-");
-        return r.category === category && (titleSlug === roomId || r.href.includes(roomId));
+    const fetchRoom = async () => {
+      try {
+        const allRooms = await getAllRooms();
+        
+        // Find the room
+        const foundRoom = allRooms.find(
+          (r) => {
+            const titleSlug = r.title.toLowerCase().replace(/ /g, "-");
+            return r.category === category && (titleSlug === roomId || r.href?.includes(roomId));
+          }
+        );
+
+        if (!foundRoom) {
+          router.push('/dashboard');
+          return;
+        }
+
+        setRoom(foundRoom);
+        
+        // Pre-fill user data if available
+        if (user) {
+          setFormData(prev => ({
+            ...prev,
+            firstName: user.name.split(' ')[0] || '',
+            lastName: user.name.split(' ').slice(1).join(' ') || '',
+            email: user.email || '',
+            billingFirstName: user.name.split(' ')[0] || '',
+            billingLastName: user.name.split(' ').slice(1).join(' ') || ''
+          }));
+        }
+      } catch (error) {
+        console.error("Failed to fetch room data:", error);
+        router.push('/dashboard');
       }
-    );
-
-    if (!foundRoom) {
-      router.push('/dashboard');
-      return;
-    }
-
-    setRoom(foundRoom);
+    };
     
-    // Pre-fill user data if available
-    if (user) {
-      setFormData(prev => ({
-        ...prev,
-        firstName: user.name.split(' ')[0] || '',
-        lastName: user.name.split(' ').slice(1).join(' ') || '',
-        email: user.email || '',
-        billingFirstName: user.name.split(' ')[0] || '',
-        billingLastName: user.name.split(' ').slice(1).join(' ') || ''
-      }));
-    }
+    fetchRoom();
   }, [isAuthenticated, router, roomId, category, user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
