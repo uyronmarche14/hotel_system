@@ -3,80 +3,107 @@ import Cookies from 'js-cookie';
 
 // Types
 export interface User {
-  _id: string;
+  id: string;
   name: string;
   email: string;
+  role: string;
+  profilePic?: string;
   phone?: string;
   address?: string;
-  profilePic?: string;
-  membershipLevel?: string;
-  isActive: boolean;
+  bio?: string;
   createdAt: string;
-  updatedAt: string;
 }
 
 export interface Room {
-  _id: string;
+  id: string;
   title: string;
-  description?: string;
-  fullDescription?: string;
-  price: number;
-  imageUrl: string;
-  location?: string;
+  roomNumber: string;
+  type: string;
   category: string;
-  rating?: number;
+  price: number;
+  location: string;
+  description: string;
+  fullDescription?: string;
+  capacity: number;
   maxOccupancy?: number;
+  amenities: string[];
+  additionalAmenities?: string[];
+  features?: string[];
+  images: string[];
+  imageUrl?: string;
+  href?: string;
+  rating?: number;
+  reviews?: number;
   bedType?: string;
   roomSize?: string;
-  amenities?: string[];
-  additionalAmenities?: string[];
+  size?: string;
+  viewType?: string;
   isAvailable: boolean;
-  href: string;
+}
+
+export interface Booking {
+  id: string;
+  roomId: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  checkIn: string;
+  checkOut: string;
+  totalPrice: number;
+  status: string;
   createdAt: string;
-  updatedAt: string;
 }
 
 export interface DashboardStats {
-  users: {
-    total: number;
-    activeThisMonth: number;
-    newThisWeek: number;
-  };
-  bookings: {
-    total: number;
-    pending: number;
-    completed: number;
-    canceled: number;
-  };
-  rooms: {
-    total: number;
-    occupied: number;
-    available: number;
-    maintenance: number;
-  };
-  revenue: {
-    thisMonth: number;
-    lastMonth: number;
-    growth: number;
-  };
+  totalUsers: number;
+  totalBookings: number;
+  activeBookings: number;
+  totalRooms: number;
+  recentBookings: number;
+  totalRevenue: number;
 }
 
-// Helper function to get the admin auth headers
-const getAdminHeaders = () => {
-  const token = Cookies.get('adminToken');
+// Helper function to get the auth headers
+const getAuthHeaders = () => {
+  const token = Cookies.get('token');
   
   return {
     'Content-Type': 'application/json',
-    'Admin-Authorization': token || '',
+    'Authorization': `Bearer ${token || ''}`,
   };
+};
+
+// Admin auth methods
+export const adminLogin = async (credentials: { username: string; password: string }) => {
+  try {
+    const response = await fetch(`${API_URL}/auth/admin-login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(credentials),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Login failed');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Admin login failed:', error);
+    throw error;
+  }
 };
 
 // Get dashboard stats
 export const getDashboardStats = async (): Promise<DashboardStats> => {
   try {
-    const response = await fetch(`${API_URL}/api/admin/stats`, {
+    const response = await fetch(`${API_URL}/admin/dashboard`, {
       method: 'GET',
-      headers: getAdminHeaders(),
+      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
@@ -94,9 +121,9 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
 // User Management API calls
 export const getAllUsers = async (): Promise<User[]> => {
   try {
-    const response = await fetch(`${API_URL}/api/admin/users`, {
+    const response = await fetch(`${API_URL}/admin/users`, {
       method: 'GET',
-      headers: getAdminHeaders(),
+      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
@@ -111,57 +138,22 @@ export const getAllUsers = async (): Promise<User[]> => {
   }
 };
 
-export const getUserById = async (userId: string): Promise<User> => {
+// Booking Management API calls
+export const getAllBookings = async (): Promise<Booking[]> => {
   try {
-    const response = await fetch(`${API_URL}/api/admin/users/${userId}`, {
+    const response = await fetch(`${API_URL}/admin/bookings`, {
       method: 'GET',
-      headers: getAdminHeaders(),
+      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
-      throw new Error(`Error fetching user: ${response.status}`);
+      throw new Error(`Error fetching bookings: ${response.status}`);
     }
 
     const data = await response.json();
     return data.data;
   } catch (error) {
-    console.error(`Failed to fetch user ${userId}:`, error);
-    throw error;
-  }
-};
-
-export const updateUser = async (userId: string, userData: Partial<User>): Promise<User> => {
-  try {
-    const response = await fetch(`${API_URL}/api/admin/users/${userId}`, {
-      method: 'PUT',
-      headers: getAdminHeaders(),
-      body: JSON.stringify(userData),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error updating user: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data.data;
-  } catch (error) {
-    console.error(`Failed to update user ${userId}:`, error);
-    throw error;
-  }
-};
-
-export const deleteUser = async (userId: string): Promise<void> => {
-  try {
-    const response = await fetch(`${API_URL}/api/admin/users/${userId}`, {
-      method: 'DELETE',
-      headers: getAdminHeaders(),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error deleting user: ${response.status}`);
-    }
-  } catch (error) {
-    console.error(`Failed to delete user ${userId}:`, error);
+    console.error('Failed to fetch bookings:', error);
     throw error;
   }
 };
@@ -169,9 +161,9 @@ export const deleteUser = async (userId: string): Promise<void> => {
 // Room Management API calls
 export const getAllRooms = async (): Promise<Room[]> => {
   try {
-    const response = await fetch(`${API_URL}/api/admin/rooms`, {
+    const response = await fetch(`${API_URL}/admin/rooms`, {
       method: 'GET',
-      headers: getAdminHeaders(),
+      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
@@ -188,9 +180,9 @@ export const getAllRooms = async (): Promise<Room[]> => {
 
 export const getRoomById = async (roomId: string): Promise<Room> => {
   try {
-    const response = await fetch(`${API_URL}/api/admin/rooms/${roomId}`, {
+    const response = await fetch(`${API_URL}/admin/rooms/${roomId}`, {
       method: 'GET',
-      headers: getAdminHeaders(),
+      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
@@ -205,16 +197,17 @@ export const getRoomById = async (roomId: string): Promise<Room> => {
   }
 };
 
-export const createRoom = async (roomData: Partial<Room>): Promise<Room> => {
+export const createRoom = async (roomData: Omit<Room, 'id'>): Promise<Room> => {
   try {
-    const response = await fetch(`${API_URL}/api/admin/rooms`, {
+    const response = await fetch(`${API_URL}/admin/rooms`, {
       method: 'POST',
-      headers: getAdminHeaders(),
+      headers: getAuthHeaders(),
       body: JSON.stringify(roomData),
     });
 
     if (!response.ok) {
-      throw new Error(`Error creating room: ${response.status}`);
+      const error = await response.json();
+      throw new Error(error.message || `Error creating room: ${response.status}`);
     }
 
     const data = await response.json();
@@ -227,14 +220,15 @@ export const createRoom = async (roomData: Partial<Room>): Promise<Room> => {
 
 export const updateRoom = async (roomId: string, roomData: Partial<Room>): Promise<Room> => {
   try {
-    const response = await fetch(`${API_URL}/api/admin/rooms/${roomId}`, {
+    const response = await fetch(`${API_URL}/admin/rooms/${roomId}`, {
       method: 'PUT',
-      headers: getAdminHeaders(),
+      headers: getAuthHeaders(),
       body: JSON.stringify(roomData),
     });
 
     if (!response.ok) {
-      throw new Error(`Error updating room: ${response.status}`);
+      const error = await response.json();
+      throw new Error(error.message || `Error updating room: ${response.status}`);
     }
 
     const data = await response.json();
@@ -247,13 +241,14 @@ export const updateRoom = async (roomId: string, roomData: Partial<Room>): Promi
 
 export const deleteRoom = async (roomId: string): Promise<void> => {
   try {
-    const response = await fetch(`${API_URL}/api/admin/rooms/${roomId}`, {
+    const response = await fetch(`${API_URL}/admin/rooms/${roomId}`, {
       method: 'DELETE',
-      headers: getAdminHeaders(),
+      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
-      throw new Error(`Error deleting room: ${response.status}`);
+      const error = await response.json();
+      throw new Error(error.message || `Error deleting room: ${response.status}`);
     }
   } catch (error) {
     console.error(`Failed to delete room ${roomId}:`, error);

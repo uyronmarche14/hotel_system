@@ -1,30 +1,36 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+import { RoomType } from "../services/roomService";
 
 interface RoomCardProps {
-  title: string;
-  price: number;
-  location: string;
-  imageUrl: string;
-  href: string;
+  room: RoomType;
 }
 
-const RoomCard = ({
-  title,
-  price,
-  location,
-  imageUrl,
-  href,
-}: RoomCardProps) => {
+const RoomCard = ({ room }: RoomCardProps) => {
+  const { title, price, location, imageUrl, href } = room;
+  const [imageError, setImageError] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
+  
   return (
     <Link href={href} className="block h-full">
       <div className="group rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 h-full flex flex-col">
-        <div className="relative h-48 w-full">
+        <div className="relative h-48 w-full bg-gray-200">
+          {imageLoading && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-8 h-8 border-2 border-[#1C3F32] border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          )}
           <Image
-            src={imageUrl}
+            src={imageError ? "/images/room-placeholder.jpg" : imageUrl}
             alt={title}
             fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            className={`object-cover transition-transform duration-300 group-hover:scale-105 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
+            onLoad={() => setImageLoading(false)}
+            onError={() => {
+              setImageError(true);
+              setImageLoading(false);
+            }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>

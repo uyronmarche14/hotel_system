@@ -154,7 +154,7 @@ const Navbar = () => {
           <Link
             key={index}
             href={item.path}
-            className={`text-white transition-colors duration-200 font-medium hover:underline ${
+            className={`text-white transition-colors duration-200 font-medium hover:underline cinzel ${
               isActive(item.path) ? 'underline font-bold' : ''
             }`}
           >
@@ -168,7 +168,7 @@ const Navbar = () => {
             <button
               ref={bookingButtonRef}
               onClick={toggleBookingDropdown}
-              className={`text-white transition-colors duration-200 font-medium hover:underline flex items-center ${
+              className={`text-white transition-colors duration-200 font-medium hover:underline cinzel flex items-center ${
                 isActive('/bookings') ? 'underline font-bold' : ''
               }`}
             >
@@ -191,7 +191,7 @@ const Navbar = () => {
         <div className="hidden md:flex items-center gap-4">
           <div className="relative">
             <button 
-                ref={profileButtonRef}
+              ref={profileButtonRef}
               onClick={toggleProfileMenu}
               className="flex items-center gap-2 text-white hover:text-gray-200 transition-colors"
             >
@@ -215,7 +215,7 @@ const Navbar = () => {
                   />
                 )}
               </div>
-              <span className="hidden md:inline">{user?.name || "User"}</span>
+              <span className="hidden md:inline cinzel">{user?.name || "User"}</span>
             </button>
             
             {/* Profile Dropdown Menu */}
@@ -252,7 +252,7 @@ const Navbar = () => {
                     Booking History
                   </Link>
                   <button 
-                      onClick={handleLogoutClick}
+                    onClick={handleLogoutClick}
                     className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                   >
                     Sign Out
@@ -267,14 +267,14 @@ const Navbar = () => {
           <Link href="/login">
             <Button
               label="Sign In"
-              className="h-10 w-32 hover:bg-opacity-90 transition-colors duration-200"
+              className="h-10 w-32 hover:bg-opacity-90 transition-colors duration-200 cinzel"
             />
           </Link>
           <Link href="/register">
             <Button
               variant="secondary"
               label="Register"
-              className="h-10 w-32 hover:bg-opacity-90 transition-colors duration-200"
+              className="h-10 w-32 hover:bg-opacity-90 transition-colors duration-200 cinzel"
             />
           </Link>
         </div>
@@ -288,7 +288,7 @@ const Navbar = () => {
               <Link
                 key={index}
                 href={item.path}
-                className={`text-white transition-colors duration-200 font-medium hover:underline px-2 ${
+                className={`text-white transition-colors duration-200 font-medium hover:underline px-2 cinzel ${
                   isActive(item.path) ? 'underline font-bold' : ''
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
@@ -301,7 +301,7 @@ const Navbar = () => {
             {isAuthenticated && (
               <Link
                 href="/bookings"
-                className={`text-white transition-colors duration-200 font-medium hover:underline px-2 flex items-center ${
+                className={`text-white transition-colors duration-200 font-medium hover:underline px-2 cinzel flex items-center ${
                   isActive('/bookings') ? 'underline font-bold' : ''
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
@@ -318,14 +318,14 @@ const Navbar = () => {
               <Link
                 href="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="bg-[#1C3F32] text-white py-2 px-4 rounded text-center font-medium"
+                className="bg-[#1C3F32] text-white py-2 px-4 rounded text-center font-medium cinzel"
               >
                 Sign In
               </Link>
               <Link
                 href="/register"
                 onClick={() => setMobileMenuOpen(false)}
-                className="bg-white text-[#1C3F32] border border-[#1C3F32] py-2 px-4 rounded text-center font-medium"
+                className="bg-white text-[#1C3F32] border border-[#1C3F32] py-2 px-4 rounded text-center font-medium cinzel"
               >
                 Register
               </Link>
@@ -356,21 +356,21 @@ const Navbar = () => {
                     />
                   )}
                 </div>
-                <span className="text-white font-medium">{user?.name || "User"}</span>
+                <span className="text-white font-medium cinzel">{user?.name || "User"}</span>
               </div>
               
               <div className="flex flex-col space-y-2">
                 <Link
                   href="/profile"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-white/90 hover:text-white text-sm py-1"
+                  className="text-white/90 hover:text-white text-sm py-1 cinzel"
                 >
                   My Profile
                 </Link>
                 <Link
                   href="/bookings/history"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-white/90 hover:text-white text-sm py-1"
+                  className="text-white/90 hover:text-white text-sm py-1 cinzel"
                 >
                   Booking History
                 </Link>
@@ -379,7 +379,7 @@ const Navbar = () => {
                     setMobileMenuOpen(false);
                     handleLogoutClick();
                   }}
-                  className="text-red-300 hover:text-red-200 text-sm py-1 text-left"
+                  className="text-red-300 hover:text-red-200 text-sm py-1 text-left cinzel"
                 >
                   Sign Out
                 </button>

@@ -1,21 +1,37 @@
 "use client";
 import { useParams } from "next/navigation";
-import { rooms, getRoomsByCategory } from "@/app/data/rooms";
+import { useState, useEffect } from "react";
 import RoomCard from "@/app/components/RoomCard";
 import Link from "next/link";
+import { getRoomsByCategory, RoomType } from "@/app/services/roomService";
 
 const CategoryPage = () => {
   const params = useParams();
   const category = params.category as string;
-  
-  // Filter rooms by the current category
-  const categoryRooms = getRoomsByCategory(category);
+  const [categoryRooms, setCategoryRooms] = useState<RoomType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Format category name for display (replace hyphens with spaces and capitalize)
   const formattedCategoryName = category
     .split("-")
     .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        setIsLoading(true);
+        const rooms = await getRoomsByCategory(category);
+        setCategoryRooms(rooms);
+      } catch (error) {
+        console.error("Error fetching rooms by category:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRooms();
+  }, [category]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -46,30 +62,19 @@ const CategoryPage = () => {
         {formattedCategoryName} Rooms
       </h1>
       
-      {categoryRooms.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {categoryRooms.map((room, index) => (
-            <RoomCard
-              key={index}
-              title={room.title}
-              price={room.price}
-              location={room.location}
-              imageUrl={room.imageUrl}
-              href={`/hotelRoomDetails/${category}/${room.title.toLowerCase().replace(/ /g, "-")}`}
-            />
+      {isLoading ? (
+        <div className="flex justify-center items-center h-60">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1C3F32]"></div>
+        </div>
+      ) : categoryRooms.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
+          {categoryRooms.map((room) => (
+            <RoomCard key={room.title} room={room} />
           ))}
         </div>
       ) : (
-        <div className="text-center py-12">
-          <p className="text-lg text-gray-600">
-            No rooms found in this category.
-          </p>
-          <Link 
-            href="/dashboard" 
-            className="mt-4 inline-block bg-[#1C3F32] text-white px-6 py-2 rounded-md hover:bg-[#1C3F32]/90 transition-colors"
-          >
-            Return to Dashboard
-          </Link>
+        <div className="bg-gray-50 p-8 rounded-lg text-center">
+          <p className="text-gray-500">No rooms found in this category.</p>
         </div>
       )}
     </div>
