@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:turbo": "next dev --turbopack",
+    "prebuild": "rm -rf .next",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
