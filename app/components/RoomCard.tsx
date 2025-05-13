@@ -22,12 +22,15 @@ const RoomCard = ({ room }: RoomCardProps) => {
             </div>
           )}
           <Image
-            src={imageError ? "/images/room-placeholder.jpg" : imageUrl}
+            src={imageError 
+              ? "https://res.cloudinary.com/ddnxfpziq/image/upload/v1747146600/room-placeholder_mnyxqz.jpg" 
+              : imageUrl}
             alt={title}
             fill
             className={`object-cover transition-transform duration-300 group-hover:scale-105 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
             onLoad={() => setImageLoading(false)}
             onError={() => {
+              console.log('Image failed to load:', imageUrl);
               setImageError(true);
               setImageLoading(false);
             }}

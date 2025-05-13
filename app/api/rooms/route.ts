@@ -60,7 +60,33 @@ export async function GET(request: NextRequest) {
     // Get the response data
     const data = await response.json();
     
-    // Return the response
+    // Process the data to ensure proper image URLs
+    if (data && data.data && Array.isArray(data.data)) {
+      const cloudinaryFallback = 'https://res.cloudinary.com/ddnxfpziq/image/upload/v1747146600/room-placeholder_mnyxqz.jpg';
+      const isCloudinaryUrl = (url: string | undefined): boolean => !!(url && url.includes('cloudinary.com'));
+
+      data.data = data.data.map((room: any) => {
+        // Process imageUrl
+        room.imageUrl = isCloudinaryUrl(room.imageUrl) ? room.imageUrl : cloudinaryFallback;
+        
+        // Process images array
+        if (room.images && Array.isArray(room.images)) {
+          room.images = room.images
+            .map((img: string) => isCloudinaryUrl(img) ? img : cloudinaryFallback)
+            .filter((img: string) => !!img); // Ensure no empty strings if any original was empty
+
+          if (room.images.length === 0) {
+            room.images = [cloudinaryFallback];
+          }
+        } else {
+          room.images = [cloudinaryFallback];
+        }
+        
+        return room;
+      });
+    }
+    
+    // Return the processed response
     return NextResponse.json(data);
   } catch (error: any) {
     console.error('Error in API proxy:', error);

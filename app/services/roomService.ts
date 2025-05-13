@@ -28,6 +28,19 @@ export interface RoomType {
 }
 
 /**
+ * Validate image URLs, defaulting to Cloudinary fallback if not an absolute URL.
+ */
+const validateImageUrl = (url: string | undefined): string => {
+  const cloudinaryFallback = 'https://res.cloudinary.com/ddnxfpziq/image/upload/v1747146600/room-placeholder_mnyxqz.jpg';
+  // Check if it's a valid-looking absolute URL (http or https)
+  if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+    return url;
+  }
+  // For any other case (undefined, null, empty, relative path), use the fallback
+  return cloudinaryFallback;
+};
+
+/**
  * Helper function to map backend room data to frontend format
  */
 const mapRoomData = (room: any): RoomType => ({
@@ -35,7 +48,7 @@ const mapRoomData = (room: any): RoomType => ({
   title: room.title || '',
   price: room.price || 0,
   location: room.location || '',
-  imageUrl: room.imageUrl || '/images/room-placeholder.jpg',
+  imageUrl: validateImageUrl(room.imageUrl),
   href: room.href || `/hotelRoomDetails/${room.category}/${room.title?.toLowerCase().replace(/\s+/g, '-') || 'room'}`,
   rating: room.rating || 0,
   reviews: room.reviews || 0,
@@ -49,7 +62,7 @@ const mapRoomData = (room: any): RoomType => ({
   viewType: room.viewType || '',
   additionalAmenities: room.additionalAmenities || [],
   amenities: room.amenities || [],
-  images: room.images || [],
+  images: Array.isArray(room.images) ? room.images.map(validateImageUrl) : [],
   roomNumber: room.roomNumber || '',
   type: room.type || 'standard',
   isAvailable: room.isAvailable !== undefined ? room.isAvailable : true,
@@ -61,6 +74,13 @@ const mapRoomData = (room: any): RoomType => ({
  */
 export const getAllRooms = async (): Promise<RoomType[]> => {
   try {
+    // Check if API connection is available first
+    const isConnected = await checkApiConnection().catch(() => false);
+    if (!isConnected) {
+      console.log('API connection check failed - returning empty array');
+      return [];
+    }
+    
     // Use the dedicated rooms API route instead of the proxy
     const url = `/api/rooms`;
     console.log('Fetching rooms via API URL:', url);
@@ -78,6 +98,7 @@ export const getAllRooms = async (): Promise<RoomType[]> => {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
+      next: { revalidate: 300 } // Cache for 5 minutes to reduce load on backend
     });
     
     // Race between the timeout and the fetch
@@ -88,135 +109,25 @@ export const getAllRooms = async (): Promise<RoomType[]> => {
       console.error(`API request failed with status ${response.status} - ${response.statusText}`);
       console.error('Error response body:', errorText.substring(0, 500));
       
-      // Try fetching static data as a fallback
-      console.log('Attempting to load static fallback data...');
-      return getFallbackRooms();
+      // Return empty array when API fails
+      console.log('API request failed - returning empty array');
+      return [];
     }
 
     const data = await response.json();
-    console.log('API response received successfully:', data);
+    console.log('API response received successfully');
     console.log('Received data for', data?.data?.length || 0, 'rooms');
     
     if (!data || !data.data || !Array.isArray(data.data)) {
-      console.error('API response is not in the expected format:', data);
-      return getFallbackRooms();
+      console.error('API response is not in the expected format');
+      return [];
     }
     
     return data.data.map(mapRoomData);
   } catch (error) {
     console.error('Failed to fetch rooms from API:', error);
-    // Return static fallback data if API is unreachable
-    return getFallbackRooms();
+    return [];
   }
-};
-
-// Fallback room data for when API is unreachable
-const getFallbackRooms = (): RoomType[] => {
-  console.log('Using fallback room data');
-  return [
-    {
-      id: 'fallback-1',
-      title: 'Standard Room',
-      price: 3000,
-      location: 'Taguig, Metro Manila',
-      imageUrl: '/images/room-placeholder.jpg',
-      href: '/hotelRoomDetails/standard-room/standard-room',
-      rating: 4.2,
-      reviews: 24,
-      description: 'Comfortable standard room with all basic amenities',
-      category: 'standard-room',
-      maxOccupancy: 2,
-      bedType: 'Queen',
-      roomSize: '24 sq m',
-      viewType: 'City view',
-      amenities: ['Free WiFi', 'TV', 'Air conditioning']
-    },
-    {
-      id: 'fallback-2',
-      title: 'Deluxe Room',
-      price: 5000,
-      location: 'Taguig, Metro Manila',
-      imageUrl: '/images/room-placeholder.jpg',
-      href: '/hotelRoomDetails/deluxe-room/deluxe-room',
-      rating: 4.5,
-      reviews: 36,
-      description: 'Spacious deluxe room with premium amenities',
-      category: 'deluxe-room',
-      maxOccupancy: 3,
-      bedType: 'King',
-      roomSize: '32 sq m',
-      viewType: 'Garden view',
-      amenities: ['Free WiFi', 'LED TV', 'Air conditioning', 'Mini bar']
-    },
-    {
-      id: 'fallback-3',
-      title: 'Executive Suite',
-      price: 8000,
-      location: 'Taguig, Metro Manila',
-      imageUrl: '/images/room-placeholder.jpg',
-      href: '/hotelRoomDetails/executive-suite/executive-suite',
-      rating: 4.8,
-      reviews: 18,
-      description: 'Elegant executive suite with separate living area',
-      category: 'executive-suite',
-      maxOccupancy: 2,
-      bedType: 'King',
-      roomSize: '48 sq m',
-      viewType: 'City skyline',
-      amenities: ['Free WiFi', 'Smart TV', 'Air conditioning', 'Mini bar', 'Coffee machine']
-    },
-    {
-      id: 'fallback-4',
-      title: 'Presidential Suite',
-      price: 15000,
-      location: 'Taguig, Metro Manila',
-      imageUrl: '/images/room-placeholder.jpg',
-      href: '/hotelRoomDetails/presidential-suite/presidential-suite',
-      rating: 5.0,
-      reviews: 12,
-      description: 'Luxurious presidential suite with panoramic views',
-      category: 'presidential-suite',
-      maxOccupancy: 4,
-      bedType: 'King',
-      roomSize: '80 sq m',
-      viewType: 'Panoramic city view',
-      amenities: ['Free WiFi', 'Smart TV', 'Air conditioning', 'Mini bar', 'Coffee machine', 'Jacuzzi']
-    },
-    {
-      id: 'fallback-5',
-      title: 'Honeymoon Suite',
-      price: 12000,
-      location: 'Taguig, Metro Manila',
-      imageUrl: '/images/room-placeholder.jpg',
-      href: '/hotelRoomDetails/honeymoon-suite/honeymoon-suite',
-      rating: 4.9,
-      reviews: 15,
-      description: 'Romantic honeymoon suite with spa bath',
-      category: 'honeymoon-suite',
-      maxOccupancy: 2,
-      bedType: 'King',
-      roomSize: '60 sq m',
-      viewType: 'Garden view',
-      amenities: ['Free WiFi', 'Smart TV', 'Air conditioning', 'Mini bar', 'Spa bath']
-    },
-    {
-      id: 'fallback-6',
-      title: 'Family Room',
-      price: 7000,
-      location: 'Taguig, Metro Manila',
-      imageUrl: '/images/room-placeholder.jpg',
-      href: '/hotelRoomDetails/family-room/family-room',
-      rating: 4.6,
-      reviews: 28,
-      description: 'Spacious family room with multiple beds',
-      category: 'family-room',
-      maxOccupancy: 5,
-      bedType: 'Various',
-      roomSize: '55 sq m',
-      viewType: 'Pool view',
-      amenities: ['Free WiFi', 'LED TV', 'Air conditioning', 'Mini fridge']
-    }
-  ];
 };
 
 /**
