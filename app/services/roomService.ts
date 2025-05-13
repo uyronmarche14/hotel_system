@@ -28,16 +28,35 @@ export interface RoomType {
 }
 
 /**
- * Validate image URLs, defaulting to Cloudinary fallback if not an absolute URL.
+ * Validate and fix image URLs with Cloudinary fallback
  */
 const validateImageUrl = (url: string | undefined): string => {
+  // Cloudinary placeholder for missing images
   const cloudinaryFallback = 'https://res.cloudinary.com/ddnxfpziq/image/upload/v1747146600/room-placeholder_mnyxqz.jpg';
-  // Check if it's a valid-looking absolute URL (http or https)
-  if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+  
+  if (!url) return cloudinaryFallback;
+  
+  // If it's already a Cloudinary URL, return it
+  if (url.includes('cloudinary.com')) {
     return url;
   }
-  // For any other case (undefined, null, empty, relative path), use the fallback
-  return cloudinaryFallback;
+  
+  // If it's another absolute URL, return it
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  
+  // If it's a relative URL referencing the placeholder, use Cloudinary
+  if (url.includes('room-placeholder') || url.endsWith('.jpg') || url.endsWith('.png')) {
+    return cloudinaryFallback;
+  }
+  
+  // If it's a relative URL but doesn't start with slash, add one
+  if (!url.startsWith('/')) {
+    return `/${url}`;
+  }
+  
+  return url;
 };
 
 /**

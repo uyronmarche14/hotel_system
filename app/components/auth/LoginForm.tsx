@@ -49,27 +49,25 @@ export default function LoginForm() {
     try {
       console.log(`Submitting login form for: ${email}`);
       
-      // Add validation checks
-      if (!email.trim()) {
-        console.error('Email is required');
-        return;
-      }
-      
-      if (!password) {
-        console.error('Password is required');
-        return;
-      }
-      
-      // Pass the redirectUrl to the login function
-      const success = await login(email, password, redirectUrl || undefined);
-      
-      console.log(`Login attempt result: ${success ? 'Success' : 'Failed'}`);
-      
-      if (success) {
-        console.log(`Login successful, redirecting to: ${redirectUrl || '/dashboard'}`);
+      // Skip validation if already logged in or fields already filled out
+      if (email && password) {
+        // Pass the redirectUrl to the login function
+        const success = await login(email, password, redirectUrl || undefined);
         
-        // The redirect is now handled by the AuthContext login function
-        // We don't need to force a reload anymore
+        console.log(`Login attempt result: ${success ? 'Success' : 'Failed'}`);
+        
+        if (success) {
+          console.log(`Login successful, redirecting to: ${redirectUrl || '/dashboard'}`);
+        }
+      } else {
+        // Validation only if needed
+        if (!email.trim()) {
+          console.error('Email is required');
+        }
+        
+        if (!password) {
+          console.error('Password is required');
+        }
       }
     } catch (error) {
       console.error('Error during login form submission:', error);

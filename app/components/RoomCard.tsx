@@ -12,6 +12,14 @@ const RoomCard = ({ room }: RoomCardProps) => {
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
   
+  // Always use Cloudinary placeholder as fallback
+  const cloudinaryFallback = "https://res.cloudinary.com/ddnxfpziq/image/upload/v1747146600/room-placeholder_mnyxqz.jpg";
+  
+  // Determine image source
+  const imgSrc = imageUrl?.includes('cloudinary.com') 
+    ? imageUrl 
+    : cloudinaryFallback;
+  
   return (
     <Link href={href} className="block h-full">
       <div className="group rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 h-full flex flex-col">
@@ -22,15 +30,14 @@ const RoomCard = ({ room }: RoomCardProps) => {
             </div>
           )}
           <Image
-            src={imageError 
-              ? "https://res.cloudinary.com/ddnxfpziq/image/upload/v1747146600/room-placeholder_mnyxqz.jpg" 
-              : imageUrl}
+            src={imgSrc}
             alt={title}
             fill
+            unoptimized={true}
             className={`object-cover transition-transform duration-300 group-hover:scale-105 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
             onLoad={() => setImageLoading(false)}
             onError={() => {
-              console.log('Image failed to load:', imageUrl);
+              console.log('Image failed to load:', imgSrc);
               setImageError(true);
               setImageLoading(false);
             }}

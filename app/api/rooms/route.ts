@@ -62,22 +62,20 @@ export async function GET(request: NextRequest) {
     
     // Process the data to ensure proper image URLs
     if (data && data.data && Array.isArray(data.data)) {
-      const cloudinaryFallback = 'https://res.cloudinary.com/ddnxfpziq/image/upload/v1747146600/room-placeholder_mnyxqz.jpg';
-      const isCloudinaryUrl = (url: string | undefined): boolean => !!(url && url.includes('cloudinary.com'));
-
       data.data = data.data.map((room: any) => {
-        // Process imageUrl
-        room.imageUrl = isCloudinaryUrl(room.imageUrl) ? room.imageUrl : cloudinaryFallback;
+        // Set Cloudinary fallback for image URLs
+        const cloudinaryFallback = 'https://res.cloudinary.com/ddnxfpziq/image/upload/v1747146600/room-placeholder_mnyxqz.jpg';
         
-        // Process images array
+        // If no imageUrl or using local placeholder, replace with Cloudinary
+        if (!room.imageUrl || room.imageUrl.includes('room-placeholder') || room.imageUrl.startsWith('/images/')) {
+          room.imageUrl = cloudinaryFallback;
+        }
+        
+        // Process any images array
         if (room.images && Array.isArray(room.images)) {
-          room.images = room.images
-            .map((img: string) => isCloudinaryUrl(img) ? img : cloudinaryFallback)
-            .filter((img: string) => !!img); // Ensure no empty strings if any original was empty
-
-          if (room.images.length === 0) {
-            room.images = [cloudinaryFallback];
-          }
+          room.images = room.images.length > 0 
+            ? room.images.map((img: string) => img.includes('cloudinary.com') ? img : cloudinaryFallback) 
+            : [cloudinaryFallback];
         } else {
           room.images = [cloudinaryFallback];
         }

@@ -7,6 +7,7 @@ const withBundleAnalyzer = bundleAnalyzer({
 
 const nextConfig: NextConfig = {
   images: {
+    domains: ['res.cloudinary.com', 'via.placeholder.com', 'example.com', 'localhost'],
     remotePatterns: [
       {
         protocol: 'https',
