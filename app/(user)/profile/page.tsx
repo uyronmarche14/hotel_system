@@ -1,20 +1,42 @@
-import Image from "next/image";
-import { FaUser, FaEnvelope, FaPhone, FaCalendarAlt, FaMapMarkerAlt, FaCreditCard } from "react-icons/fa";
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { FaUser, FaEnvelope, FaPhone, FaCalendarAlt, FaMapMarkerAlt, FaCreditCard, FaStar } from "react-icons/fa";
 import { getSafeImageUrl } from "@/app/lib/utils";
+import SafeImage from "@/app/components/ui/SafeImage";
+import { useAuth } from "@/app/context/AuthContext";
+import Link from "next/link";
 
 export default function ProfilePage() {
-  // Example user data - in a real app, this would come from your backend
-  const user = {
-    name: "John Doe",
-    email: "john.doe@example.com",
-    phone: "+1 (123) 456-7890",
-    joined: "January 2023",
-    address: "123 Main Street, New York, NY 10001",
-    membershipLevel: "Gold",
-    profilePic: "/images/default-user.png",
-    upcomingBookings: 1,
-    pastBookings: 3,
-    loyaltyPoints: 1250
+  const router = useRouter();
+  const { user } = useAuth();
+  
+  // If user is not available yet, show loading
+  if (!user) {
+    return (
+      <div className="container mx-auto flex justify-center items-center min-h-[60vh]">
+        <div className="w-12 h-12 border-4 border-[#1C3F32] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+  
+  // User data with defaults for missing fields
+  const userData = {
+    name: user.name || "Guest User",
+    email: user.email || "No email provided",
+    phone: user.phone || "Not provided",
+    joined: user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) : "Recently",
+    address: user.address || "No address provided",
+    membershipLevel: user.membershipLevel || "Standard",
+    profilePic: user.profilePic,
+    upcomingBookings: user.upcomingBookings || 0,
+    pastBookings: user.pastBookings || 0,
+    loyaltyPoints: user.loyaltyPoints || 0
+  };
+
+  const handleEditProfile = () => {
+    router.push('/profile/edit');
   };
 
   return (
@@ -27,18 +49,16 @@ export default function ProfilePage() {
           <div className="bg-white p-4 sm:p-6 rounded-lg shadow mb-6">
             <div className="flex flex-col items-center mb-4 sm:mb-6">
               <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-[#1C3F32] mb-3 sm:mb-4">
-                <Image
-                  src={getSafeImageUrl(user.profilePic, '/images/default-user.png', 'profile')}
-                  alt={user.name}
+                <SafeImage
+                  src={userData.profilePic}
+                  imageType="profile"
+                  alt={userData.name}
                   fill
                   className="object-cover"
-                  onError={(e) => {
-                    e.currentTarget.src = "/images/default-user.png";
-                  }}
                 />
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold">{user.name}</h2>
-              <p className="text-[#1C3F32] font-medium text-sm sm:text-base">{user.membershipLevel} Member</p>
+              <h2 className="text-xl sm:text-2xl font-bold">{userData.name}</h2>
+              <p className="text-[#1C3F32] font-medium text-sm sm:text-base">{userData.membershipLevel} Member</p>
             </div>
             
             <div className="space-y-3 sm:space-y-4">
@@ -46,7 +66,7 @@ export default function ProfilePage() {
                 <FaEnvelope className="text-[#1C3F32] min-w-5" />
                 <div>
                   <p className="text-xs sm:text-sm text-gray-500">Email</p>
-                  <p className="text-sm sm:text-base break-all">{user.email}</p>
+                  <p className="text-sm sm:text-base break-all">{userData.email}</p>
                 </div>
               </div>
               
@@ -54,7 +74,7 @@ export default function ProfilePage() {
                 <FaPhone className="text-[#1C3F32] min-w-5" />
                 <div>
                   <p className="text-xs sm:text-sm text-gray-500">Phone</p>
-                  <p className="text-sm sm:text-base">{user.phone}</p>
+                  <p className="text-sm sm:text-base">{userData.phone}</p>
                 </div>
               </div>
               
@@ -62,7 +82,7 @@ export default function ProfilePage() {
                 <FaCalendarAlt className="text-[#1C3F32] min-w-5" />
                 <div>
                   <p className="text-xs sm:text-sm text-gray-500">Member Since</p>
-                  <p className="text-sm sm:text-base">{user.joined}</p>
+                  <p className="text-sm sm:text-base">{userData.joined}</p>
                 </div>
               </div>
               
@@ -70,13 +90,16 @@ export default function ProfilePage() {
                 <FaMapMarkerAlt className="text-[#1C3F32] min-w-5 mt-1" />
                 <div>
                   <p className="text-xs sm:text-sm text-gray-500">Address</p>
-                  <p className="text-sm sm:text-base">{user.address}</p>
+                  <p className="text-sm sm:text-base">{userData.address}</p>
                 </div>
               </div>
             </div>
             
             <div className="mt-4 sm:mt-6">
-              <button className="w-full bg-[#1C3F32] text-white py-2 rounded-md hover:bg-[#1C3F32]/90 transition-colors text-sm sm:text-base">
+              <button 
+                onClick={handleEditProfile}
+                className="w-full bg-[#1C3F32] text-white py-2 rounded-md hover:bg-[#1C3F32]/90 transition-colors text-sm sm:text-base"
+              >
                 Edit Profile
               </button>
             </div>
@@ -86,7 +109,7 @@ export default function ProfilePage() {
             <h3 className="text-lg sm:text-xl font-bold text-[#1C3F32] mb-3 sm:mb-4">Loyalty Program</h3>
             <div className="mb-3 sm:mb-4">
               <p className="text-xs sm:text-sm text-gray-500 mb-1">Your Points</p>
-              <p className="text-2xl sm:text-3xl font-bold text-[#1C3F32]">{user.loyaltyPoints}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-[#1C3F32]">{userData.loyaltyPoints}</p>
             </div>
             <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">You need 750 more points to reach Platinum status</p>
             <div className="w-full bg-gray-200 rounded-full h-2.5">
@@ -106,16 +129,21 @@ export default function ProfilePage() {
             <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
               <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
                 <p className="text-xs sm:text-sm text-gray-500">Upcoming</p>
-                <p className="text-2xl sm:text-3xl font-bold text-[#1C3F32]">{user.upcomingBookings}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-[#1C3F32]">{userData.upcomingBookings}</p>
               </div>
               <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
                 <p className="text-xs sm:text-sm text-gray-500">Past Stays</p>
-                <p className="text-2xl sm:text-3xl font-bold text-[#1C3F32]">{user.pastBookings}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-[#1C3F32]">{userData.pastBookings}</p>
               </div>
             </div>
-            <a href="/(user)/bookings" className="block w-full text-center bg-white border border-[#1C3F32] text-[#1C3F32] py-2 rounded-md hover:bg-gray-50 transition-colors text-sm sm:text-base">
-              View All Bookings
-            </a>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link href="/bookings" className="w-full text-center bg-white border border-[#1C3F32] text-[#1C3F32] py-2 rounded-md hover:bg-gray-50 transition-colors text-sm sm:text-base">
+                View All Bookings
+              </Link>
+              <Link href="/reviews" className="w-full text-center flex items-center justify-center bg-white border border-[#1C3F32] text-[#1C3F32] py-2 rounded-md hover:bg-gray-50 transition-colors text-sm sm:text-base">
+                <FaStar className="mr-2" /> My Reviews
+              </Link>
+            </div>
           </div>
           
           {/* Payment Methods */}

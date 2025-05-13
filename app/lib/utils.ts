@@ -22,11 +22,8 @@ export function getSafeImageUrl(
   fallbackUrl?: string, 
   type: 'profile' | 'room' | 'general' = 'general'
 ): string {
-  // If URL is empty or undefined, return appropriate fallback
-  if (!url) {
-    if (fallbackUrl) return fallbackUrl;
-    
-    // Return appropriate default based on image type
+  // Get default fallback based on image type
+  const getDefaultFallback = () => {
     switch (type) {
       case 'profile':
         return '/images/default-user.png';
@@ -35,11 +32,27 @@ export function getSafeImageUrl(
       default:
         return '/images/hotel-logo.png';
     }
+  };
+
+  // If URL is empty or undefined, return appropriate fallback
+  if (!url) {
+    return fallbackUrl || getDefaultFallback();
   }
   
   // If URL is already a relative path (local image), use it
-  if (url.startsWith('/')) return url;
+  if (url.startsWith('/')) {
+    return url;
+  }
   
-  // For external URLs, we return the URL but components should use onError for fallback
+  // Check if the URL is a Cloudinary URL (potential 404 issues)
+  if (url.includes('cloudinary.com')) {
+    // Use local fallbacks for specific known problematic images
+    if (url.includes('default-profile_vkjogl.jpg')) {
+      console.warn('Detected problematic Cloudinary default profile image, using local fallback');
+      return '/images/default-user.png';
+    }
+  }
+  
+  // Return the original URL but components should use onError for fallback
   return url;
 }

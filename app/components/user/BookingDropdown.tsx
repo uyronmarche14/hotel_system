@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { getUserBookings, Booking } from "@/app/lib/bookingService";
 import { useAuth } from "@/app/context/AuthContext";
 import { FaCalendarAlt, FaChevronDown, FaChevronRight } from "react-icons/fa";
 import { getSafeImageUrl } from "@/app/lib/utils";
+import SafeImage from "@/app/components/ui/SafeImage";
 
 // Fallback image path
 const FALLBACK_IMAGE = "/images/room-placeholder.jpg";
@@ -120,15 +120,13 @@ const BookingDropdown = ({ isOpen, onClose }: BookingDropdownProps) => {
               <div key={booking._id} className="p-3 border-b last:border-b-0 hover:bg-gray-50">
                 <div className="flex gap-3">
                   <div className="w-16 h-16 relative rounded overflow-hidden flex-shrink-0">
-                    <Image
-                      src={getImageUrl(booking.roomImage)}
+                    <SafeImage
+                      src={booking.roomImage}
+                      fallbackSrc={FALLBACK_IMAGE}
+                      imageType="room"
                       alt={booking.roomTitle}
                       fill
                       className="object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = FALLBACK_IMAGE;
-                      }}
                     />
                   </div>
                   <div className="flex-1 min-w-0">

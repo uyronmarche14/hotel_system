@@ -1,12 +1,12 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { FaBell, FaUserCircle, FaBars, FaTimes, FaCalendarCheck } from "react-icons/fa";
 import { useAuth } from "@/app/context/AuthContext";
 import { usePathname } from "next/navigation";
 import BookingDropdown from "./BookingDropdown";
 import { getSafeImageUrl } from "@/app/lib/utils";
+import SafeImage from "@/app/components/ui/SafeImage";
 
 const UserNavbar = () => {
   const [notificationCount, setNotificationCount] = useState(3);
@@ -217,13 +217,12 @@ const UserNavbar = () => {
             className="flex items-center gap-2 text-white hover:text-gray-200 transition-colors"
           >
             <div className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-white">
-              <Image
+              <SafeImage
                 src={userProfilePic}
                 alt="User Profile"
                 width={40}
                 height={40}
                 className="object-cover"
-                onError={handleProfileImageError}
               />
             </div>
             <span className="hidden md:inline">{user?.name || "Guest"}</span>
