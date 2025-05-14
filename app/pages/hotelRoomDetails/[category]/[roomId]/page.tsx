@@ -21,6 +21,7 @@ import {
   FaVoicemail,
   FaShieldAlt,
 } from "react-icons/fa";
+import Image from "next/image";
 
 const RoomDetails = () => {
   const urlLocation =
@@ -28,15 +29,17 @@ const RoomDetails = () => {
   const params = useParams();
   const [room, setRoom] = useState<RoomType | null>(null);
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
     const fetchRoomData = async () => {
       try {
         const allRooms = await getAllRooms();
         const foundRoom = allRooms.find(
-          (r) => r.href === `/pages/hotelRoomDetails/${params.category}/${params.roomId}`
+          (r) =>
+            r.href ===
+            `/pages/hotelRoomDetails/${params.category}/${params.roomId}`,
         );
-        
+
         if (foundRoom) {
           setRoom(foundRoom);
         }
@@ -46,7 +49,7 @@ const RoomDetails = () => {
         setLoading(false);
       }
     };
-    
+
     fetchRoomData();
   }, [params.category, params.roomId]);
 
@@ -149,10 +152,13 @@ const RoomDetails = () => {
     <div className="container mx-auto px-4 py-8 space-y-8">
       {/* Hero Image */}
       <div className="relative h-[446px] w-full mb-6 rounded-lg overflow-hidden shadow-lg">
-        <img
+        <Image
           src={room.imageUrl}
           alt={room.title}
-          className="object-cover h-full w-full"
+          className="object-cover"
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
+          priority
         />
       </div>
 
@@ -188,7 +194,9 @@ const RoomDetails = () => {
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-black mb-4">Overview</h2>
               <p className="text-base text-gray-700 leading-relaxed">
-                {room.fullDescription || room.description || `Experience unmatched elegance in our ${room.title}, where every
+                {room.fullDescription ||
+                  room.description ||
+                  `Experience unmatched elegance in our ${room.title}, where every
                 detail is crafted for discerning travelers. These suites boast
                 expansive spaces with floor-to-ceiling windows that reveal
                 breathtaking city or garden views. Sophisticated interiors,
@@ -197,8 +205,8 @@ const RoomDetails = () => {
                 bathrooms with heated tiles ensure convenience meets indulgence.`}
               </p>
               <p className="text-base text-gray-700 leading-relaxed mt-4">
-                Whether you've here for a romantic escape or a high-end business
-                retreat, our luxury accommodations promise serenity and
+                Whether you&apos;re here for a romantic escape or a high-end
+                business retreat, our luxury accommodations promise serenity and
                 refinement. Guests staying in these rooms also enjoy priority
                 access to exclusive lounges, personalized services, and an
                 ambiance that blends timeless sophistication with contemporary

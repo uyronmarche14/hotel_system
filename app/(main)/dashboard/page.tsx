@@ -2,16 +2,18 @@
 
 import { useEffect, useState } from "react";
 import RoomCard from "@/app/components/RoomCard";
-import { useAuth } from "@/app/context/AuthContext";
-import Navbar from "@/app/components/normal/navbar";
-import { getTopRatedRooms, getCategoryRooms, RoomType, checkApiConnection } from "@/app/services/roomService";
 import ErrorToast from "@/app/components/ErrorToast";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
 import Button from "@/app/components/Button";
 import { FaSearch } from "react-icons/fa";
+import {
+  getTopRatedRooms,
+  getCategoryRooms,
+  RoomType,
+  checkApiConnection,
+} from "@/app/services/roomService";
 
 export default function Dashboard() {
-  const { user, isAuthenticated } = useAuth();
   const [topRatedRooms, setTopRatedRooms] = useState<RoomType[]>([]);
   const [categoryRooms, setCategoryRooms] = useState<RoomType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,8 +27,8 @@ export default function Dashboard() {
         const connected = await checkApiConnection();
         setApiConnected(connected);
         return connected;
-      } catch (e) {
-        console.error("API connection check failed:", e);
+      } catch (error: Error | unknown) {
+        console.error("API connection check failed:", error);
         setApiConnected(false);
         return false;
       }
@@ -35,7 +37,7 @@ export default function Dashboard() {
     const fetchRooms = async () => {
       try {
         setIsLoading(true);
-        
+
         // First check if the API is connected
         const isConnected = await checkConnection();
         if (!isConnected) {
@@ -44,15 +46,15 @@ export default function Dashboard() {
           setIsLoading(false);
           return;
         }
-        
+
         const [topRated, byCategory] = await Promise.all([
           getTopRatedRooms(5),
-          getCategoryRooms()
+          getCategoryRooms(),
         ]);
-        
+
         setTopRatedRooms(topRated);
         setCategoryRooms(byCategory);
-      } catch (error) {
+      } catch (error: Error | unknown) {
         console.error("Error fetching rooms:", error);
         setError("Failed to load room data. Please try again later.");
         setShowErrorToast(true);
@@ -67,7 +69,7 @@ export default function Dashboard() {
   return (
     <main className="w-full min-h-screen overflow-x-hidden pt-0">
       {/* Error Toast */}
-      <ErrorToast 
+      <ErrorToast
         message={error || "An error occurred"}
         isVisible={showErrorToast && error !== null}
         onClose={() => setShowErrorToast(false)}
@@ -103,15 +105,18 @@ export default function Dashboard() {
       </section>
 
       {/* Search Bar Section */}
-      <section 
-        aria-label="Search and booking" 
+      <section
+        aria-label="Search and booking"
         className="w-full px-4 mx-auto bg-white shadow-md relative z-[20] -mt-8 sm:-mt-16 max-w-[95%] sm:max-w-6xl"
       >
         <div className="container mx-auto">
           <div className="bg-white rounded-lg p-3 sm:p-4 flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 items-start sm:items-center justify-between">
             {/* Location Input */}
             <div className="flex-1 min-w-[200px] w-full sm:w-auto">
-              <label htmlFor="location-input" className="block text-sm text-[#1C3F32]/70 mb-1">
+              <label
+                htmlFor="location-input"
+                className="block text-sm text-[#1C3F32]/70 mb-1"
+              >
                 Where are you headed?
               </label>
               <input
@@ -121,10 +126,13 @@ export default function Dashboard() {
                 className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-[#1C3F32]/70"
               />
             </div>
-            
+
             {/* Check-in Date */}
             <div className="flex-1 min-w-[200px] w-full sm:w-auto">
-              <label htmlFor="check-in-date" className="block text-sm text-[#1C3F32]/70 mb-1">
+              <label
+                htmlFor="check-in-date"
+                className="block text-sm text-[#1C3F32]/70 mb-1"
+              >
                 Check in
               </label>
               <input
@@ -136,7 +144,10 @@ export default function Dashboard() {
 
             {/* Check-out Date */}
             <div className="flex-1 min-w-[200px] w-full sm:w-auto">
-              <label htmlFor="check-out-date" className="block text-sm text-[#1C3F32]/70 mb-1">
+              <label
+                htmlFor="check-out-date"
+                className="block text-sm text-[#1C3F32]/70 mb-1"
+              >
                 Check out
               </label>
               <input
@@ -148,10 +159,13 @@ export default function Dashboard() {
 
             {/* Guests Selection */}
             <div className="flex-1 min-w-[200px] w-full sm:w-auto">
-              <label htmlFor="guests-select" className="block text-sm text-[#1C3F32]/70 mb-1">
+              <label
+                htmlFor="guests-select"
+                className="block text-sm text-[#1C3F32]/70 mb-1"
+              >
                 Guests
               </label>
-              <select 
+              <select
                 id="guests-select"
                 className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-[#1C3F32]/70"
               >
@@ -164,7 +178,7 @@ export default function Dashboard() {
 
             {/* Book Now Button */}
             <div className="w-full sm:w-auto mt-3 sm:mt-0 flex justify-center sm:justify-start">
-              <Button 
+              <Button
                 size="md"
                 icon={<FaSearch />}
                 className="sm:mt-6"
@@ -180,15 +194,27 @@ export default function Dashboard() {
       <div className="container mx-auto px-4 py-8">
         {/* Top Rated Rooms Section */}
         <section aria-labelledby="top-rated-heading" className="mb-12">
-          <h2 id="top-rated-heading" className="text-2xl font-bold text-[#1C3F32] mb-6">
+          <h2
+            id="top-rated-heading"
+            className="text-2xl font-bold text-[#1C3F32] mb-6"
+          >
             Top Rated Rooms
           </h2>
           {isLoading ? (
-            <LoadingSpinner size="md" message="Loading top rated rooms..." className="h-60" />
+            <LoadingSpinner
+              size="md"
+              message="Loading top rated rooms..."
+              className="h-60"
+            />
           ) : apiConnected === false ? (
-            <div className="bg-red-50 p-6 rounded-lg text-center">
-              <p className="text-red-700 mb-2 font-medium">Unable to connect to the server</p>
-              <p className="text-gray-700">We're showing you sample rooms instead. Please try again later.</p>
+            <div className="bg-gray-50 p-6 rounded-lg text-center">
+              <p className="text-red-700 mb-2 font-medium">
+                Unable to connect to the server
+              </p>
+              <p className="text-gray-700">
+                We&apos;re showing you sample rooms instead. Please try again
+                later.
+              </p>
             </div>
           ) : topRatedRooms.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
@@ -207,13 +233,27 @@ export default function Dashboard() {
 
         {/* Category Section */}
         <section aria-labelledby="categories-heading">
-          <h2 id="categories-heading" className="text-2xl font-bold text-[#1C3F32] mb-6">Categories</h2>
+          <h2
+            id="categories-heading"
+            className="text-2xl font-bold text-[#1C3F32] mb-6"
+          >
+            Categories
+          </h2>
           {isLoading ? (
-            <LoadingSpinner size="md" message="Loading room categories..." className="h-60" />
+            <LoadingSpinner
+              size="md"
+              message="Loading room categories..."
+              className="h-60"
+            />
           ) : apiConnected === false ? (
-            <div className="bg-red-50 p-6 rounded-lg text-center">
-              <p className="text-red-700 mb-2 font-medium">Unable to connect to the server</p>
-              <p className="text-gray-700">We're showing you sample rooms instead. Please try again later.</p>
+            <div className="bg-gray-50 p-6 rounded-lg text-center">
+              <p className="text-red-700 mb-2 font-medium">
+                Unable to connect to the server
+              </p>
+              <p className="text-gray-700">
+                We&apos;re showing you sample rooms instead. Please try again
+                later.
+              </p>
             </div>
           ) : categoryRooms.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
@@ -232,4 +272,4 @@ export default function Dashboard() {
       </div>
     </main>
   );
-} 
+}

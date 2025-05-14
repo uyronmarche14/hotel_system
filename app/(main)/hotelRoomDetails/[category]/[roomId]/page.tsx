@@ -1,6 +1,6 @@
 "use client";
 import { useParams, useRouter } from "next/navigation";
-import { getAllRooms, getRoomById, getRoomsByCategory, RoomType } from "@/app/services/roomService";
+import { getAllRooms, RoomType } from "@/app/services/roomService";
 import SuggestionCard from "@/app/components/ui/suggestionCard";
 import Link from "next/link";
 import { useAuth } from "@/app/context/AuthContext";
@@ -33,49 +33,53 @@ const RoomDetails = () => {
   const [popularRooms, setPopularRooms] = useState<RoomType[]>([]);
   const [specialRooms, setSpecialRooms] = useState<RoomType[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   const urlLocation =
     "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3861.802548850809!2d121.04155931482183!3d14.553551689828368!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397c8efd99f5459%3A0xf26e2c5e8a39bc!2sTaguig%2C%20Metro%20Manila!5e0!3m2!1sen!2sph!4v1629789045693!5m2!1sen!2sph";
   const params = useParams();
   const router = useRouter();
   const { isAuthenticated } = useAuth();
-  
+
   const category = params.category as string;
   const roomId = params.roomId as string;
-  
+
   useEffect(() => {
     const fetchRoomData = async () => {
       setLoading(true);
       try {
         const allRooms = await getAllRooms();
-        
+
         // Find room that matches either by title slug or by roomId
-        const foundRoom = allRooms.find(
-          (r) => {
-            const titleSlug = r.title.toLowerCase().replace(/ /g, "-");
-            return r.category === category && (titleSlug === roomId || r.href?.includes(roomId));
-          }
-        );
-        
+        const foundRoom = allRooms.find((r) => {
+          const titleSlug = r.title.toLowerCase().replace(/ /g, "-");
+          return (
+            r.category === category &&
+            (titleSlug === roomId || r.href?.includes(roomId))
+          );
+        });
+
         if (foundRoom) {
           setRoom(foundRoom);
-          
+
           // Filter related rooms (same category, different room)
           const related = allRooms.filter(
-            (r) => r.category === foundRoom.category && r.id !== foundRoom.id
+            (r) => r.category === foundRoom.category && r.id !== foundRoom.id,
           );
           setRelatedRooms(related);
-          
+
           // Filter popular rooms (different category, high rating)
-          const popular = allRooms.filter(
-            (r) => r.category !== foundRoom.category && r.rating && r.rating >= 4.5
-          ).slice(0, 3);
+          const popular = allRooms
+            .filter(
+              (r) =>
+                r.category !== foundRoom.category &&
+                r.rating &&
+                r.rating >= 4.5,
+            )
+            .slice(0, 3);
           setPopularRooms(popular);
-          
+
           // Filter special offers (high price rooms for discount)
-          const special = allRooms.filter(
-            (r) => r.price > 5000
-          ).slice(0, 3);
+          const special = allRooms.filter((r) => r.price > 5000).slice(0, 3);
           setSpecialRooms(special);
         }
       } catch (error) {
@@ -84,7 +88,7 @@ const RoomDetails = () => {
         setLoading(false);
       }
     };
-    
+
     fetchRoomData();
   }, [category, roomId]);
 
@@ -94,7 +98,9 @@ const RoomDetails = () => {
       router.push(`/bookings/new?roomId=${roomId}&category=${category}`);
     } else {
       // Redirect to login if not authenticated
-      router.push(`/login?redirect=/bookings/new?roomId=${roomId}&category=${category}`);
+      router.push(
+        `/login?redirect=/bookings/new?roomId=${roomId}&category=${category}`,
+      );
     }
   };
 
@@ -107,7 +113,9 @@ const RoomDetails = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-[#1C3F32] mb-4">Loading room details...</h1>
+          <h1 className="text-2xl font-bold text-[#1C3F32] mb-4">
+            Loading room details...
+          </h1>
           <div className="w-16 h-16 border-4 border-[#1C3F32] border-t-transparent rounded-full animate-spin mx-auto"></div>
         </div>
       </div>
@@ -118,16 +126,21 @@ const RoomDetails = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">Room not found</h1>
-          <p className="text-gray-600 mb-6">The room you&apos;re looking for doesn&apos;t exist or has been removed.</p>
-          <Link 
-            href={`/hotelRoomDetails/${category}`} 
+          <h1 className="text-2xl font-bold text-red-600 mb-4">
+            Room not found
+          </h1>
+          <p className="text-gray-600 mb-6">
+            The room you&apos;re looking for doesn&apos;t exist or has been
+            removed.
+          </p>
+          <Link
+            href={`/hotelRoomDetails/${category}`}
             className="inline-block bg-[#1C3F32] text-white px-6 py-2 rounded-md hover:bg-[#1C3F32]/90 transition-colors mr-4"
           >
             Back to Category
           </Link>
-          <Link 
-            href="/dashboard" 
+          <Link
+            href="/dashboard"
             className="inline-block bg-gray-200 text-gray-800 px-6 py-2 rounded-md hover:bg-gray-300 transition-colors"
           >
             Back to Dashboard
@@ -230,9 +243,14 @@ const RoomDetails = () => {
     <div className="container mx-auto px-4 py-8 space-y-8">
       {/* Breadcrumb Navigation */}
       <div className="flex items-center text-sm text-[#1C3F32] mb-4">
-        <Link href="/dashboard" className="hover:underline">Dashboard</Link>
+        <Link href="/dashboard" className="hover:underline">
+          Dashboard
+        </Link>
         <span className="mx-2">›</span>
-        <Link href={`/hotelRoomDetails/${category}`} className="hover:underline">
+        <Link
+          href={`/hotelRoomDetails/${category}`}
+          className="hover:underline"
+        >
           {formattedCategoryName} Rooms
         </Link>
         <span className="mx-2">›</span>
@@ -256,7 +274,6 @@ const RoomDetails = () => {
         <div className="mb-6">
           <div className="flex flex-row justify-between items-center">
             <h1 className="text-4xl font-bold text-black">{room.title}</h1>
-           
           </div>
 
           <div className="flex items-center gap-2">
@@ -281,7 +298,9 @@ const RoomDetails = () => {
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-black mb-4">Overview</h2>
               <p className="text-base text-gray-700 leading-relaxed">
-                {room.fullDescription || room.description || `Experience unmatched elegance in our ${room.title}, where every
+                {room.fullDescription ||
+                  room.description ||
+                  `Experience unmatched elegance in our ${room.title}, where every
                 detail is crafted for discerning travelers. These suites boast
                 expansive spaces with floor-to-ceiling windows that reveal
                 breathtaking city or garden views. Sophisticated interiors,
@@ -290,8 +309,8 @@ const RoomDetails = () => {
                 bathrooms with heated tiles ensure convenience meets indulgence.`}
               </p>
               <p className="text-base text-gray-700 leading-relaxed mt-4">
-                Whether you&apos;re here for a romantic escape or a high-end business
-                retreat, our luxury accommodations promise serenity and
+                Whether you&apos;re here for a romantic escape or a high-end
+                business retreat, our luxury accommodations promise serenity and
                 refinement. Guests staying in these rooms also enjoy priority
                 access to exclusive lounges, personalized services, and an
                 ambiance that blends timeless sophistication with contemporary
@@ -364,9 +383,7 @@ const RoomDetails = () => {
         {/* Map Section - Full Width */}
         <section className="mt-8 mb-12">
           <div className="border border-green-200 rounded-lg p-6 bg-white shadow-md">
-            <h3 className="text-2xl font-bold text-[#1C3F32] mb-4">
-              Location
-            </h3>
+            <h3 className="text-2xl font-bold text-[#1C3F32] mb-4">Location</h3>
             <div className="w-full h-[400px] bg-gray-200 mb-4 overflow-hidden rounded-md">
               <iframe
                 src={urlLocation}
@@ -378,7 +395,8 @@ const RoomDetails = () => {
               />
             </div>
             <p className="text-gray-600">
-              123 Acacia Street, Central Signal Village, Taguig City, Metro Manila, 1630, Philippines
+              123 Acacia Street, Central Signal Village, Taguig City, Metro
+              Manila, 1630, Philippines
             </p>
           </div>
         </section>
@@ -386,9 +404,7 @@ const RoomDetails = () => {
         {/* Related Rooms Section */}
         <section className="my-12">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-black">
-              You May Also Like
-            </h2>
+            <h2 className="text-2xl font-bold text-black">You May Also Like</h2>
             <Link
               href={`/hotelRoomDetails/${category}`}
               className="text-[#1C3F32] font-medium hover:underline flex items-center"
@@ -414,7 +430,7 @@ const RoomDetails = () => {
                 </div>
               ))}
           </div>
-          
+
           {/* Show More Button */}
           {relatedRooms.length > 6 && (
             <div className="flex justify-center mt-8">
@@ -423,7 +439,9 @@ const RoomDetails = () => {
                 className="bg-[#1C3F32] text-white px-6 py-3 rounded-md hover:bg-[#15332a] transition-colors flex items-center"
               >
                 {showMoreSuggestions ? "Show Less" : "Show More Suggestions"}
-                {!showMoreSuggestions && <FaArrowRight className="ml-2 h-3 w-3" />}
+                {!showMoreSuggestions && (
+                  <FaArrowRight className="ml-2 h-3 w-3" />
+                )}
               </button>
             </div>
           )}
@@ -432,9 +450,7 @@ const RoomDetails = () => {
         {/* Popular Choices Section */}
         <section className="my-12 pt-12 border-t border-gray-200">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-black">
-              Popular Choices
-            </h2>
+            <h2 className="text-2xl font-bold text-black">Popular Choices</h2>
             <Link
               href="/dashboard"
               className="text-[#1C3F32] font-medium hover:underline flex items-center"
@@ -444,23 +460,22 @@ const RoomDetails = () => {
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {popularRooms
-              .map((popularRoom, index) => (
-                <div key={index} className="h-full">
-                  <SuggestionCard
-                    title={popularRoom.title}
-                    price={popularRoom.price}
-                    location={popularRoom.location}
-                    imageUrl={popularRoom.imageUrl}
-                    href={`/hotelRoomDetails/${popularRoom.category}/${popularRoom.title
-                      .toLowerCase()
-                      .replace(/ /g, "-")}`}
-                  />
-                </div>
-              ))}
+            {popularRooms.map((popularRoom, index) => (
+              <div key={index} className="h-full">
+                <SuggestionCard
+                  title={popularRoom.title}
+                  price={popularRoom.price}
+                  location={popularRoom.location}
+                  imageUrl={popularRoom.imageUrl}
+                  href={`/hotelRoomDetails/${popularRoom.category}/${popularRoom.title
+                    .toLowerCase()
+                    .replace(/ /g, "-")}`}
+                />
+              </div>
+            ))}
           </div>
         </section>
-        
+
         {/* Special Offers Section */}
         <section className="my-12 pt-12 border-t border-gray-200 bg-green-50 p-8 rounded-xl">
           <div className="flex justify-between items-center mb-6">
@@ -468,7 +483,9 @@ const RoomDetails = () => {
               <h2 className="text-2xl font-bold text-[#1C3F32]">
                 Special Offers
               </h2>
-              <p className="text-sm text-gray-600 mt-1">Limited time deals on select rooms</p>
+              <p className="text-sm text-gray-600 mt-1">
+                Limited time deals on select rooms
+              </p>
             </div>
             <Link
               href="/specials"
@@ -479,23 +496,22 @@ const RoomDetails = () => {
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {specialRooms
-              .map((specialRoom, index) => (
-                <div key={index} className="h-full relative">
-                  <div className="absolute top-4 right-4 bg-red-500 text-white px-4 py-1 rounded-full z-10 font-bold">
-                    20% OFF
-                  </div>
-                  <SuggestionCard
-                    title={specialRoom.title}
-                    price={Math.round(specialRoom.price * 0.8)} // Apply 20% discount
-                    location={specialRoom.location}
-                    imageUrl={specialRoom.imageUrl}
-                    href={`/hotelRoomDetails/${specialRoom.category}/${specialRoom.title
-                      .toLowerCase()
-                      .replace(/ /g, "-")}`}
-                  />
+            {specialRooms.map((specialRoom, index) => (
+              <div key={index} className="h-full relative">
+                <div className="absolute top-4 right-4 bg-red-500 text-white px-4 py-1 rounded-full z-10 font-bold">
+                  20% OFF
                 </div>
-              ))}
+                <SuggestionCard
+                  title={specialRoom.title}
+                  price={Math.round(specialRoom.price * 0.8)} // Apply 20% discount
+                  location={specialRoom.location}
+                  imageUrl={specialRoom.imageUrl}
+                  href={`/hotelRoomDetails/${specialRoom.category}/${specialRoom.title
+                    .toLowerCase()
+                    .replace(/ /g, "-")}`}
+                />
+              </div>
+            ))}
           </div>
         </section>
       </div>
@@ -503,4 +519,4 @@ const RoomDetails = () => {
   );
 };
 
-export default RoomDetails; 
+export default RoomDetails;

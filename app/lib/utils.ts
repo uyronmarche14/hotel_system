@@ -1,4 +1,4 @@
-import clsx from 'clsx';
+import clsx from "clsx";
 import { twMerge } from "tailwind-merge";
 
 /**
@@ -6,7 +6,9 @@ import { twMerge } from "tailwind-merge";
  * Example: cn('px-2 py-1', condition && 'bg-blue-500', 'px-4')
  * Will properly merge the classes and the last px-4 will override px-2
  */
-export function cn(...inputs: any[]) {
+export function cn(
+  ...inputs: (string | number | boolean | null | undefined)[]
+) {
   return twMerge(clsx(inputs));
 }
 
@@ -18,19 +20,19 @@ export function cn(...inputs: any[]) {
  * @returns A valid image URL string
  */
 export function getSafeImageUrl(
-  url?: string, 
-  fallbackUrl?: string, 
-  type: 'profile' | 'room' | 'general' = 'general'
+  url?: string,
+  fallbackUrl?: string,
+  type: "profile" | "room" | "general" = "general",
 ): string {
   // Get default fallback based on image type
   const getDefaultFallback = () => {
     switch (type) {
-      case 'profile':
-        return '/images/default-user.png';
-      case 'room':
-        return '/images/room-placeholder.jpg';
+      case "profile":
+        return "/images/default-user.png";
+      case "room":
+        return "/images/room-placeholder.jpg";
       default:
-        return '/images/hotel-logo.png';
+        return "/images/hotel-logo.png";
     }
   };
 
@@ -38,21 +40,23 @@ export function getSafeImageUrl(
   if (!url) {
     return fallbackUrl || getDefaultFallback();
   }
-  
+
   // If URL is already a relative path (local image), use it
-  if (url.startsWith('/')) {
+  if (url.startsWith("/")) {
     return url;
   }
-  
+
   // Check if the URL is a Cloudinary URL (potential 404 issues)
-  if (url.includes('cloudinary.com')) {
+  if (url.includes("cloudinary.com")) {
     // Use local fallbacks for specific known problematic images
-    if (url.includes('default-profile_vkjogl.jpg')) {
-      console.warn('Detected problematic Cloudinary default profile image, using local fallback');
-      return '/images/default-user.png';
+    if (url.includes("default-profile_vkjogl.jpg")) {
+      console.warn(
+        "Detected problematic Cloudinary default profile image, using local fallback",
+      );
+      return "/images/default-user.png";
     }
   }
-  
+
   // Return the original URL but components should use onError for fallback
   return url;
 }

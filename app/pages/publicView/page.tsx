@@ -53,8 +53,7 @@ const SearchResultsContent = () => {
   const [starRating, setStarRating] = useState<number[]>([]);
   const [allRooms, setAllRooms] = useState<RoomType[]>([]);
   const [filteredRooms, setFilteredRooms] = useState<RoomType[]>([]);
-  const [loading, setLoading] = useState(true);
-  
+
   // Fetch rooms on component mount
   useEffect(() => {
     const fetchRooms = async () => {
@@ -64,11 +63,9 @@ const SearchResultsContent = () => {
         setFilteredRooms(rooms);
       } catch (error) {
         console.error("Failed to fetch rooms:", error);
-      } finally {
-        setLoading(false);
       }
     };
-    
+
     fetchRooms();
   }, []);
 
@@ -90,7 +87,7 @@ const SearchResultsContent = () => {
   // Filter logic
   useEffect(() => {
     if (allRooms.length === 0) return;
-    
+
     let filtered = [...allRooms];
 
     if (searchQuery) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { FaEye, FaEyeSlash, FaArrowLeft } from "react-icons/fa";
 import { useAuth } from "@/app/context/AuthContext";
@@ -11,7 +11,7 @@ export default function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
-  
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -19,7 +19,7 @@ export default function RegisterForm() {
     password: "",
     confirmPassword: "",
   });
-  
+
   const [formErrors, setFormErrors] = useState({
     firstName: "",
     lastName: "",
@@ -28,26 +28,25 @@ export default function RegisterForm() {
     confirmPassword: "",
     terms: "",
   });
-  
+
   const { register, loading, error } = useAuth();
-  const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   // Get redirect URL from query params
   useEffect(() => {
-    const redirect = searchParams.get('redirect');
+    const redirect = searchParams.get("redirect");
     if (redirect) {
       setRedirectUrl(redirect);
     }
   }, [searchParams]);
-  
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: value,
     });
-    
+
     // Clear error when user types
     if (formErrors[name as keyof typeof formErrors]) {
       setFormErrors({
@@ -56,23 +55,23 @@ export default function RegisterForm() {
       });
     }
   };
-  
+
   const validateForm = () => {
     let isValid = true;
     const newErrors = { ...formErrors };
-    
+
     // Validate first name
     if (!formData.firstName.trim()) {
       newErrors.firstName = "First name is required";
       isValid = false;
     }
-    
+
     // Validate last name
     if (!formData.lastName.trim()) {
       newErrors.lastName = "Last name is required";
       isValid = false;
     }
-    
+
     // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email.trim()) {
@@ -82,7 +81,7 @@ export default function RegisterForm() {
       newErrors.email = "Please enter a valid email address";
       isValid = false;
     }
-    
+
     // Validate password
     if (!formData.password) {
       newErrors.password = "Password is required";
@@ -91,7 +90,7 @@ export default function RegisterForm() {
       newErrors.password = "Password must be at least 8 characters";
       isValid = false;
     }
-    
+
     // Validate confirm password
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = "Please confirm your password";
@@ -100,45 +99,57 @@ export default function RegisterForm() {
       newErrors.confirmPassword = "Passwords do not match";
       isValid = false;
     }
-    
+
     // Validate terms agreement
     if (!agreeTerms) {
       newErrors.terms = "You must agree to the terms and conditions";
       isValid = false;
     }
-    
+
     setFormErrors(newErrors);
     return isValid;
   };
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     await register(
       `${formData.firstName} ${formData.lastName}`,
       formData.email,
       formData.password,
       formData.confirmPassword,
-      redirectUrl || undefined
+      redirectUrl || undefined,
     );
-    
+
     // No need to handle navigation here, it's now handled in the register function
   };
 
   return (
     <div className="w-full">
-      <h1 className="text-brand-green text-3xl font-medium mb-2">Create an account.</h1>
+      <h1 className="text-brand-green text-3xl font-medium mb-2">
+        Create an account.
+      </h1>
       <p className="text-sm text-gray-700 mb-8">
-        Already have an account? <Link href={redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : "/login"} className="text-brand-green font-medium hover:underline">Sign in</Link>
+        Already have an account?{" "}
+        <Link
+          href={
+            redirectUrl
+              ? `/login?redirect=${encodeURIComponent(redirectUrl)}`
+              : "/login"
+          }
+          className="text-brand-green font-medium hover:underline"
+        >
+          Sign in
+        </Link>
       </p>
 
       {redirectUrl && (
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-md">
-          You'll be redirected to complete your booking after registration.
+          Youll be redirected to complete your booking after registration.
         </div>
       )}
 
@@ -152,51 +163,76 @@ export default function RegisterForm() {
         {/* Name fields */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="firstName" className="block text-sm text-gray-700 mb-1">First name</label>
+            <label
+              htmlFor="firstName"
+              className="block text-sm text-gray-700 mb-1"
+            >
+              First name
+            </label>
             <input
               type="text"
               id="firstName"
               name="firstName"
               value={formData.firstName}
               onChange={handleInputChange}
-              className={`w-full p-3 border ${formErrors.firstName ? 'border-red-500' : 'border-brand-green'} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
+              className={`w-full p-3 border ${formErrors.firstName ? "border-red-500" : "border-brand-green"} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
               placeholder="John"
             />
-            {formErrors.firstName && <p className="mt-1 text-xs text-red-500">{formErrors.firstName}</p>}
+            {formErrors.firstName && (
+              <p className="mt-1 text-xs text-red-500">
+                {formErrors.firstName}
+              </p>
+            )}
           </div>
           <div>
-            <label htmlFor="lastName" className="block text-sm text-gray-700 mb-1">Last name</label>
+            <label
+              htmlFor="lastName"
+              className="block text-sm text-gray-700 mb-1"
+            >
+              Last name
+            </label>
             <input
               type="text"
               id="lastName"
               name="lastName"
               value={formData.lastName}
               onChange={handleInputChange}
-              className={`w-full p-3 border ${formErrors.lastName ? 'border-red-500' : 'border-brand-green'} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
+              className={`w-full p-3 border ${formErrors.lastName ? "border-red-500" : "border-brand-green"} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
               placeholder="Doe"
             />
-            {formErrors.lastName && <p className="mt-1 text-xs text-red-500">{formErrors.lastName}</p>}
+            {formErrors.lastName && (
+              <p className="mt-1 text-xs text-red-500">{formErrors.lastName}</p>
+            )}
           </div>
         </div>
 
         {/* Email */}
         <div>
-          <label htmlFor="email" className="block text-sm text-gray-700 mb-1">Email address</label>
+          <label htmlFor="email" className="block text-sm text-gray-700 mb-1">
+            Email address
+          </label>
           <input
             type="email"
             id="email"
             name="email"
             value={formData.email}
             onChange={handleInputChange}
-            className={`w-full p-3 border ${formErrors.email ? 'border-red-500' : 'border-brand-green'} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
+            className={`w-full p-3 border ${formErrors.email ? "border-red-500" : "border-brand-green"} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
             placeholder="your@email.com"
           />
-          {formErrors.email && <p className="mt-1 text-xs text-red-500">{formErrors.email}</p>}
+          {formErrors.email && (
+            <p className="mt-1 text-xs text-red-500">{formErrors.email}</p>
+          )}
         </div>
 
         {/* Password */}
         <div className="relative">
-          <label htmlFor="password" className="block text-sm text-gray-700 mb-1">Password</label>
+          <label
+            htmlFor="password"
+            className="block text-sm text-gray-700 mb-1"
+          >
+            Password
+          </label>
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
@@ -204,10 +240,10 @@ export default function RegisterForm() {
               name="password"
               value={formData.password}
               onChange={handleInputChange}
-              className={`w-full p-3 border ${formErrors.password ? 'border-red-500' : 'border-brand-green'} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
+              className={`w-full p-3 border ${formErrors.password ? "border-red-500" : "border-brand-green"} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
               placeholder="••••••••"
             />
-            <button 
+            <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute inset-y-0 right-0 pr-3 flex items-center"
@@ -219,12 +255,19 @@ export default function RegisterForm() {
               )}
             </button>
           </div>
-          {formErrors.password && <p className="mt-1 text-xs text-red-500">{formErrors.password}</p>}
+          {formErrors.password && (
+            <p className="mt-1 text-xs text-red-500">{formErrors.password}</p>
+          )}
         </div>
 
         {/* Confirm Password */}
         <div className="relative">
-          <label htmlFor="confirmPassword" className="block text-sm text-gray-700 mb-1">Confirm password</label>
+          <label
+            htmlFor="confirmPassword"
+            className="block text-sm text-gray-700 mb-1"
+          >
+            Confirm password
+          </label>
           <div className="relative">
             <input
               type={showConfirmPassword ? "text" : "password"}
@@ -232,10 +275,10 @@ export default function RegisterForm() {
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleInputChange}
-              className={`w-full p-3 border ${formErrors.confirmPassword ? 'border-red-500' : 'border-brand-green'} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
+              className={`w-full p-3 border ${formErrors.confirmPassword ? "border-red-500" : "border-brand-green"} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
               placeholder="••••••••"
             />
-            <button 
+            <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               className="absolute inset-y-0 right-0 pr-3 flex items-center"
@@ -247,7 +290,11 @@ export default function RegisterForm() {
               )}
             </button>
           </div>
-          {formErrors.confirmPassword && <p className="mt-1 text-xs text-red-500">{formErrors.confirmPassword}</p>}
+          {formErrors.confirmPassword && (
+            <p className="mt-1 text-xs text-red-500">
+              {formErrors.confirmPassword}
+            </p>
+          )}
         </div>
 
         {/* Terms and Conditions */}
@@ -273,9 +320,18 @@ export default function RegisterForm() {
             </div>
             <div className="ml-3 text-sm">
               <label htmlFor="terms" className="text-gray-700">
-                I agree to the <a href="/terms" className="text-brand-green hover:underline">Terms and Conditions</a> and <a href="/privacy" className="text-brand-green hover:underline">Privacy Policy</a>
+                I agree to the{" "}
+                <a href="/terms" className="text-brand-green hover:underline">
+                  Terms and Conditions
+                </a>{" "}
+                and{" "}
+                <a href="/privacy" className="text-brand-green hover:underline">
+                  Privacy Policy
+                </a>
               </label>
-              {formErrors.terms && <p className="mt-1 text-xs text-red-500">{formErrors.terms}</p>}
+              {formErrors.terms && (
+                <p className="mt-1 text-xs text-red-500">{formErrors.terms}</p>
+              )}
             </div>
           </div>
         </div>
@@ -291,8 +347,12 @@ export default function RegisterForm() {
         </button>
 
         <div className="text-center mt-4">
-          <Link 
-            href={redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : "/login"} 
+          <Link
+            href={
+              redirectUrl
+                ? `/login?redirect=${encodeURIComponent(redirectUrl)}`
+                : "/login"
+            }
             className="inline-flex items-center text-brand-green hover:underline"
           >
             <FaArrowLeft className="mr-2 text-xs" /> Back to login
@@ -301,4 +361,4 @@ export default function RegisterForm() {
       </form>
     </div>
   );
-} 
+}

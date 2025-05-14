@@ -2,7 +2,7 @@
 
 import { useState, useEffect, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { FaUser, FaSave, FaTimes, FaUpload } from "react-icons/fa";
+import { FaSave, FaTimes, FaUpload } from "react-icons/fa";
 import { useAuth } from "@/app/context/AuthContext";
 import SafeImage from "@/app/components/ui/SafeImage";
 import { API_URL } from "@/app/lib/constants";
@@ -23,11 +23,11 @@ type ExtendedUser = {
 export default function EditProfilePage() {
   const router = useRouter();
   const { user } = useAuth();
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  
+
   // Form state
   const [formData, setFormData] = useState({
     name: "",
@@ -37,20 +37,22 @@ export default function EditProfilePage() {
     bio: "",
     profilePic: "",
   });
-  
+
   // File upload state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  
+
   // Initialize form with user data
   useEffect(() => {
     if (user) {
       const extendedUser = user as unknown as ExtendedUser;
       // Format profile picture URL properly
-      const profilePic = extendedUser.profilePic && extendedUser.profilePic.startsWith('/uploads') 
-        ? `${API_URL}${extendedUser.profilePic}` 
-        : extendedUser.profilePic;
-        
+      const profilePic =
+        extendedUser.profilePic &&
+        extendedUser.profilePic.startsWith("/uploads")
+          ? `${API_URL}${extendedUser.profilePic}`
+          : extendedUser.profilePic;
+
       setFormData({
         name: extendedUser.name || "",
         email: extendedUser.email || "",
@@ -61,32 +63,34 @@ export default function EditProfilePage() {
       });
     }
   }, [user]);
-  
+
   // Handle input changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
-  
+
   // Handle file selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     // Check file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       setError("Image size should be less than 5MB");
       return;
     }
-    
+
     // Check file type
-    if (!file.type.includes('image/')) {
+    if (!file.type.includes("image/")) {
       setError("Please select an image file");
       return;
     }
-    
+
     setSelectedFile(file);
-    
+
     // Create preview URL
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -94,86 +98,87 @@ export default function EditProfilePage() {
     };
     reader.readAsDataURL(file);
   };
-  
+
   // Handle form submission
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     setSuccessMessage(null);
-    
+
     try {
       // Get token for authorization
-      const token = Cookies.get('token');
-      
+      const token = Cookies.get("token");
+
       // Create form data for multipart/form-data
       const formDataToSend = new FormData();
-      formDataToSend.append('name', formData.name);
-      formDataToSend.append('email', formData.email);
-      formDataToSend.append('phone', formData.phone);
-      formDataToSend.append('address', formData.address);
-      formDataToSend.append('bio', formData.bio);
-      
+      formDataToSend.append("name", formData.name);
+      formDataToSend.append("email", formData.email);
+      formDataToSend.append("phone", formData.phone);
+      formDataToSend.append("address", formData.address);
+      formDataToSend.append("bio", formData.bio);
+
       // Add profile picture if selected
       if (selectedFile) {
-        formDataToSend.append('profilePic', selectedFile);
+        formDataToSend.append("profilePic", selectedFile);
       }
-      
+
       // Send request to update profile
       const response = await fetch(`${API_URL}/auth/profile`, {
-        method: 'PUT',
+        method: "PUT",
         body: formDataToSend,
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
-      
+
       if (!response.ok) {
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
           const errorData = await response.json();
           throw new Error(errorData.message || "Failed to update profile");
         } else {
           // Handle non-JSON response (like HTML)
           const errorText = await response.text();
-          console.error('Server returned non-JSON response:', errorText);
+          console.error("Server returned non-JSON response:", errorText);
           throw new Error("Server error. Please try again later.");
         }
       }
-      
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
+
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
         throw new Error("Server returned invalid response format");
       }
-      
+
       const data = await response.json();
-      
+
       // Update local storage with updated user data
       if (user) {
         const updatedUser = { ...user, ...data.data };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
+        localStorage.setItem("user", JSON.stringify(updatedUser));
       }
-      
+
       setSuccessMessage("Profile updated successfully!");
-      
+
       // Redirect after 2 seconds
       setTimeout(() => {
-        router.push('/profile');
+        router.push("/profile");
       }, 2000);
-      
-    } catch (err: any) {
+    } catch (err: Error | unknown) {
       console.error("Error updating profile:", err);
-      setError(err.message || "Failed to update profile");
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to update profile";
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
-  
+
   // Handle cancel and return to profile page
   const handleCancel = () => {
-    router.push('/profile');
+    router.push("/profile");
   };
-  
+
   if (!user) {
     return (
       <div className="container mx-auto flex justify-center items-center min-h-[60vh]">
@@ -181,31 +186,33 @@ export default function EditProfilePage() {
       </div>
     );
   }
-  
+
   return (
     <main className="container mx-auto px-4 py-6 sm:py-8 max-w-3xl">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-[#1C3F32]">Edit Profile</h1>
-        <button 
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#1C3F32]">
+          Edit Profile
+        </h1>
+        <button
           onClick={handleCancel}
           className="text-[#1C3F32] hover:underline flex items-center"
         >
           <FaTimes className="mr-1" /> Cancel
         </button>
       </div>
-      
+
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
           {error}
         </div>
       )}
-      
+
       {successMessage && (
         <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-6">
           {successMessage}
         </div>
       )}
-      
+
       <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6">
         {/* Profile Picture */}
         <div className="mb-6 flex flex-col items-center">
@@ -218,7 +225,7 @@ export default function EditProfilePage() {
               className="object-cover"
             />
           </div>
-          
+
           <label className="bg-[#1C3F32] text-white px-4 py-2 rounded-md cursor-pointer hover:bg-[#1C3F32]/90 transition-colors">
             <FaUpload className="inline-block mr-2" />
             Upload Photo
@@ -229,18 +236,21 @@ export default function EditProfilePage() {
               className="hidden"
             />
           </label>
-          
+
           {selectedFile && (
             <p className="mt-2 text-sm text-gray-500">
               Selected: {selectedFile.name}
             </p>
           )}
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Full Name */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Full Name <span className="text-red-500">*</span>
             </label>
             <input
@@ -254,10 +264,13 @@ export default function EditProfilePage() {
               placeholder="Your full name"
             />
           </div>
-          
+
           {/* Email */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Email <span className="text-red-500">*</span>
             </label>
             <input
@@ -271,10 +284,13 @@ export default function EditProfilePage() {
               placeholder="Your email address"
             />
           </div>
-          
+
           {/* Phone */}
           <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="phone"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Phone Number
             </label>
             <input
@@ -287,10 +303,13 @@ export default function EditProfilePage() {
               placeholder="Your phone number"
             />
           </div>
-          
+
           {/* Address */}
           <div>
-            <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="address"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Address
             </label>
             <input
@@ -304,10 +323,13 @@ export default function EditProfilePage() {
             />
           </div>
         </div>
-        
+
         {/* Bio */}
         <div className="mt-6">
-          <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="bio"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Bio / About Me
           </label>
           <textarea
@@ -320,7 +342,7 @@ export default function EditProfilePage() {
             placeholder="Tell us a bit about yourself..."
           ></textarea>
         </div>
-        
+
         {/* Submit Button */}
         <div className="mt-8 flex justify-end">
           <button
@@ -351,4 +373,4 @@ export default function EditProfilePage() {
       </form>
     </main>
   );
-} 
+}

@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import Image from "next/image";
 
 const Login = () => {
   const [name, setName] = useState("");
@@ -36,36 +37,44 @@ const Login = () => {
                   Username:
                   <input
                     type="text"
+                    name="username"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="w-full text-black p-2 rounded-md border border-black focus:outline-1 focus:outline-amber-200"
+                    aria-label="Username"
+                  />
+                </label>
+                <label className="w-full text-black">
+                  Email:
+                  <input
+                    type="email"
+                    name="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full text-black p-2 rounded-md border border-black focus:outline-1 focus:outline-amber-200"
+                    aria-label="Email"
                   />
                 </label>
                 <label className="w-full text-black">
                   Password:
                   <input
-                    type="text"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full text-black p-2 rounded-md border border-black focus:outline-1 focus:outline-amber-200"
-                  />
-                </label>
-                <label className="w-full text-black">
-                  Username:
-                  <input
-                    type="text"
+                    type="password"
+                    name="password"
                     value={pass}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full text-black p-2 rounded-md border border-black focus:outline-1 focus:outline-amber-200"
+                    aria-label="Password"
                   />
                 </label>
                 <label className="w-full text-black">
-                  Username:
+                  Confirm Password:
                   <input
-                    type="text"
+                    type="password"
+                    name="confirmPassword"
                     value={confirmPass}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="w-full text-black p-2 rounded-md border border-black focus:outline-1 focus:outline-amber-200"
+                    aria-label="Confirm password"
                   />
                 </label>
                 <input
@@ -78,10 +87,14 @@ const Login = () => {
           </div>
         </div>
       </div>
-      <div className="w-1/2 h-full bg-[#1C3F32]">
-        <img
+      <div className="w-1/2 h-full">
+        <Image
           src="https://res.cloudinary.com/ddnxfpziq/image/upload/v1745569291/Image_ux4eej.png"
+          alt="Login page decorative image"
           className="w-full h-full object-cover"
+          width={800}
+          height={600}
+          priority
         />
       </div>
     </div>

@@ -1,11 +1,22 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { FaUser, FaEnvelope, FaCalendarAlt, FaUserShield, FaPhone, FaMapMarkerAlt, FaInfoCircle, FaFilter, FaSearch } from 'react-icons/fa';
-import AdminLayout from '@/app/components/layouts/AdminLayout';
-import { API_URL } from '@/app/lib/constants';
-import Cookies from 'js-cookie';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import {
+  FaUser,
+  FaEnvelope,
+  FaCalendarAlt,
+  FaUserShield,
+  FaPhone,
+  FaMapMarkerAlt,
+  FaInfoCircle,
+  FaFilter,
+  FaSearch,
+} from "react-icons/fa";
+import AdminLayout from "@/app/components/layouts/AdminLayout";
+import { API_URL } from "@/app/lib/constants";
+import Cookies from "js-cookie";
+import Image from "next/image";
 
 interface User {
   id: string;
@@ -24,56 +35,60 @@ export default function UsersManagement() {
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterRole, setFilterRole] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterRole, setFilterRole] = useState<string>("all");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     const checkAdminAuth = () => {
-      const user = localStorage.getItem('user');
-      if (!user || !Cookies.get('token')) {
-        router.push('/admin-login');
+      const user = localStorage.getItem("user");
+      if (!user || !Cookies.get("token")) {
+        router.push("/admin-login");
         return false;
       }
-      
+
       try {
         const userData = JSON.parse(user);
-        if (userData.role !== 'admin') {
-          router.push('/admin-login');
+        if (userData.role !== "admin") {
+          router.push("/admin-login");
           return false;
         }
         return true;
-      } catch (e) {
-        router.push('/admin-login');
+      } catch {
+        router.push("/admin-login");
         return false;
       }
     };
 
     const fetchUsers = async () => {
       if (!checkAdminAuth()) return;
-      
+
       try {
         const response = await fetch(`/api/admin/users`, {
           headers: {
-            'Authorization': `Bearer ${Cookies.get('token')}`
-          }
+            Authorization: `Bearer ${Cookies.get("token")}`,
+          },
         });
 
         if (!response.ok) {
           if (response.status === 401 || response.status === 403) {
-            router.push('/admin-login');
+            router.push("/admin-login");
             return;
           }
-          throw new Error('Failed to fetch users');
+          throw new Error("Failed to fetch users");
         }
 
         const data = await response.json();
         setUsers(data.data);
         setFilteredUsers(data.data);
-      } catch (err: any) {
-        setError(err.message || 'An error occurred while fetching users');
-        console.error('Users fetch error:', err);
+      } catch (error: ApiError | unknown) {
+        setError(
+          error instanceof Error
+            ? error.message
+            : "An error occurred while fetching users",
+        );
+        console.error("Users fetch error:", error);
       } finally {
         setIsLoading(false);
       }
@@ -85,29 +100,30 @@ export default function UsersManagement() {
   useEffect(() => {
     // Filter and search users when criteria change
     let result = [...users];
-    
+
     // Apply role filter
-    if (filterRole !== 'all') {
-      result = result.filter(user => user.role === filterRole);
+    if (filterRole !== "all") {
+      result = result.filter((user) => user.role === filterRole);
     }
-    
+
     // Apply search
     if (searchTerm) {
       const lowerSearchTerm = searchTerm.toLowerCase();
-      result = result.filter(user => 
-        user.name.toLowerCase().includes(lowerSearchTerm) || 
-        user.email.toLowerCase().includes(lowerSearchTerm)
+      result = result.filter(
+        (user) =>
+          user.name.toLowerCase().includes(lowerSearchTerm) ||
+          user.email.toLowerCase().includes(lowerSearchTerm),
       );
     }
-    
+
     setFilteredUsers(result);
   }, [users, searchTerm, filterRole]);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -157,7 +173,7 @@ export default function UsersManagement() {
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3F32] focus:border-transparent text-gray-800"
               />
             </div>
-            
+
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <FaFilter className="text-gray-400" />
@@ -201,16 +217,21 @@ export default function UsersManagement() {
                 {filteredUsers.length > 0 ? (
                   filteredUsers.map((user) => (
                     <>
-                      <tr key={user.id} className={`hover:bg-gray-50 ${selectedUser?.id === user.id ? 'bg-blue-50' : ''}`}>
+                      <tr
+                        key={user.id}
+                        className={`hover:bg-gray-50 ${selectedUser?.id === user.id ? "bg-blue-50" : ""}`}
+                      >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-10 w-10">
                               <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
                                 {user.profilePic ? (
-                                  <img 
-                                    src={`${API_URL}${user.profilePic}`} 
-                                    alt={user.name} 
-                                    className="h-10 w-10 rounded-full object-cover"
+                                  <Image
+                                    src={`${API_URL}${user.profilePic}`}
+                                    alt={user.name}
+                                    width={40}
+                                    height={40}
+                                    className="rounded-full object-cover"
                                   />
                                 ) : (
                                   <FaUser className="text-gray-400" />
@@ -228,12 +249,16 @@ export default function UsersManagement() {
                           <div className="flex flex-col">
                             <div className="flex items-center">
                               <FaEnvelope className="text-gray-400 mr-2" />
-                              <span className="text-sm text-gray-500">{user.email}</span>
+                              <span className="text-sm text-gray-500">
+                                {user.email}
+                              </span>
                             </div>
                             {user.phone && (
                               <div className="flex items-center mt-1">
                                 <FaPhone className="text-gray-400 mr-2" />
-                                <span className="text-sm text-gray-500">{user.phone}</span>
+                                <span className="text-sm text-gray-500">
+                                  {user.phone}
+                                </span>
                               </div>
                             )}
                           </div>
@@ -241,11 +266,13 @@ export default function UsersManagement() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <FaUserShield className="text-gray-400 mr-2" />
-                            <span className={`text-sm px-2 py-1 rounded-full ${
-                              user.role === 'admin' 
-                                ? 'bg-purple-100 text-purple-700' 
-                                : 'bg-gray-100 text-gray-700'
-                            }`}>
+                            <span
+                              className={`text-sm px-2 py-1 rounded-full ${
+                                user.role === "admin"
+                                  ? "bg-purple-100 text-purple-700"
+                                  : "bg-gray-100 text-gray-700"
+                              }`}
+                            >
                               {user.role}
                             </span>
                           </div>
@@ -254,7 +281,9 @@ export default function UsersManagement() {
                           <div className="flex items-center">
                             <FaCalendarAlt className="text-gray-400 mr-2" />
                             <span className="text-sm text-gray-500">
-                              {user.createdAt ? formatDate(user.createdAt) : 'N/A'}
+                              {user.createdAt
+                                ? formatDate(user.createdAt)
+                                : "N/A"}
                             </span>
                           </div>
                         </td>
@@ -264,7 +293,11 @@ export default function UsersManagement() {
                             className="text-[#1C3F32] hover:text-[#1C3F32]/80 flex items-center"
                           >
                             <FaInfoCircle className="mr-1" />
-                            <span>{selectedUser?.id === user.id ? 'Hide Details' : 'View Details'}</span>
+                            <span>
+                              {selectedUser?.id === user.id
+                                ? "Hide Details"
+                                : "View Details"}
+                            </span>
                           </button>
                         </td>
                       </tr>
@@ -273,25 +306,42 @@ export default function UsersManagement() {
                           <td colSpan={5} className="px-6 py-4 bg-blue-50/50">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div>
-                                <h3 className="font-medium text-gray-900 mb-2">Address</h3>
+                                <h3 className="font-medium text-gray-900 mb-2">
+                                  Address
+                                </h3>
                                 <div className="flex items-start">
                                   <FaMapMarkerAlt className="text-gray-400 mr-2 mt-1" />
                                   <span className="text-sm text-gray-700">
-                                    {user.address || 'No address provided'}
+                                    {user.address || "No address provided"}
                                   </span>
                                 </div>
                               </div>
                               <div>
-                                <h3 className="font-medium text-gray-900 mb-2">Bio</h3>
+                                <h3 className="font-medium text-gray-900 mb-2">
+                                  Bio
+                                </h3>
                                 <div className="text-sm text-gray-700">
-                                  {user.bio || 'No bio provided'}
+                                  {user.bio || "No bio provided"}
                                 </div>
                               </div>
                               <div className="md:col-span-2 mt-2">
-                                <h3 className="font-medium text-gray-900 mb-2">Additional Information</h3>
+                                <h3 className="font-medium text-gray-900 mb-2">
+                                  Additional Information
+                                </h3>
                                 <div className="text-sm text-gray-700">
                                   <p>User ID: {user.id}</p>
-                                  <p>Account created on {user.createdAt ? formatDate(user.createdAt) : 'N/A'} at {user.createdAt ? new Date(user.createdAt).toLocaleTimeString() : 'N/A'}</p>
+                                  <p>
+                                    Account created on{" "}
+                                    {user.createdAt
+                                      ? formatDate(user.createdAt)
+                                      : "N/A"}{" "}
+                                    at{" "}
+                                    {user.createdAt
+                                      ? new Date(
+                                          user.createdAt,
+                                        ).toLocaleTimeString()
+                                      : "N/A"}
+                                  </p>
                                 </div>
                               </div>
                             </div>
@@ -302,7 +352,10 @@ export default function UsersManagement() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                    <td
+                      colSpan={5}
+                      className="px-6 py-4 text-center text-gray-500"
+                    >
                       No users found
                     </td>
                   </tr>
@@ -314,4 +367,4 @@ export default function UsersManagement() {
       </div>
     </AdminLayout>
   );
-} 
+}

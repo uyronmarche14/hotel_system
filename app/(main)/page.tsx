@@ -2,8 +2,6 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Header from "@/app/components/normal/header";
-import RoomCard from "@/app/components/RoomCard";
 
 export default function MainPage() {
   const router = useRouter();
@@ -12,7 +10,7 @@ export default function MainPage() {
     // Redirect to dashboard
     router.push("/dashboard");
   }, [router]);
-  
+
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="animate-pulse text-center">
@@ -20,4 +18,4 @@ export default function MainPage() {
       </div>
     </div>
   );
-} 
+}

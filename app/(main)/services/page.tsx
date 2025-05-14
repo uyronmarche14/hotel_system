@@ -11,7 +11,11 @@ import {
   FaSearch,
 } from "react-icons/fa";
 import Image from "next/image";
-import { RoomType, getAllRooms, getCategoryRooms, getRoomsByCategory } from "@/app/services/roomService";
+import {
+  RoomType,
+  getAllRooms,
+  getRoomsByCategory,
+} from "@/app/services/roomService";
 import Button from "@/app/components/ui/buttons";
 
 const StarRating = ({ rating }: { rating: number }) => {
@@ -61,7 +65,7 @@ const SearchResultsContent = () => {
   const [priceRange, setPriceRange] = useState<string[]>([]);
   const [starRating, setStarRating] = useState<number[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
-    category ? [category] : []
+    category ? [category] : [],
   );
   const [filteredRooms, setFilteredRooms] = useState<RoomType[]>([]);
   const [allRooms, setAllRooms] = useState<RoomType[]>([]);
@@ -100,12 +104,15 @@ const SearchResultsContent = () => {
   // Get unique categories from rooms data
   const getCategories = (): { id: string; name: string; count: number }[] => {
     if (allRooms.length === 0) return [];
-    
-    const categories = [...new Set(allRooms.map(room => room.category))];
-    return categories.map(cat => ({
+
+    const categories = [...new Set(allRooms.map((room) => room.category))];
+    return categories.map((cat) => ({
       id: cat,
-      name: cat.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
-      count: allRooms.filter(room => room.category === cat).length
+      name: cat
+        .split("-")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" "),
+      count: allRooms.filter((room) => room.category === cat).length,
     }));
   };
 
@@ -126,16 +133,16 @@ const SearchResultsContent = () => {
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategories((prev) =>
-      prev.includes(category) 
-        ? prev.filter((c) => c !== category) 
-        : [...prev, category]
+      prev.includes(category)
+        ? prev.filter((c) => c !== category)
+        : [...prev, category],
     );
   };
 
   const handleImageError = (roomId: string) => {
-    setImageError(prev => ({
+    setImageError((prev) => ({
       ...prev,
-      [roomId]: true
+      [roomId]: true,
     }));
   };
 
@@ -147,8 +154,9 @@ const SearchResultsContent = () => {
     if (searchCheckIn) params.set("checkIn", searchCheckIn);
     if (searchCheckOut) params.set("checkOut", searchCheckOut);
     if (searchGuests) params.set("guests", searchGuests);
-    if (selectedCategories.length === 1) params.set("category", selectedCategories[0]);
-    
+    if (selectedCategories.length === 1)
+      params.set("category", selectedCategories[0]);
+
     // Navigate to the same page with updated params
     router.push(`/services?${params.toString()}`);
   };
@@ -165,10 +173,11 @@ const SearchResultsContent = () => {
     // Filter by search query (title, description, and category)
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter((room) =>
-        room.title.toLowerCase().includes(query) || 
-        room.description?.toLowerCase().includes(query) ||
-        room.category.toLowerCase().includes(query)
+      filtered = filtered.filter(
+        (room) =>
+          room.title.toLowerCase().includes(query) ||
+          room.description?.toLowerCase().includes(query) ||
+          room.category.toLowerCase().includes(query),
       );
     }
 
@@ -184,15 +193,15 @@ const SearchResultsContent = () => {
 
     // Filter by star rating
     if (starRating.length > 0) {
-      filtered = filtered.filter((room) =>
-        room.rating && starRating.includes(Math.floor(room.rating))
+      filtered = filtered.filter(
+        (room) => room.rating && starRating.includes(Math.floor(room.rating)),
       );
     }
 
     // Filter by selected categories
     if (selectedCategories.length > 0) {
       filtered = filtered.filter((room) =>
-        selectedCategories.includes(room.category)
+        selectedCategories.includes(room.category),
       );
     }
 
@@ -211,9 +220,11 @@ const SearchResultsContent = () => {
                 <FaMapMarkerAlt size={20} />
               </div>
               <div className="w-full">
-                <div className="text-xs text-gray-600 mb-1 font-medium">Location</div>
-                <input 
-                  type="text" 
+                <div className="text-xs text-gray-600 mb-1 font-medium">
+                  Location
+                </div>
+                <input
+                  type="text"
                   value={searchLocation}
                   onChange={(e) => setSearchLocation(e.target.value)}
                   className="text-sm font-medium text-gray-800 w-full focus:outline-none"
@@ -228,9 +239,11 @@ const SearchResultsContent = () => {
                 <FaRegCalendar size={20} />
               </div>
               <div className="w-full">
-                <div className="text-xs text-gray-600 mb-1 font-medium">Check In</div>
-                <input 
-                  type="text" 
+                <div className="text-xs text-gray-600 mb-1 font-medium">
+                  Check In
+                </div>
+                <input
+                  type="text"
                   value={searchCheckIn}
                   onChange={(e) => setSearchCheckIn(e.target.value)}
                   className="text-sm font-medium text-gray-800 w-full focus:outline-none"
@@ -245,9 +258,11 @@ const SearchResultsContent = () => {
                 <FaRegCalendar size={20} />
               </div>
               <div className="w-full">
-                <div className="text-xs text-gray-600 mb-1 font-medium">Check Out</div>
-                <input 
-                  type="text" 
+                <div className="text-xs text-gray-600 mb-1 font-medium">
+                  Check Out
+                </div>
+                <input
+                  type="text"
                   value={searchCheckOut}
                   onChange={(e) => setSearchCheckOut(e.target.value)}
                   className="text-sm font-medium text-gray-800 w-full focus:outline-none"
@@ -262,9 +277,11 @@ const SearchResultsContent = () => {
                 <FaUser size={20} />
               </div>
               <div className="w-full">
-                <div className="text-xs text-gray-600 mb-1 font-medium">Guests</div>
-                <input 
-                  type="text" 
+                <div className="text-xs text-gray-600 mb-1 font-medium">
+                  Guests
+                </div>
+                <input
+                  type="text"
                   value={searchGuests}
                   onChange={(e) => setSearchGuests(e.target.value)}
                   className="text-sm font-medium text-gray-800 w-full focus:outline-none"
@@ -275,7 +292,7 @@ const SearchResultsContent = () => {
 
             {/* Search Button */}
             <div className="w-full md:w-auto p-4 md:pl-2 md:pr-4">
-              <button 
+              <button
                 onClick={handleSearchAgain}
                 className="w-full md:w-auto bg-[#1C3F32] text-white py-3 px-6 rounded-md hover:bg-[#2A5A4A] transition-colors font-medium"
               >
@@ -300,10 +317,14 @@ const SearchResultsContent = () => {
           </div>
 
           {/* Filter Sidebar */}
-          <div className={`w-full lg:w-72 bg-white rounded-lg border border-gray-200 p-4 shadow-sm ${isFilterOpen ? 'block' : 'hidden lg:block'} self-start sticky top-4`}>
+          <div
+            className={`w-full lg:w-72 bg-white rounded-lg border border-gray-200 p-4 shadow-sm ${isFilterOpen ? "block" : "hidden lg:block"} self-start sticky top-4`}
+          >
             {/* Search field in filter section */}
             <div className="mb-6">
-              <h3 className="font-semibold mb-3 text-gray-800 text-lg">Search</h3>
+              <h3 className="font-semibold mb-3 text-gray-800 text-lg">
+                Search
+              </h3>
               <div className="relative">
                 <input
                   type="text"
@@ -317,10 +338,12 @@ const SearchResultsContent = () => {
                 </div>
               </div>
             </div>
-            
+
             {/* Room Categories */}
             <div className="mb-6">
-              <h3 className="font-semibold mb-3 text-gray-800 text-lg">Room Type</h3>
+              <h3 className="font-semibold mb-3 text-gray-800 text-lg">
+                Room Type
+              </h3>
               <div className="space-y-2">
                 {getCategories().map((category) => (
                   <label
@@ -333,14 +356,19 @@ const SearchResultsContent = () => {
                       onChange={() => handleCategoryChange(category.id)}
                       className="mr-2 text-brand-green focus:ring-brand-green h-4 w-4"
                     />
-                    {category.name} <span className="ml-1 text-gray-500 text-sm">({category.count})</span>
+                    {category.name}{" "}
+                    <span className="ml-1 text-gray-500 text-sm">
+                      ({category.count})
+                    </span>
                   </label>
                 ))}
               </div>
             </div>
-            
+
             <div className="mb-6">
-              <h3 className="font-semibold mb-3 text-gray-800 text-lg">Price Range</h3>
+              <h3 className="font-semibold mb-3 text-gray-800 text-lg">
+                Price Range
+              </h3>
               {[
                 { label: "₱2,000 - ₱5,000", value: "2000-5000" },
                 { label: "₱5,001 - ₱10,000", value: "5001-10000" },
@@ -364,9 +392,14 @@ const SearchResultsContent = () => {
             </div>
 
             <div className="mb-6">
-              <h3 className="font-semibold mb-3 text-gray-800 text-lg">Star Rating</h3>
+              <h3 className="font-semibold mb-3 text-gray-800 text-lg">
+                Star Rating
+              </h3>
               {[5, 4, 3, 2, 1].map((rating) => (
-                <label key={rating} className="flex items-center mb-2 cursor-pointer">
+                <label
+                  key={rating}
+                  className="flex items-center mb-2 cursor-pointer"
+                >
                   <input
                     type="checkbox"
                     checked={starRating.includes(rating)}
@@ -386,7 +419,14 @@ const SearchResultsContent = () => {
                       ))}
                   </div>
                   <span className="ml-2 text-gray-600">
-                    ({allRooms.filter(room => room.rating && Math.floor(room.rating) === rating).length})
+                    (
+                    {
+                      allRooms.filter(
+                        (room) =>
+                          room.rating && Math.floor(room.rating) === rating,
+                      ).length
+                    }
+                    )
                   </span>
                 </label>
               ))}
@@ -423,7 +463,9 @@ const SearchResultsContent = () => {
 
             {!isLoading && filteredRooms.length === 0 ? (
               <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm text-center">
-                <p className="text-gray-700 mb-4">No rooms found matching your criteria.</p>
+                <p className="text-gray-700 mb-4">
+                  No rooms found matching your criteria.
+                </p>
                 <Button
                   label="Clear Filters"
                   variant="primary"
@@ -436,74 +478,92 @@ const SearchResultsContent = () => {
                   }}
                 />
               </div>
-            ) : !isLoading && (
-              <div className="flex flex-col gap-6">
-                {filteredRooms.map((room, index) => (
-                  <div
-                    key={index}
-                    className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col md:flex-row hover:shadow-md transition-shadow"
-                  >
-                    <div className="md:w-64 h-48 md:h-full relative flex-shrink-0">
-                      {!imageError[room.title] ? (
-                        <Image
-                          src={room.imageUrl}
-                          alt={room.title}
-                          fill
-                          className="object-cover"
-                          onError={() => handleImageError(room.title)}
-                        />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400">
-                          <p className="text-sm">Image not available</p>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="p-4 md:p-6 flex-1 flex flex-col">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h2 className="text-lg font-semibold text-gray-900 mb-1">{room.title}</h2>
-                          <div className="flex items-center gap-1 mb-2">
-                            <StarRating rating={room.rating || 0} />
-                            <span className="text-sm text-gray-600">({room.reviews || 0} reviews)</span>
+            ) : (
+              !isLoading && (
+                <div className="flex flex-col gap-6">
+                  {filteredRooms.map((room, index) => (
+                    <div
+                      key={index}
+                      className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col md:flex-row hover:shadow-md transition-shadow"
+                    >
+                      <div className="md:w-64 h-48 md:h-full relative flex-shrink-0">
+                        {!imageError[room.title] ? (
+                          <Image
+                            src={room.imageUrl}
+                            alt={room.title}
+                            fill
+                            className="object-cover"
+                            onError={() => handleImageError(room.title)}
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400">
+                            <p className="text-sm">Image not available</p>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="p-4 md:p-6 flex-1 flex flex-col">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <h2 className="text-lg font-semibold text-gray-900 mb-1">
+                              {room.title}
+                            </h2>
+                            <div className="flex items-center gap-1 mb-2">
+                              <StarRating rating={room.rating || 0} />
+                              <span className="text-sm text-gray-600">
+                                ({room.reviews || 0} reviews)
+                              </span>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-lg font-semibold text-[#1C3F32]">
+                              ₱{room.price.toLocaleString()}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              per night
+                            </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-lg font-semibold text-[#1C3F32]">₱{room.price.toLocaleString()}</div>
-                          <div className="text-sm text-gray-600">per night</div>
+
+                        <p className="text-gray-600 mb-4 line-clamp-2">
+                          {room.description}
+                        </p>
+
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                            {room.category
+                              .split("-")
+                              .map(
+                                (word) =>
+                                  word.charAt(0).toUpperCase() + word.slice(1),
+                              )
+                              .join(" ")}
+                          </span>
+                          {room.bedType && (
+                            <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                              {room.bedType}
+                            </span>
+                          )}
+                          {room.maxOccupancy && (
+                            <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                              Max: {room.maxOccupancy} People
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="mt-auto">
+                          <Button
+                            label="View Details"
+                            variant="primary"
+                            className="!w-full md:!w-[180px] !h-[40px]"
+                            onClick={() => handleSelectRoom(room)}
+                          />
                         </div>
                       </div>
-                      
-                      <p className="text-gray-600 mb-4 line-clamp-2">{room.description}</p>
-                      
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-                          {room.category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                        </span>
-                        {room.bedType && (
-                          <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-                            {room.bedType}
-                          </span>
-                        )}
-                        {room.maxOccupancy && (
-                          <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-                            Max: {room.maxOccupancy} People
-                          </span>
-                        )}
-                      </div>
-                      
-                      <div className="mt-auto">
-                        <Button
-                          label="View Details"
-                          variant="primary"
-                          className="!w-full md:!w-[180px] !h-[40px]"
-                          onClick={() => handleSelectRoom(room)}
-                        />
-                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )
             )}
           </div>
         </div>
@@ -517,7 +577,9 @@ const SearchResultsLoading = () => {
   return (
     <div className="flex items-center justify-center h-screen">
       <div className="text-center">
-        <p className="text-lg font-medium text-gray-800">Loading search results...</p>
+        <p className="text-lg font-medium text-gray-800">
+          Loading search results...
+        </p>
       </div>
     </div>
   );
