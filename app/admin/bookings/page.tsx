@@ -44,11 +44,6 @@ interface Booking {
   paymentMethod?: string;
 }
 
-interface ApiError extends Error {
-  status?: number;
-  code?: string;
-}
-
 export default function BookingsManagement() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);

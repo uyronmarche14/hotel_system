@@ -61,7 +61,7 @@ export default function Dashboard() {
           return false;
         }
         return true;
-      } catch (e) {
+      } catch {
         router.push("/admin-login");
         return false;
       }

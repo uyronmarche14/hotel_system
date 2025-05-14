@@ -1,48 +1,47 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { FaBell, FaUserCircle, FaBars, FaTimes, FaCalendarCheck } from "react-icons/fa";
+import { FaBell, FaBars, FaTimes, FaCalendarCheck } from "react-icons/fa";
 import { useAuth } from "@/app/context/AuthContext";
 import { usePathname } from "next/navigation";
 import BookingDropdown from "./BookingDropdown";
-import { getSafeImageUrl } from "@/app/lib/utils";
 import SafeImage from "@/app/components/ui/SafeImage";
 import { API_URL } from "@/app/lib/constants";
 
 const UserNavbar = () => {
-  const [notificationCount, setNotificationCount] = useState(3);
+  const [notificationCount] = useState(3);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showBookingDropdown, setShowBookingDropdown] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
-  
+  const [dropdownPosition, setDropdownPosition] = useState({
+    top: 0,
+    right: 0,
+  });
+
   const { user, logout } = useAuth();
   const pathname = usePathname();
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const profileButtonRef = useRef<HTMLButtonElement>(null);
   const bookingButtonRef = useRef<HTMLButtonElement>(null);
   const navbarRef = useRef<HTMLDivElement>(null);
-  
+
   // Use the utility function to get a safe profile image URL
-  const userProfilePic = user?.profilePic && user.profilePic.startsWith('/uploads') 
-    ? `${API_URL}${user.profilePic}`
-    : user?.profilePic;
-  
+  const userProfilePic =
+    user?.profilePic && user.profilePic.startsWith("/uploads")
+      ? `${API_URL}${user.profilePic}`
+      : user?.profilePic;
+
   // Function to handle profile image loading errors
-  const handleProfileImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    console.log("Profile image failed to load, using fallback");
-    e.currentTarget.src = "/images/default-user.png";
-  };
 
   const toggleProfileMenu = () => {
     if (!showProfileMenu && profileButtonRef.current && navbarRef.current) {
       // Calculate position before toggling to ensure it's positioned correctly
       const buttonRect = profileButtonRef.current.getBoundingClientRect();
       const navbarRect = navbarRef.current.getBoundingClientRect();
-      
+
       setDropdownPosition({
         top: navbarRect.top + navbarRect.height,
-        right: window.innerWidth - buttonRect.right
+        right: window.innerWidth - buttonRect.right,
       });
     }
     setShowProfileMenu((prev) => !prev);
@@ -73,9 +72,9 @@ const UserNavbar = () => {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [profileMenuRef, profileButtonRef]);
 
@@ -83,11 +82,14 @@ const UserNavbar = () => {
   useEffect(() => {
     if (showProfileMenu && profileButtonRef.current) {
       const buttonRect = profileButtonRef.current.getBoundingClientRect();
-      const navbarRect = navbarRef.current?.getBoundingClientRect() || { top: 0, height: 0 };
-      
+      const navbarRect = navbarRef.current?.getBoundingClientRect() || {
+        top: 0,
+        height: 0,
+      };
+
       setDropdownPosition({
         top: navbarRect.top + navbarRect.height,
-        right: window.innerWidth - buttonRect.right
+        right: window.innerWidth - buttonRect.right,
       });
     }
   }, [showProfileMenu]);
@@ -98,7 +100,7 @@ const UserNavbar = () => {
     // Remove Bookings from regular nav links since we'll add a special button for it
     { name: "Profile", path: "/profile" },
     { name: "About", path: "/about" },
-    { name: "Contact", path: "/contact" }
+    { name: "Contact", path: "/contact" },
   ];
 
   const isActive = (path: string) => {
@@ -106,11 +108,19 @@ const UserNavbar = () => {
   };
 
   return (
-    <nav ref={navbarRef} className="w-full h-auto sm:h-24 flex flex-wrap items-center justify-between bg-[#1C3F32] px-4 sm:px-8 py-3 sm:py-0">
+    <nav
+      ref={navbarRef}
+      className="w-full h-auto sm:h-24 flex flex-wrap items-center justify-between bg-[#1C3F32] px-4 sm:px-8 py-3 sm:py-0"
+    >
       <div className="flex items-center gap-2 sm:gap-4">
-        <Link href="/dashboard" className="flex items-center gap-2 sm:gap-4 hover:opacity-90 transition-opacity">
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2 sm:gap-4 hover:opacity-90 transition-opacity"
+        >
           <div className="flex items-center justify-center w-10 h-10 sm:w-16 sm:h-16 bg-white rounded-full">
-            <span className="text-[#1C3F32] font-bold text-sm sm:text-xl">AP</span>
+            <span className="text-[#1C3F32] font-bold text-sm sm:text-xl">
+              AP
+            </span>
           </div>
           <h1 className="cinzel text-lg sm:text-2xl md:text-3xl text-white font-bold truncate">
             THE SOLACE MANOR
@@ -120,7 +130,7 @@ const UserNavbar = () => {
 
       {/* Mobile menu button */}
       <div className="flex md:hidden items-center">
-        <button 
+        <button
           onClick={toggleMobileMenu}
           className="text-white hover:text-gray-200 transition-colors p-2"
         >
@@ -139,7 +149,7 @@ const UserNavbar = () => {
             key={index}
             href={item.path}
             className={`text-white transition-colors duration-200 font-medium hover:underline ${
-              isActive(item.path) ? 'underline font-bold' : ''
+              isActive(item.path) ? "underline font-bold" : ""
             }`}
           >
             {item.name}
@@ -151,7 +161,7 @@ const UserNavbar = () => {
             ref={bookingButtonRef}
             onClick={toggleBookingDropdown}
             className={`text-white transition-colors duration-200 font-medium hover:underline flex items-center ${
-              isActive('/bookings') ? 'underline font-bold' : ''
+              isActive("/bookings") ? "underline font-bold" : ""
             }`}
           >
             <FaCalendarCheck className="mr-1" />
@@ -160,9 +170,9 @@ const UserNavbar = () => {
           {/* Booking Dropdown Component */}
           {user && (
             <div className="relative">
-              <BookingDropdown 
-                isOpen={showBookingDropdown} 
-                onClose={() => setShowBookingDropdown(false)} 
+              <BookingDropdown
+                isOpen={showBookingDropdown}
+                onClose={() => setShowBookingDropdown(false)}
               />
             </div>
           )}
@@ -178,7 +188,7 @@ const UserNavbar = () => {
                 key={index}
                 href={item.path}
                 className={`text-white transition-colors duration-200 font-medium hover:underline px-2 ${
-                  isActive(item.path) ? 'underline font-bold' : ''
+                  isActive(item.path) ? "underline font-bold" : ""
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -188,7 +198,7 @@ const UserNavbar = () => {
             <Link
               href="/bookings"
               className={`text-white transition-colors duration-200 font-medium hover:underline px-2 flex items-center ${
-                isActive('/bookings') ? 'underline font-bold' : ''
+                isActive("/bookings") ? "underline font-bold" : ""
               }`}
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -211,10 +221,10 @@ const UserNavbar = () => {
             )}
           </button>
         </div>
-        
+
         {/* User Profile */}
         <div className="relative">
-          <button 
+          <button
             ref={profileButtonRef}
             onClick={toggleProfileMenu}
             className="flex items-center gap-2 text-white hover:text-gray-200 transition-colors"
@@ -230,41 +240,41 @@ const UserNavbar = () => {
             </div>
             <span className="hidden md:inline">{user?.name || "Guest"}</span>
           </button>
-          
+
           {/* Profile Dropdown Menu */}
           {showProfileMenu && (
-            <div 
+            <div
               ref={profileMenuRef}
               style={{
-                position: 'fixed',
+                position: "fixed",
                 top: `${dropdownPosition.top}px`,
                 right: `${dropdownPosition.right}px`,
               }}
               className="w-48 bg-white rounded-md shadow-xl z-[9999] border border-gray-200 overflow-visible"
             >
               <div className="py-1">
-                <Link 
-                  href="/profile" 
+                <Link
+                  href="/profile"
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   onClick={() => setShowProfileMenu(false)}
                 >
                   My Profile
                 </Link>
-                <Link 
-                  href="/bookings" 
+                <Link
+                  href="/bookings"
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   onClick={() => setShowProfileMenu(false)}
                 >
                   My Bookings
                 </Link>
-                <Link 
-                  href="/settings" 
+                <Link
+                  href="/settings"
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   onClick={() => setShowProfileMenu(false)}
                 >
                   Settings
                 </Link>
-                <button 
+                <button
                   onClick={() => {
                     logout();
                     setShowProfileMenu(false);
@@ -282,4 +292,4 @@ const UserNavbar = () => {
   );
 };
 
-export default UserNavbar; 
+export default UserNavbar;

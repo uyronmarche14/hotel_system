@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { FaTwitter, FaLinkedin, FaWhatsapp, FaFacebook } from "react-icons/fa";
 
@@ -10,7 +9,9 @@ const Footer = () => {
           {/* About Us Section */}
           <div>
             <div className="w-32 sm:w-40 h-10 bg-white flex items-center justify-center rounded-md mb-4">
-              <span className="text-[#2F4F4F] font-bold text-xs sm:text-sm">THE SOLACE MANOR</span>
+              <span className="text-[#2F4F4F] font-bold text-xs sm:text-sm">
+                THE SOLACE MANOR
+              </span>
             </div>
             <div className="mt-2 sm:mt-4 space-y-1 sm:space-y-2 text-sm">
               <Link
@@ -36,7 +37,9 @@ const Footer = () => {
 
           {/* Customer Service Section */}
           <div>
-            <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">Customer Service</h3>
+            <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">
+              Customer Service
+            </h3>
             <div className="space-y-1 sm:space-y-2 text-sm">
               <Link href="/contact" className="block hover:text-gray-300">
                 Contact Us
@@ -61,7 +64,9 @@ const Footer = () => {
 
           {/* Explore Section */}
           <div>
-            <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">Explore</h3>
+            <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">
+              Explore
+            </h3>
             <div className="space-y-1 sm:space-y-2 text-sm">
               <Link href="/destinations" className="block hover:text-gray-300">
                 Destinations
@@ -86,7 +91,9 @@ const Footer = () => {
 
           {/* Support Section */}
           <div>
-            <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">Support</h3>
+            <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">
+              Support
+            </h3>
             <div className="space-y-1 sm:space-y-2 text-sm">
               <Link href="/privacy" className="block hover:text-gray-300">
                 Privacy Policy
@@ -108,7 +115,9 @@ const Footer = () => {
 
           {/* Membership Section - Hidden on smallest screens */}
           <div className="hidden sm:block">
-            <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">Membership</h3>
+            <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4">
+              Membership
+            </h3>
             <div className="space-y-1 sm:space-y-2 text-sm">
               <Link href="/loyalty" className="block hover:text-gray-300">
                 Loyalty Program
