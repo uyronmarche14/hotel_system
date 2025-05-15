@@ -232,9 +232,9 @@ export const getRoomById = async (roomId: string): Promise<RoomType | null> => {
  */
 export const getTopRatedRooms = async (limit = 5): Promise<RoomType[]> => {
   try {
-    // Use the internal Next.js API proxy route
+    // First try direct API route
     const response = await fetch(
-      `/api/proxy/hotels/rooms/top-rated?limit=${limit}`,
+      `/api/rooms/top-rated?limit=${limit}`,
       {
         method: "GET",
         cache: "no-store",

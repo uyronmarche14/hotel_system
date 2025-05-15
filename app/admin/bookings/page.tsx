@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   FaCalendarAlt,
@@ -375,7 +375,7 @@ export default function BookingsManagement() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredBookings.map((booking) => (
-                    <>
+                    <React.Fragment key={booking.id}>
                       <tr
                         key={booking.id}
                         className={`hover:bg-gray-50 ${selectedBooking === booking.id ? "bg-blue-50" : ""}`}
@@ -570,7 +570,7 @@ export default function BookingsManagement() {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </React.Fragment>
                   ))}
                 </tbody>
               </table>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   FaUser,
@@ -215,19 +215,19 @@ export default function UsersManagement() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredUsers.length > 0 ? (
-                  filteredUsers.map((user) => (
-                    <>
-                      <tr
-                        key={user.id}
-                        className={`hover:bg-gray-50 ${selectedUser?.id === user.id ? "bg-blue-50" : ""}`}
-                      >
+                  filteredUsers.map((user) => {
+                    return (
+                      <React.Fragment key={user.id}>
+                        <tr
+                          className={`hover:bg-gray-50 ${selectedUser?.id === user.id ? "bg-blue-50" : ""}`}
+                        >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-10 w-10">
                               <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
                                 {user.profilePic ? (
                                   <Image
-                                    src={`${API_URL}${user.profilePic}`}
+                                    src={user.profilePic.startsWith('http') ? user.profilePic : `${API_URL}${user.profilePic}`}
                                     alt={user.name}
                                     width={40}
                                     height={40}
@@ -302,7 +302,7 @@ export default function UsersManagement() {
                         </td>
                       </tr>
                       {selectedUser?.id === user.id && (
-                        <tr>
+                        <tr key={`details-${user.id}`}>
                           <td colSpan={5} className="px-6 py-4 bg-blue-50/50">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div>
@@ -348,10 +348,11 @@ export default function UsersManagement() {
                           </td>
                         </tr>
                       )}
-                    </>
-                  ))
+                      </React.Fragment>
+                    );
+                  })
                 ) : (
-                  <tr>
+                  <tr key="no-users-found">
                     <td
                       colSpan={5}
                       className="px-6 py-4 text-center text-gray-500"
