@@ -65,22 +65,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     message: string;
   }
 
-  // Wrap verifyToken in useCallback
-  const verifyToken = React.useCallback(async (token: string) => {
-    try {
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-
-      await axios.get(`${API_URL}/auth/me`, config);
-    } catch (error) {
-      console.error("Token verification failed", error);
-      handleLogout();
-    }
-  }, []);
-
   // Wrap logout in useCallback and rename to handleLogout
   const handleLogout = React.useCallback(() => {
     console.log("Logging out user");
@@ -97,6 +81,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Redirect to login page
     router.push("/login?session_expired=true");
   }, [router]);
+
+  // Wrap verifyToken in useCallback
+  const verifyToken = React.useCallback(async (token: string) => {
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      await axios.get(`${API_URL}/auth/me`, config);
+    } catch (error) {
+      console.error("Token verification failed", error);
+      handleLogout();
+    }
+  }, [handleLogout]);
+
+
 
   // Update initial load effect to use verifyToken
   useEffect(() => {
