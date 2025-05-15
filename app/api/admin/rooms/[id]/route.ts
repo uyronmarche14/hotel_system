@@ -2,16 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { API_URL } from "@/app/lib/constants";
 import type { ApiError } from "@/app/types/api";
 
-// Define correct parameter types 
-type ParamsType = {
-  params: {
-    id: string;
-  };
-};
+type Params = { params: { id: string } };
 
-export async function GET(request: NextRequest, params: ParamsType) {
+export async function GET(
+  request: NextRequest,
+  { params }: Params
+) {
   try {
-    const id = params.params.id;
+    const { id } = params;
 
     // Get the token from the authorization header
     const token = request.headers.get("authorization")?.split(" ")[1];
@@ -80,9 +78,12 @@ export async function GET(request: NextRequest, params: ParamsType) {
   }
 }
 
-export async function PUT(request: NextRequest, params: ParamsType) {
+export async function PUT(
+  request: NextRequest,
+  { params }: Params
+) {
   try {
-    const id = params.params.id;
+    const { id } = params;
 
     // Get the token from the authorization header
     const token = request.headers.get("authorization")?.split(" ")[1];
@@ -154,9 +155,12 @@ export async function PUT(request: NextRequest, params: ParamsType) {
   }
 }
 
-export async function DELETE(request: NextRequest, params: ParamsType) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: Params
+) {
   try {
-    const id = params.params.id;
+    const { id } = params;
 
     // Get the token from the authorization header
     const token = request.headers.get("authorization")?.split(" ")[1];
