@@ -2,11 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { API_URL } from "@/app/lib/constants";
 import type { ApiError } from "@/app/types/api";
 
-type Params = { params: { id: string } };
-
 export async function GET(
   request: NextRequest,
-  { params }: Params
+  { params }: { params: { id: string } }
 ) {
   try {
     const { id } = params;
@@ -80,7 +78,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: Params
+  { params }: { params: { id: string } }
 ) {
   try {
     const { id } = params;
@@ -157,7 +155,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: Params
+  { params }: { params: { id: string } }
 ) {
   try {
     const { id } = params;
