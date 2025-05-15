@@ -157,7 +157,7 @@ export default function BookingsPage() {
         </h1>
         <div className="bg-white p-6 rounded-lg shadow max-w-md mx-auto">
           <h2 className="text-xl font-semibold mb-4">Find your bookings</h2>
-          <p className="text-gray-600 mb-4">
+          <p className="text-gray-700 mb-4 font-medium">
             Enter the email address you used to make your booking.
           </p>
 
@@ -165,7 +165,7 @@ export default function BookingsPage() {
             <div className="mb-4">
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-gray-800 mb-1"
               >
                 Email Address
               </label>
@@ -173,7 +173,7 @@ export default function BookingsPage() {
                 type="email"
                 id="email"
                 name="email"
-                className="w-full p-2 border border-gray-300 rounded"
+                className="w-full p-2 border border-gray-300 rounded text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#1C3F32]"
                 required
               />
             </div>

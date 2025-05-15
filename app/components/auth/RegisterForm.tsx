@@ -133,7 +133,7 @@ export default function RegisterForm() {
       <h1 className="text-brand-green text-3xl font-medium mb-2">
         Create an account.
       </h1>
-      <p className="text-sm text-gray-700 mb-8">
+      <p className="text-sm text-gray-800 mb-8">
         Already have an account?{" "}
         <Link
           href={
@@ -165,7 +165,7 @@ export default function RegisterForm() {
           <div>
             <label
               htmlFor="firstName"
-              className="block text-sm text-gray-700 mb-1"
+              className="block text-sm font-medium text-gray-800 mb-1"
             >
               First name
             </label>
@@ -175,7 +175,7 @@ export default function RegisterForm() {
               name="firstName"
               value={formData.firstName}
               onChange={handleInputChange}
-              className={`w-full p-3 border ${formErrors.firstName ? "border-red-500" : "border-brand-green"} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
+              className={`w-full p-3 border ${formErrors.firstName ? "border-red-500" : "border-brand-green"} text-gray-900 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
               placeholder="John"
             />
             {formErrors.firstName && (
@@ -187,7 +187,7 @@ export default function RegisterForm() {
           <div>
             <label
               htmlFor="lastName"
-              className="block text-sm text-gray-700 mb-1"
+              className="block text-sm font-medium text-gray-800 mb-1"
             >
               Last name
             </label>
@@ -197,7 +197,7 @@ export default function RegisterForm() {
               name="lastName"
               value={formData.lastName}
               onChange={handleInputChange}
-              className={`w-full p-3 border ${formErrors.lastName ? "border-red-500" : "border-brand-green"} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
+              className={`w-full p-3 border ${formErrors.lastName ? "border-red-500" : "border-brand-green"} text-gray-900 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
               placeholder="Doe"
             />
             {formErrors.lastName && (
@@ -208,7 +208,7 @@ export default function RegisterForm() {
 
         {/* Email */}
         <div>
-          <label htmlFor="email" className="block text-sm text-gray-700 mb-1">
+          <label htmlFor="email" className="block text-sm font-medium text-gray-800 mb-1">
             Email address
           </label>
           <input
@@ -217,7 +217,7 @@ export default function RegisterForm() {
             name="email"
             value={formData.email}
             onChange={handleInputChange}
-            className={`w-full p-3 border ${formErrors.email ? "border-red-500" : "border-brand-green"} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
+            className={`w-full p-3 border ${formErrors.email ? "border-red-500" : "border-brand-green"} text-gray-900 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
             placeholder="your@email.com"
           />
           {formErrors.email && (
@@ -229,7 +229,7 @@ export default function RegisterForm() {
         <div className="relative">
           <label
             htmlFor="password"
-            className="block text-sm text-gray-700 mb-1"
+            className="block text-sm font-medium text-gray-800 mb-1"
           >
             Password
           </label>
@@ -240,7 +240,7 @@ export default function RegisterForm() {
               name="password"
               value={formData.password}
               onChange={handleInputChange}
-              className={`w-full p-3 border ${formErrors.password ? "border-red-500" : "border-brand-green"} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
+              className={`w-full p-3 border ${formErrors.password ? "border-red-500" : "border-brand-green"} text-gray-900 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
               placeholder="••••••••"
             />
             <button
@@ -264,7 +264,7 @@ export default function RegisterForm() {
         <div className="relative">
           <label
             htmlFor="confirmPassword"
-            className="block text-sm text-gray-700 mb-1"
+            className="block text-sm font-medium text-gray-800 mb-1"
           >
             Confirm password
           </label>
@@ -275,7 +275,7 @@ export default function RegisterForm() {
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleInputChange}
-              className={`w-full p-3 border ${formErrors.confirmPassword ? "border-red-500" : "border-brand-green"} rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
+              className={`w-full p-3 border ${formErrors.confirmPassword ? "border-red-500" : "border-brand-green"} text-gray-900 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green`}
               placeholder="••••••••"
             />
             <button
@@ -319,7 +319,7 @@ export default function RegisterForm() {
               />
             </div>
             <div className="ml-3 text-sm">
-              <label htmlFor="terms" className="text-gray-700">
+              <label htmlFor="terms" className="text-gray-800">
                 I agree to the{" "}
                 <a href="/terms" className="text-brand-green hover:underline">
                   Terms and Conditions

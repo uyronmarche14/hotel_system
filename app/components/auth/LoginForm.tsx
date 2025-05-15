@@ -121,7 +121,7 @@ export default function LoginForm() {
 
       <div className="w-full">
         <h1 className="text-brand-green text-3xl font-medium mb-2">Login.</h1>
-        <p className="text-sm text-gray-700 mb-8">
+        <p className="text-sm text-gray-800 mb-8">
           Don&apos;t have an account?{" "}
           <Link
             href={
@@ -156,7 +156,7 @@ export default function LoginForm() {
 
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
-            <label htmlFor="email" className="block text-sm text-gray-700 mb-1">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-800 mb-1">
               Email address
             </label>
             <input
@@ -164,8 +164,8 @@ export default function LoginForm() {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 text-brand-green border border-brand-green rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green"
-              placeholder="your@email.com"
+              className="w-full p-3 text-gray-900 border border-brand-green rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green"
+              placeholder="your@email.com" style={{color: '#333333'}}
               required
             />
           </div>
@@ -173,7 +173,7 @@ export default function LoginForm() {
           <div className="relative">
             <label
               htmlFor="password"
-              className="block text-sm text-gray-700 mb-1"
+              className="block text-sm font-medium text-gray-800 mb-1"
             >
               Password
             </label>
@@ -183,8 +183,8 @@ export default function LoginForm() {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-3 text-brand-green border border-brand-green rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green"
-                placeholder="••••••••"
+                className="w-full p-3 text-gray-900 border border-brand-green rounded-md focus:outline-none focus:ring-1 focus:ring-brand-green"
+                placeholder="••••••••" style={{color: '#333333'}}
                 required
               />
               <button
@@ -212,7 +212,7 @@ export default function LoginForm() {
               />
               <label
                 htmlFor="remember-me"
-                className="ml-2 text-sm text-gray-700"
+                className="ml-2 text-sm font-medium text-gray-800"
               >
                 Remember me
               </label>

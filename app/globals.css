@@ -44,6 +44,9 @@
   --font-cinzel: "Cinzel Decorative", cursive;
   --font-inter: "Inter";
   --font-geist-sans: "Geist", sans-serif;
+  --text-dark: #333333;
+  --text-medium: #555555;
+  --input-text: #333333;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -73,6 +76,36 @@
 
   .border-brand-green {
     border-color: var(--brand-green);
+  }
+  
+  /* Improved input field styles for better readability */
+  .input-field {
+    color: var(--input-text);
+    background-color: #fff;
+    border: 1px solid var(--brand-green);
+    border-radius: 0.375rem;
+    padding: 0.75rem;
+    width: 100%;
+    font-weight: 400;
+  }
+  
+  .input-field:focus {
+    outline: none;
+    box-shadow: 0 0 0 1px var(--brand-green);
+    border-color: var(--brand-green);
+  }
+  
+  .input-field::placeholder {
+    color: #666666;
+    opacity: 1;
+  }
+  
+  .form-label {
+    color: var(--text-dark);
+    font-weight: 500;
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+    display: block;
   }
   
   /* Responsive utilities */
