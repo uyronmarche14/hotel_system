@@ -1,5 +1,5 @@
 // API base URL - Force localhost for development to fix connection issues
-export const API_URL = 'http://localhost:5000';
+export const API_URL = process.env.NEXT_PUBLIC_URL || 10000;
 
 // Maximum file upload size in bytes (5MB)
 export const MAX_FILE_SIZE = 5 * 1024 * 1024;
