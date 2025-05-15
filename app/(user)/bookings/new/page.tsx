@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -17,7 +17,8 @@ import { createBooking } from "@/app/lib/bookingService";
 
 const FALLBACK_IMAGE = "/images/room-placeholder.jpg";
 
-export default function BookingConfirmationPage() {
+function BookingContent() {
+  const searchParams = useSearchParams();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [bookingCompleted, setBookingCompleted] = useState(false);
@@ -39,7 +40,6 @@ export default function BookingConfirmationPage() {
     postalCode: "",
   });
 
-  const searchParams = useSearchParams();
   const { isAuthenticated, user } = useAuth();
   const [room, setRoom] = useState<RoomType | null>(null);
   const [checkInDate] = useState("Mon 5 April 2025");
@@ -56,6 +56,7 @@ export default function BookingConfirmationPage() {
   // Get room info from URL parameters
   const roomId = searchParams.get("roomId");
   const category = searchParams.get("category");
+
 
   // Use useEffect to load room data
   useEffect(() => {
@@ -741,5 +742,13 @@ export default function BookingConfirmationPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function BookingConfirmationPage() {
+  return (
+    <Suspense fallback={<div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[#1C3F32]"></div></div>}>
+      <BookingContent />
+    </Suspense>
   );
 }

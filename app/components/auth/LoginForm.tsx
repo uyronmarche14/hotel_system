@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -13,7 +13,7 @@ import {
 } from "react-icons/fa";
 import { useAuth } from "@/app/context/AuthContext";
 
-export default function LoginForm() {
+function LoginFormContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [email, setEmail] = useState("");
@@ -258,5 +258,13 @@ export default function LoginForm() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function LoginForm() {
+  return (
+    <Suspense fallback={<div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[#1C3F32]"></div></div>}>
+      <LoginFormContent />
+    </Suspense>
   );
 }

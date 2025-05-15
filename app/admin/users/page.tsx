@@ -82,7 +82,7 @@ export default function UsersManagement() {
         const data = await response.json();
         setUsers(data.data);
         setFilteredUsers(data.data);
-      } catch (error: ApiError | unknown) {
+      } catch (error: unknown) {
         setError(
           error instanceof Error
             ? error.message

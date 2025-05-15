@@ -149,7 +149,7 @@ export default function RoomsManagement() {
 
         const data = await response.json();
         setRooms(data.data);
-      } catch (error: ApiError) {
+      } catch (error: unknown) {
         console.error("Error fetching rooms:", error);
         setError(
           error instanceof Error

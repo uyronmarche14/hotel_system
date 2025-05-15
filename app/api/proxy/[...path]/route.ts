@@ -5,21 +5,21 @@ import { API_URL } from "@/app/lib/constants";
  * Proxy API requests to the backend server
  * This helps avoid CORS issues by having requests come from the same origin
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { path: string[] } },
-) {
+export async function GET(request: NextRequest) {
   try {
-    // Get the path from the URL parameters
-    const path = params.path.join("/");
+    // Extract path from URL
+    const url = new URL(request.url);
+    const pathSegments = url.pathname.split('/').filter(Boolean);
+    // Remove 'api' and 'proxy' from the path segments
+    const path = pathSegments.slice(2).join('/');
 
     // Construct the URL to the backend API - note we're using the path directly without adding '/api'
     // because it's already part of our API_URL structure
-    const url = `${API_URL}/api/${path}${request.nextUrl.search || ""}`;
-    console.log(`Proxying GET request to: ${url}`);
+    const apiUrl = `${API_URL}/api/${path}${request.nextUrl.search || ""}`;
+    console.log(`Proxying GET request to: ${apiUrl}`);
 
     // Forward the request to the backend API
-    const response = await fetch(url, {
+    const response = await fetch(apiUrl, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -87,13 +87,13 @@ export async function GET(
   }
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { path: string[] } },
-) {
+export async function POST(request: NextRequest) {
   try {
-    // Get the path from the URL parameters
-    const path = params.path.join("/");
+    // Extract path from URL
+    const url = new URL(request.url);
+    const pathSegments = url.pathname.split('/').filter(Boolean);
+    // Remove 'api' and 'proxy' from the path segments
+    const path = pathSegments.slice(2).join('/');
 
     // Get the request body
     let body;
@@ -108,11 +108,11 @@ export async function POST(
     }
 
     // Construct the URL to the backend API
-    const url = `${API_URL}/api/${path}${request.nextUrl.search || ""}`;
-    console.log(`Proxying POST request to: ${url}`);
+    const apiUrl = `${API_URL}/api/${path}${request.nextUrl.search || ""}`;
+    console.log(`Proxying POST request to: ${apiUrl}`);
 
     // Forward the request to the backend API
-    const response = await fetch(url, {
+    const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

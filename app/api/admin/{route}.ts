@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { API_URL } from "@/app/lib/constants";
-import type { ApiErrorResponse } from "@/app/types/api";
+import type { ApiResponse } from "@/app/types/api";
 
 export async function GET(request: NextRequest) {
   try {
@@ -61,8 +61,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(data);
   } catch (error: unknown) {
     console.error("Error:", error);
-    const errorResponse: ApiErrorResponse = {
-      error: "Server error",
+    const errorResponse: ApiResponse = {
+      success: false,
       message: error instanceof Error ? error.message : "Unknown error",
     };
     return NextResponse.json(errorResponse, { status: 500 });

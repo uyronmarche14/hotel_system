@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { FaEye, FaEyeSlash, FaArrowLeft } from "react-icons/fa";
 import { useAuth } from "@/app/context/AuthContext";
 
-export default function RegisterForm() {
+function RegisterFormContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
@@ -360,5 +360,13 @@ export default function RegisterForm() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function RegisterForm() {
+  return (
+    <Suspense fallback={<div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[#1C3F32]"></div></div>}>
+      <RegisterFormContent />
+    </Suspense>
   );
 }
