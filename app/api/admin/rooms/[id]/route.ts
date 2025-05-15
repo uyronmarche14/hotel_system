@@ -2,9 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { API_URL } from "@/app/lib/constants";
 import type { ApiError } from "@/app/types/api";
 
+type RouteContext = {
+  params: {
+    id: string;
+  };
+};
+
 export async function GET(
   request: NextRequest,
-  context: any
+  context: RouteContext
 ) {
   try {
     const { id } = context.params;
@@ -78,7 +84,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  context: any
+  context: RouteContext
 ) {
   try {
     const { id } = context.params;
@@ -155,7 +161,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  context: any
+  context: RouteContext
 ) {
   try {
     const { id } = context.params;
