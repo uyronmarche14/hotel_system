@@ -4,10 +4,10 @@ import type { ApiError } from "@/app/types/api";
 
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string } },
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = context.params;
+    const { id } = params;
 
     // Get the token from the authorization header
     const token = request.headers.get("authorization")?.split(" ")[1];
@@ -78,10 +78,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  context: { params: { id: string } },
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = context.params;
+    const { id } = params;
 
     // Get the token from the authorization header
     const token = request.headers.get("authorization")?.split(" ")[1];
@@ -155,10 +155,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  context: { params: { id: string } },
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = context.params;
+    const { id } = params;
 
     // Get the token from the authorization header
     const token = request.headers.get("authorization")?.split(" ")[1];
