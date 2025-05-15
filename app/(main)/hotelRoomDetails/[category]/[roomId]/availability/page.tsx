@@ -102,7 +102,7 @@ const CheckAvailabilityPage = () => {
         throw new Error("Room data not available");
       }
 
-      // Construct API endpoint - ensure no double slashes in URL
+      const apiBase = String(API_URL).endsWith("/") ? String(API_URL).slice(0, -1) : String(API_URL);
       const apiBase = API_URL.endsWith("/") ? API_URL.slice(0, -1) : API_URL;
       const endpoint = `${apiBase}/api/bookings/check-availability?roomCategory=${category}&roomTitle=${encodeURIComponent(room.title)}&checkIn=${formattedFirstDay}&checkOut=${formattedLastDay}`;
 
