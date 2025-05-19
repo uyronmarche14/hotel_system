@@ -6,21 +6,29 @@ export async function POST(request: NextRequest) {
     // Parse the request body
     const body = await request.json();
 
-    if (!body.username || !body.password) {
+    // Rename username to email for backend compatibility if needed
+    const loginData = body.username 
+      ? { email: body.username, password: body.password }
+      : body;
+      
+    if (!loginData.email || !loginData.password) {
       return NextResponse.json(
-        { success: false, message: "Username and password are required" },
+        { success: false, message: "Email and password are required" },
         { status: 400 },
       );
     }
 
     // Forward the request to the backend API
+    console.log('Sending admin login request to backend:', `${API_URL}/api/auth/admin-login`);
+    console.log('With data:', loginData);
+    
     const response = await fetch(`${API_URL}/api/auth/admin-login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(loginData),
     });
 
     // Parse the response as text first to help with debugging

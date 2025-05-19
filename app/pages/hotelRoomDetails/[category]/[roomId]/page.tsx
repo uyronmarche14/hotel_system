@@ -37,7 +37,7 @@ const RoomDetails = () => {
         const foundRoom = allRooms.find(
           (r) =>
             r.href ===
-            `/pages/hotelRoomDetails/${params.category}/${params.roomId}`,
+            `/pages/hotelRoomDetails/${params?.category}/${params?.roomId}`,
         );
 
         if (foundRoom) {
@@ -51,7 +51,7 @@ const RoomDetails = () => {
     };
 
     fetchRoomData();
-  }, [params.category, params.roomId]);
+  }, [params?.category, params?.roomId]);
 
   if (loading) {
     return (

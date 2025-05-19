@@ -7,7 +7,7 @@ import { getRoomsByCategory, RoomType } from "@/app/services/roomService";
 
 const CategoryPage = () => {
   const params = useParams();
-  const category = params.category as string;
+  const category = params?.category as string || '';
   const [categoryRooms, setCategoryRooms] = useState<RoomType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   

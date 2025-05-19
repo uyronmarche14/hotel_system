@@ -10,7 +10,7 @@ export const DEFAULT_PAGINATION_LIMIT = 10;
 // Token key in local storage
 export const TOKEN_KEY = 'solace_manor_token';
 
-// User key in local storage
+// User key in local storage  
 export const USER_KEY = 'solace_manor_user';
 
 // Token cookie names

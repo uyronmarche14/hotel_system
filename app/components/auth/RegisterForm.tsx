@@ -34,7 +34,7 @@ function RegisterFormContent() {
 
   // Get redirect URL from query params
   useEffect(() => {
-    const redirect = searchParams.get("redirect");
+    const redirect = searchParams?.get("redirect");
     if (redirect) {
       setRedirectUrl(redirect);
     }

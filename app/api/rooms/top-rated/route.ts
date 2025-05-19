@@ -2,19 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { API_URL } from "@/app/lib/constants";
 
 /**
- * Proxy API requests to the backend server for top-rated rooms
+ * API route handler for fetching top-rated rooms
  */
 export async function GET(request: NextRequest) {
   try {
-    // Extract query parameters
+    // Extract limit query parameter
     const searchParams = request.nextUrl.searchParams;
     const limit = searchParams.get('limit') || '5';
-    
-    // Construct the URL to the backend API
-    const apiUrl = `${API_URL}/api/hotels/rooms/top-rated?limit=${limit}`;
-    console.log(`Proxying GET request to: ${apiUrl}`);
 
-    // Forward the request to the backend API
+    // Construct URL to backend API
+    const apiUrl = `${API_URL}/api/rooms/top-rated?limit=${limit}`;
+    console.log(`Proxying request to: ${apiUrl}`);
+
+    // Forward the request to the backend
     const response = await fetch(apiUrl, {
       method: "GET",
       headers: {
@@ -24,59 +24,70 @@ export async function GET(request: NextRequest) {
       cache: "no-store",
     });
 
-    // Log response for debugging
-    console.log(
-      `Received response from ${apiUrl} with status: ${response.status}`
-    );
+    console.log(`Received response with status: ${response.status}`);
 
-    // If the response is not OK, handle it safely
+    // If the response is not OK, handle it gracefully
     if (!response.ok) {
-      console.error(
-        `API responded with status ${response.status}: ${response.statusText}`
-      );
+      console.error(`API responded with status ${response.status}`);
 
-      // Get content type to check if it's JSON or HTML
-      const contentType = response.headers.get("content-type") || "";
+      // Client-side fallback: fetch all rooms and sort by rating
+      const allRoomsResponse = await fetch(`${API_URL}/api/rooms`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        cache: "no-store",
+      });
 
-      if (contentType.includes("application/json")) {
-        // If JSON, just pass through the error response
-        try {
-          const errorData = await response.json();
-          return NextResponse.json(errorData, { status: response.status });
-        } catch {
-          return NextResponse.json(
-            { error: response.statusText || "Unknown error" },
-            { status: response.status }
-          );
+      if (allRoomsResponse.ok) {
+        const allRoomsData = await allRoomsResponse.json();
+        let rooms = [];
+
+        // Extract rooms array from response
+        if (allRoomsData.rooms && Array.isArray(allRoomsData.rooms)) {
+          rooms = allRoomsData.rooms;
+        } else if (allRoomsData.data && Array.isArray(allRoomsData.data)) {
+          rooms = allRoomsData.data;
         }
-      } else {
-        // If not JSON (likely HTML), return a proper JSON error
-        const text = await response.text();
-        console.error("Error response content:", text.substring(0, 500));
 
-        return NextResponse.json(
-          {
-            error: "API request failed",
-            status: response.status,
-            message:
-              response.statusText || "The server returned an invalid response",
-          },
-          { status: response.status }
-        );
+        // Sort by rating and take top N
+        const topRated = [...rooms]
+          .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+          .slice(0, parseInt(limit));
+
+        console.log(`Generated ${topRated.length} top-rated rooms client-side`);
+
+        // Provide rooms with a message indicating they're fallback data
+        return NextResponse.json({
+          success: true,
+          fallback: true,
+          message: "Using client-side sorted rooms as fallback",
+          data: topRated,
+        });
       }
+
+      // If all else fails, return an empty array with an error message
+      return NextResponse.json({
+        success: false,
+        data: [],
+        message: "Failed to fetch top-rated rooms",
+      });
     }
 
-    // Get the response data
+    // Process successful response
     const data = await response.json();
+    console.log(`Received ${data?.data?.length || 0} top-rated rooms from API`);
 
-    // Return the response
+    // Return the data from the backend
     return NextResponse.json(data);
-  } catch (error: unknown) {
-    console.error("Error in top-rated rooms API proxy:", error);
+  } catch (error) {
+    console.error("Error in top-rated rooms API:", error);
     return NextResponse.json(
-      {
-        error: "Failed to fetch top-rated rooms from API",
-        details: error instanceof Error ? error.message : "Unknown error",
+      { 
+        success: false, 
+        message: "Internal server error",
+        data: [] 
       },
       { status: 500 }
     );

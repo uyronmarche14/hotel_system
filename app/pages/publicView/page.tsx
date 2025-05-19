@@ -42,10 +42,10 @@ const StarRating = ({ rating }: { rating: number }) => {
 // This component uses useSearchParams and will be wrapped in Suspense
 const SearchResultsContent = () => {
   const searchParams = useSearchParams();
-  const location = searchParams.get("location");
-  const checkIn = searchParams.get("checkIn");
-  const checkOut = searchParams.get("checkOut");
-  const guests = searchParams.get("guests");
+  const location = searchParams?.get("location");
+  const checkIn = searchParams?.get("checkIn");
+  const checkOut = searchParams?.get("checkOut");
+  const guests = searchParams?.get("guests");
 
   // Add state management
   const [searchQuery, setSearchQuery] = useState("");

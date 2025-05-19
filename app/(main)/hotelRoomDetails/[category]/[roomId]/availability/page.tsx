@@ -39,8 +39,9 @@ const CheckAvailabilityPage = () => {
   const [usingSimulatedData, setUsingSimulatedData] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
 
-  const category = params.category as string;
-  const roomId = params.roomId as string;
+  // Add null checks for params to fix TypeScript errors
+  const category = params?.category as string || '';
+  const roomId = params?.roomId as string || '';
 
   // Load room data
   useEffect(() => {

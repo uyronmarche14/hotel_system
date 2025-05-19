@@ -8,7 +8,7 @@ import { API_URL } from "@/app/lib/constants";
 export async function GET() {
   try {
     // Try connecting to the backend health endpoint
-    const response = await fetch(`${API_URL}/health`, {
+    const response = await fetch(`${API_URL}/api/health`, {
       method: "GET",
       headers: {
         Accept: "application/json",

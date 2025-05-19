@@ -53,7 +53,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(data);
+    // Add explicit logging to see what's being returned
+    console.log('Successfully fetched users, passing to frontend:', {
+      count: data.users ? data.users.length : (data.data ? data.data.length : 0)
+    });
+    
+    // Ensure we're passing the data in the format the frontend expects
+    return NextResponse.json({
+      success: true,
+      data: data.users || data.data || [], // Support both formats for compatibility
+      count: data.count || (data.users ? data.users.length : 0)
+    });
   } catch (error: unknown) {
     console.error("Admin users fetch error:", error);
     return NextResponse.json(

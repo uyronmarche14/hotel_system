@@ -40,8 +40,9 @@ const RoomDetails = () => {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
 
-  const category = params.category as string;
-  const roomId = params.roomId as string;
+  // Add null checks for params to fix TypeScript errors
+  const category = params?.category as string || '';
+  const roomId = params?.roomId as string || '';
 
   useEffect(() => {
     const fetchRoomData = async () => {

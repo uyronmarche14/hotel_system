@@ -230,11 +230,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log("Login successful, redirecting...");
 
       // Navigate to the redirect URL if provided, or to the dashboard
+      // Use the current origin to ensure we're using the correct port
+      const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+      
       if (redirectUrl) {
-        router.push(redirectUrl);
+        // Check if redirectUrl is a relative or absolute URL
+        const isRelative = !redirectUrl.startsWith('http');
+        const fullRedirectUrl = isRelative ? `${currentOrigin}${redirectUrl.startsWith('/') ? '' : '/'}${redirectUrl}` : redirectUrl;
+        console.log(`Redirecting to: ${fullRedirectUrl}`);
+        window.location.href = fullRedirectUrl;
       } else {
         // Use the standard user dashboard
-        router.push("/dashboard");
+        const dashboardUrl = `${currentOrigin}/dashboard`;
+        console.log(`Redirecting to dashboard: ${dashboardUrl}`);
+        window.location.href = dashboardUrl;
       }
 
       return true;
@@ -338,8 +347,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log("Registration successful, redirecting to login...");
 
       // Navigate to login page with registration_success flag
-      const loginPath = `/login${redirectUrl ? `?redirect=${encodeURIComponent(redirectUrl)}&registration_success=true` : "?registration_success=true"}`;
-      router.push(loginPath);
+      // Use the current origin to ensure we're using the correct port
+      const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+      const loginPath = `${currentOrigin}/login${redirectUrl ? `?redirect=${encodeURIComponent(redirectUrl)}&registration_success=true` : "?registration_success=true"}`;
+      
+      console.log(`Redirecting to: ${loginPath}`);
+      
+      // Use window.location for a full page refresh to ensure proper loading of static assets
+      window.location.href = loginPath;
 
       return true;
     } catch (error: ApiError | unknown) {

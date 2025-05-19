@@ -2,17 +2,24 @@
 
 import { useState, useEffect, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import {
-  FaBed,
-  FaDoorOpen,
-  FaEdit,
-  FaTrash,
-  FaPlus,
-  FaTimes,
+import { 
+  FaStar, 
+  FaStarHalfAlt, 
+  FaBed, 
+  FaDoorOpen, 
+  FaUsers, 
+  FaFilter, 
+  FaPlus, 
+  FaEdit, 
+  FaTrash, 
+  FaTimes, 
+  FaCheck, 
+  FaImage 
 } from "react-icons/fa";
 import AdminLayout from "@/app/components/layouts/AdminLayout";
 import Cookies from "js-cookie";
 import Image from "next/image";
+import { getAdminData } from "@/app/utils/admin-api-helper";
 
 interface ApiError extends Error {
   status?: number;
@@ -100,9 +107,9 @@ export default function RoomsManagement() {
     href: "",
     rating: 4.0,
     reviews: 0,
-    bedType: "Queen",
-    roomSize: "",
-    viewType: "City view",
+    bedType: "queen",
+    roomSize: "300 sq ft",
+    viewType: "city view",
     isAvailable: true,
   });
   const router = useRouter();
@@ -132,23 +139,21 @@ export default function RoomsManagement() {
       if (!checkAdminAuth()) return;
 
       try {
-        // Use the Next.js API route instead of direct API call
-        const response = await fetch(`/api/admin/rooms`, {
-          headers: {
-            Authorization: `Bearer ${Cookies.get("token")}`,
-          },
-        });
-
-        if (!response.ok) {
-          if (response.status === 401 || response.status === 403) {
-            router.push("/admin-login");
-            return;
-          }
-          throw new Error("Failed to fetch rooms");
+        setIsLoading(true);
+        setError(null);
+        
+        // Use the new admin API helper utility
+        const roomsData = await getAdminData<Room[]>('rooms');
+        
+        // Update state with the fetched rooms
+        if (roomsData && roomsData.length > 0) {
+          console.log(`Successfully fetched ${roomsData.length} rooms`);
+          setRooms(roomsData);
+        } else {
+          // Handle empty rooms array
+          console.log('No rooms found or empty array returned');
+          setRooms([]);
         }
-
-        const data = await response.json();
-        setRooms(data.data);
       } catch (error: unknown) {
         console.error("Error fetching rooms:", error);
         setError(
@@ -186,48 +191,83 @@ export default function RoomsManagement() {
       href: "",
       rating: 4.0,
       reviews: 0,
-      bedType: "Queen",
-      roomSize: "",
-      viewType: "City view",
-      isAvailable: true,
+      bedType: "queen",
+      roomSize: "300 sq ft",
+      viewType: "city view",
+      isAvailable: true
     });
     setIsEditing(false);
     setIsModalOpen(true);
   };
 
   const openEditModal = (room: Room) => {
-    setCurrentRoom({
-      id: room.id,
-      title: room.title || "",
-      roomNumber: room.roomNumber,
-      type: room.type,
-      category: room.category || "standard-room",
-      price: room.price,
-      location: room.location || "Taguig, Metro Manila",
-      description: room.description || "",
-      fullDescription: room.fullDescription || "",
-      capacity: room.capacity,
-      maxOccupancy: room.maxOccupancy || 2,
-      amenities: room.amenities.join(", "),
-      additionalAmenities: room.additionalAmenities?.join(", ") || "",
-      features: room.features?.join(", ") || "",
-      imageUrl: room.imageUrl || "",
-      imageUrls: room.images || [],
-      uploadedImages: [],
-      href: room.href || "",
-      rating: room.rating || 4.0,
-      reviews: room.reviews || 0,
-      bedType: room.bedType || "Queen",
-      roomSize: room.roomSize || "",
-      viewType: room.viewType || "City view",
-      isAvailable: room.isAvailable,
-    });
+    initializeRoomForm(room);
     setIsEditing(true);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
+  };
+
+  const initializeRoomForm = (roomData?: Room) => {
+    if (roomData) {
+      // Editing existing room
+      setCurrentRoom({
+        id: roomData.id,
+        title: roomData.title || "",
+        roomNumber: roomData.roomNumber || "",
+        type: roomData.type || "standard",
+        category: roomData.category || "standard-room",
+        price: roomData.price || 0,
+        location: roomData.location || "",
+        description: roomData.description || "",
+        fullDescription: roomData.fullDescription || "",
+        capacity: roomData.capacity || 1,
+        maxOccupancy: roomData.maxOccupancy || 2,
+        amenities: roomData.amenities?.join(", ") || "",
+        additionalAmenities: roomData.additionalAmenities?.join(", ") || "",
+        features: roomData.features?.join(", ") || "",
+        uploadedImages: [], // Start with empty uploaded images
+        imageUrl: roomData.imageUrl || "", // Add the missing imageUrl property
+        imageUrls: roomData.images || [], // Store current image URLs from the images property
+        href: roomData.href || "",
+        rating: roomData.rating || 4.5,
+        reviews: roomData.reviews || 0,
+        bedType: roomData.bedType || "queen",
+        roomSize: roomData.roomSize || "300 sq ft",
+        viewType: roomData.viewType || "city view",
+        isAvailable: roomData.isAvailable !== false,
+      });
+    } else {
+      // Creating new room
+      setCurrentRoom({
+        title: "",
+        roomNumber: "",
+        type: "standard",
+        category: "standard-room",
+        price: 0,
+        location: "Taguig, Metro Manila",
+        description: "",
+        fullDescription: "",
+        capacity: 1,
+        maxOccupancy: 2,
+        amenities: "",
+        additionalAmenities: "",
+        features: "",
+        uploadedImages: [], // Start with empty uploaded images
+        imageUrl: "", // Empty imageUrl for new room
+        imageUrls: [], // No default image URLs
+        href: "",
+        rating: 4.5,
+        reviews: 0,
+        bedType: "queen",
+        roomSize: "300 sq ft",
+        viewType: "city view",
+        isAvailable: true,
+      });
+    }
+    setIsEditing(!!roomData);
   };
 
   const handleChange = (
@@ -255,35 +295,10 @@ export default function RoomsManagement() {
       setCurrentRoom((prev) => ({
         ...prev,
         uploadedImages: [...prev.uploadedImages, ...newFiles],
+        // Clear imageUrls field as we're using file uploads
+        imageUrls: [],
       }));
     }
-  };
-
-  // Handle adding a new image URL to the list
-  const handleAddImageUrl = () => {
-    if (currentRoom.imageUrl.trim()) {
-      setCurrentRoom((prev) => ({
-        ...prev,
-        imageUrls: [...prev.imageUrls, prev.imageUrl.trim()],
-        imageUrl: "", // Clear the input field after adding
-      }));
-    }
-  };
-
-  // Handle removing an image URL from the list
-  const handleRemoveImageUrl = (index: number) => {
-    setCurrentRoom((prev) => ({
-      ...prev,
-      imageUrls: prev.imageUrls.filter((_, i) => i !== index),
-    }));
-  };
-
-  // Handle removing an uploaded file
-  const handleRemoveFile = (index: number) => {
-    setCurrentRoom((prev) => ({
-      ...prev,
-      uploadedImages: prev.uploadedImages.filter((_, i) => i !== index),
-    }));
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -292,46 +307,64 @@ export default function RoomsManagement() {
     try {
       setError(null);
       setIsSuccess(false);
-
-      // Format the room data to match the backend model exactly
-      const formattedRoom = {
-        ...(currentRoom.id && { id: currentRoom.id }), // Only include id if it exists (for edits)
-        title: currentRoom.title,
-        roomNumber: currentRoom.roomNumber,
-        type: currentRoom.type,
-        category: currentRoom.category,
-        price: currentRoom.price,
-        location: currentRoom.location,
-        description: currentRoom.description,
-        fullDescription: currentRoom.fullDescription,
-        capacity: currentRoom.capacity,
-        maxOccupancy: currentRoom.maxOccupancy,
-        amenities: currentRoom.amenities
-          .split(",")
-          .map((item) => item.trim())
-          .filter(Boolean),
-        additionalAmenities: currentRoom.additionalAmenities
-          .split(",")
-          .map((item) => item.trim())
-          .filter(Boolean),
-        features: currentRoom.features
-          .split(",")
-          .map((item) => item.trim())
-          .filter(Boolean),
-        imageUrl: currentRoom.imageUrl,
-        href:
-          currentRoom.href ||
-          `/hotelRoomDetails/${currentRoom.category}/${currentRoom.title.toLowerCase().replace(/\s+/g, "-")}`,
-        rating: currentRoom.rating,
-        reviews: currentRoom.reviews,
-        bedType: currentRoom.bedType,
-        roomSize: currentRoom.roomSize,
-        viewType: currentRoom.viewType,
-        isAvailable: currentRoom.isAvailable,
-        // Use the image URLs array for images
-        images: currentRoom.imageUrls,
-      };
-
+      
+      // Create a FormData object for multipart/form-data submission (for file uploads)
+      const formData = new FormData();
+      
+      // Add all the room details to the FormData
+      if (currentRoom.id) {
+        formData.append('id', currentRoom.id.toString());
+      }
+      formData.append('title', currentRoom.title);
+      formData.append('roomNumber', currentRoom.roomNumber);
+      formData.append('type', currentRoom.type);
+      formData.append('category', currentRoom.category);
+      formData.append('price', currentRoom.price.toString());
+      formData.append('location', currentRoom.location);
+      formData.append('description', currentRoom.description);
+      formData.append('fullDescription', currentRoom.fullDescription);
+      formData.append('capacity', currentRoom.capacity.toString());
+      formData.append('maxOccupancy', currentRoom.maxOccupancy.toString());
+      
+      // Handle array fields by converting them to JSON strings
+      const amenitiesArray = currentRoom.amenities
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+      formData.append('amenities', JSON.stringify(amenitiesArray));
+      
+      const additionalAmenitiesArray = currentRoom.additionalAmenities
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+      formData.append('additionalAmenities', JSON.stringify(additionalAmenitiesArray));
+      
+      const featuresArray = currentRoom.features
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+      formData.append('features', JSON.stringify(featuresArray));
+      
+      // Generate href if not provided
+      const href = currentRoom.href || 
+        `/hotelRoomDetails/${currentRoom.category}/${currentRoom.title.toLowerCase().replace(/\s+/g, "-")}`;
+      formData.append('href', href);
+      
+      // Add other fields
+      formData.append('rating', currentRoom.rating.toString());
+      formData.append('reviews', currentRoom.reviews.toString());
+      formData.append('bedType', currentRoom.bedType);
+      formData.append('roomSize', currentRoom.roomSize);
+      formData.append('viewType', currentRoom.viewType);
+      formData.append('isAvailable', currentRoom.isAvailable.toString());
+      
+      // Add all uploaded images to the FormData
+      if (currentRoom.uploadedImages && currentRoom.uploadedImages.length > 0) {
+        currentRoom.uploadedImages.forEach((file, index) => {
+          formData.append(`images`, file);
+        });
+      }
+      
       // Use the Next.js API route instead of direct API call
       const url = isEditing
         ? `/api/admin/rooms/${currentRoom.id}`
@@ -339,15 +372,18 @@ export default function RoomsManagement() {
 
       const method = isEditing ? "PUT" : "POST";
 
-      console.log("Submitting room data:", formattedRoom);
+      console.log("Submitting room data with files:", {
+        roomDetails: Object.fromEntries(formData.entries()),
+        fileCount: currentRoom.uploadedImages.length
+      });
 
       const response = await fetch(url, {
         method,
         headers: {
-          "Content-Type": "application/json",
+          // Don't set Content-Type for FormData, the browser will set it correctly with boundary
           Authorization: `Bearer ${Cookies.get("token")}`,
         },
-        body: JSON.stringify(formattedRoom),
+        body: formData,
       });
 
       const data = await response.json();
@@ -997,7 +1033,10 @@ export default function RoomsManagement() {
                               </div>
                               <button
                                 type="button"
-                                onClick={() => handleRemoveFile(index)}
+                                onClick={() => setCurrentRoom(prev => ({
+                                  ...prev,
+                                  uploadedImages: prev.uploadedImages.filter((_, i) => i !== index)
+                                }))}
                                 className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
                                 title="Remove"
                               >
@@ -1014,71 +1053,43 @@ export default function RoomsManagement() {
                   </div>
 
                   {/* Image URL Option */}
-                  <div className="mb-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">
-                      Option 2: Add Image URLs
-                    </h4>
-                    <div className="flex">
-                      <input
-                        type="text"
-                        name="imageUrl"
-                        value={currentRoom.imageUrl}
-                        onChange={handleChange}
-                        placeholder="https://example.com/image.jpg"
-                        className="flex-1 p-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-black"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleAddImageUrl}
-                        className="px-4 py-2 bg-[#1C3F32] text-white rounded-r-md hover:bg-[#1C3F32]/90"
-                      >
-                        Add
-                      </button>
-                    </div>
-
-                    {/* Show list of added image URLs */}
-                    {currentRoom.imageUrls.length > 0 && (
+                  <div className="mt-4">
+                    {/* Show preview of selected images */}
+                    {currentRoom.uploadedImages.length > 0 && (
                       <div className="mt-3">
                         <h5 className="text-sm font-medium text-gray-700 mb-2">
-                          Added Image URLs
+                          Selected Images ({currentRoom.uploadedImages.length})
                         </h5>
-                        <div className="grid grid-cols-1 gap-2">
-                          {currentRoom.imageUrls.map((url, index) => (
-                            <div
+                        <ul className="space-y-2">
+                          {currentRoom.uploadedImages.map((file, index) => (
+                            <li
                               key={index}
-                              className="flex items-center justify-between p-2 bg-gray-50 rounded-md"
+                              className="flex items-center justify-between"
                             >
-                              <div className="flex items-center space-x-2 overflow-hidden">
-                                <div className="h-10 w-10 bg-gray-100 rounded-md border overflow-hidden flex-shrink-0">
-                                  <Image
-                                    src={url}
-                                    alt={`URL ${index + 1}`}
-                                    width={40}
-                                    height={40}
-                                    className="h-full w-full object-cover"
-                                    onError={(e) => {
-                                      const target =
-                                        e.target as HTMLImageElement;
-                                      target.src =
-                                        "/images/room-placeholder.jpg";
-                                    }}
-                                  />
+                              <div className="flex items-center">
+                                <div className="w-10 h-10 bg-gray-100 rounded overflow-hidden mr-2 flex items-center justify-center">
+                                  <FaImage className="text-gray-400" />
                                 </div>
-                                <span className="text-xs text-gray-700 truncate">
-                                  {url}
+                                <span className="text-xs text-gray-500 truncate max-w-[180px]">
+                                  {file.name} ({Math.round(file.size / 1024)} KB)
                                 </span>
                               </div>
                               <button
                                 type="button"
-                                onClick={() => handleRemoveImageUrl(index)}
+                                onClick={() => {
+                                  // Remove file from uploaded images
+                                  setCurrentRoom(prev => ({
+                                    ...prev,
+                                    uploadedImages: prev.uploadedImages.filter((_, i) => i !== index)
+                                  }));
+                                }}
                                 className="text-red-500 hover:text-red-700"
-                                title="Remove"
                               >
-                                <FaTimes size={14} />
+                                <FaTrash />
                               </button>
-                            </div>
+                            </li>
                           ))}
-                        </div>
+                        </ul>
                       </div>
                     )}
                   </div>

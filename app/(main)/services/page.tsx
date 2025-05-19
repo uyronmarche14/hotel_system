@@ -48,11 +48,11 @@ const StarRating = ({ rating }: { rating: number }) => {
 const SearchResultsContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const location = searchParams.get("location") || "Philippines";
-  const checkIn = searchParams.get("checkIn") || "05 April 2025";
-  const checkOut = searchParams.get("checkOut") || "07 April 2025";
-  const guests = searchParams.get("guests") || "1 Room | 1 Adults";
-  const category = searchParams.get("category");
+  const location = searchParams?.get("location") || "Philippines";
+  const checkIn = searchParams?.get("checkIn") || "05 April 2025";
+  const checkOut = searchParams?.get("checkOut") || "07 April 2025";
+  const guests = searchParams?.get("guests") || "1 Room | 1 Adults";
+  const category = searchParams?.get("category") || undefined;
 
   // Local state for search form
   const [searchLocation, setSearchLocation] = useState(location);

@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { API_URL } from "@/app/lib/constants";
 
-interface ApiError extends Error {
-  status?: number;
-  response?: {
-    status: number;
-    data: { message: string };
-  };
-}
-
+/**
+ * GET handler for admin rooms
+ * Fetches all rooms from the backend
+ */
 export async function GET(request: NextRequest) {
   try {
     // Get the token from the authorization header
@@ -32,26 +28,8 @@ export async function GET(request: NextRequest) {
       cache: "no-store",
     });
 
-    // Parse the response as text first to help with debugging
-    const responseText = await response.text();
-
-    let data;
-    try {
-      // Try to parse the response as JSON
-      data = JSON.parse(responseText);
-    } catch {
-      console.error(
-        "Failed to parse response as JSON:",
-        responseText.substring(0, 500),
-      );
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Failed to fetch rooms: Server returned an invalid response",
-        },
-        { status: 500 },
-      );
-    }
+    // Parse the response
+    const data = await response.json();
 
     // Return the appropriate response
     if (!response.ok) {
@@ -62,22 +40,23 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(data);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Admin rooms fetch error:", error);
-    const apiError = error as ApiError;
     return NextResponse.json(
       {
         success: false,
         message:
-          apiError.response?.data?.message ||
-          apiError.message ||
-          "Unknown error",
+          "Server error: " +
+          (error instanceof Error ? error.message : "Unknown error"),
       },
-      { status: apiError.response?.status || 500 },
+      { status: 500 },
     );
   }
 }
 
+/**
+ * POST handler for creating a new room
+ */
 export async function POST(request: NextRequest) {
   try {
     // Get the token from the authorization header
@@ -90,8 +69,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse the request body
-    const body = await request.json();
+    // Get room data from request
+    const roomData = await request.json();
 
     // Forward the request to the backend API
     const response = await fetch(`${API_URL}/api/admin/rooms`, {
@@ -101,29 +80,11 @@ export async function POST(request: NextRequest) {
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(roomData),
     });
 
-    // Parse the response as text first to help with debugging
-    const responseText = await response.text();
-
-    let data;
-    try {
-      // Try to parse the response as JSON
-      data = JSON.parse(responseText);
-    } catch {
-      console.error(
-        "Failed to parse response as JSON:",
-        responseText.substring(0, 500),
-      );
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Failed to create room: Server returned an invalid response",
-        },
-        { status: 500 },
-      );
-    }
+    // Parse the response
+    const data = await response.json();
 
     // Return the appropriate response
     if (!response.ok) {

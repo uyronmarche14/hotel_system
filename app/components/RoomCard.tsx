@@ -16,11 +16,21 @@ const RoomCard = ({ room }: RoomCardProps) => {
   const cloudinaryFallback =
     "https://res.cloudinary.com/ddnxfpziq/image/upload/v1747146600/room-placeholder_mnyxqz.jpg";
 
-  // Determine image source
-  const imgSrc =
-    imageError || !imageUrl?.includes("cloudinary.com")
-      ? cloudinaryFallback
-      : imageUrl;
+  // Determine image source with support for Supabase URLs
+  const getImageSrc = () => {
+    if (imageError) return cloudinaryFallback;
+    if (!imageUrl) return cloudinaryFallback;
+    
+    // Support for Supabase storage URLs
+    if (imageUrl.includes('supabase') || imageUrl.startsWith('https://')) {
+      return imageUrl;
+    }
+    
+    // Use Cloudinary fallback if not recognized URL format
+    return cloudinaryFallback;
+  };
+  
+  const imgSrc = getImageSrc();
 
   return (
     <Link href={href} className="block h-full">

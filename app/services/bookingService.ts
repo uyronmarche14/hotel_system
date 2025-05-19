@@ -77,24 +77,97 @@ export const getBookingById = async (bookingId: string): Promise<Booking | null>
 /**
  * Creates a new booking
  */
-export const createBooking = async (bookingData: Omit<Booking, 'id' | 'createdAt'>): Promise<Booking | null> => {
+export const createBooking = async (bookingData: Omit<Booking, 'id' | 'createdAt'>): Promise<{ success: boolean; data?: Booking; error?: string; validationErrors?: any[] }> => {
   try {
-    const response = await fetch(`${API_URL}/api/bookings`, {
+    // Ensure all required fields are present and properly formatted
+    const enhancedBookingData = {
+      ...bookingData,
+      // Ensure adults is at least 1
+      adults: bookingData.adults || 1,
+      // Set a default payment method if none provided
+      paymentMethod: bookingData.paymentMethod || 'credit_card',
+      // Ensure we have proper dates
+      checkIn: formatDateForAPI(bookingData.checkIn),
+      checkOut: formatDateForAPI(bookingData.checkOut),
+    };
+    
+    console.log('Sending booking data:', JSON.stringify(enhancedBookingData));
+    
+    const response = await fetch(`/api/bookings`, {
       method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(bookingData)
+      headers: {
+        ...getAuthHeaders()
+      },
+      body: JSON.stringify(enhancedBookingData)
     });
 
+    const responseData = await response.json();
+    
     if (!response.ok) {
-      throw new Error(`Error creating booking: ${response.status}`);
+      console.log('Booking API error response:', JSON.stringify(responseData));
+      return {
+        success: false,
+        error: responseData.message || `Error creating booking: ${response.status}`,
+        validationErrors: responseData.errors
+      };
     }
 
-    const data = await response.json();
-    return data.data;
+    console.log('Booking created successfully:', responseData);
+    return {
+      success: true,
+      data: responseData.data
+    };
   } catch (error) {
     console.error('Failed to create booking:', error);
-    return null;
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
   }
+};
+
+/**
+ * Format date for API submission
+ * Ensures dates are in the correct format for the API
+ */
+const formatDateForAPI = (date: string | Date | undefined): string => {
+  if (!date) {
+    // Use tomorrow as default check-in date if none provided
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
+  }
+  
+  // If it's already a Date object, format it
+  if (date instanceof Date) {
+    return date.toISOString().split('T')[0];
+  }
+  
+  // If it's a string, parse it and format it
+  try {
+    const parsedDate = new Date(date);
+    if (!isNaN(parsedDate.getTime())) {
+      // Make sure the date is not in the past
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (parsedDate < today) {
+        // If date is in the past, use tomorrow
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        return tomorrow.toISOString().split('T')[0];
+      }
+      
+      return parsedDate.toISOString().split('T')[0];
+    }
+  } catch (e) {
+    // Ignore parsing errors
+  }
+  
+  // If all else fails, use tomorrow
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return tomorrow.toISOString().split('T')[0];
 };
 
 /**

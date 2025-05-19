@@ -1,3 +1,5 @@
+import { API_URL } from "../lib/constants";
+
 export interface RoomType {
   id?: string;
   title: string;
@@ -29,12 +31,20 @@ export interface RoomType {
  * Validate and fix image URLs with Cloudinary fallback
  */
 const validateImageUrl = (url: string | undefined): string => {
-  // Cloudinary placeholder for missing images
-  const cloudinaryFallback =
-    "https://res.cloudinary.com/ddnxfpziq/image/upload/v1747146600/room-placeholder_mnyxqz.jpg";
+  // Placeholder for missing images - using placehold.co instead of broken Cloudinary URL
+  const imageFallback = "https://placehold.co/600x400/png?text=Room+Image";
 
-  if (!url) return cloudinaryFallback;
+  if (!url) return imageFallback;
+  
+  // If it's an empty string, return the fallback
+  if (url.trim() === '') return imageFallback;
 
+  // If it's a Supabase storage URL, return it as is
+  if (url.includes('supabase.co') || url.includes('supabase.in')) {
+    console.log('Found Supabase storage URL:', url);
+    return url;
+  }
+  
   // If it's already a Cloudinary URL, return it
   if (url.includes("cloudinary.com")) {
     return url;
@@ -48,10 +58,17 @@ const validateImageUrl = (url: string | undefined): string => {
   // If it's a relative URL referencing the placeholder, use Cloudinary
   if (
     url.includes("room-placeholder") ||
-    url.endsWith(".jpg") ||
-    url.endsWith(".png")
+    url.includes("placeholder") ||
+    url === 'null' || 
+    url === 'undefined'
   ) {
-    return cloudinaryFallback;
+    return imageFallback;
+  }
+  
+  // For local file paths that might be incorrectly formatted
+  if (url.includes('/storage/')) {
+    console.log('Converting local storage path to proper URL');
+    return url;
   }
 
   // If it's a relative URL but doesn't start with slash, add one
@@ -62,7 +79,7 @@ const validateImageUrl = (url: string | undefined): string => {
   return url;
 };
 
-interface BackendRoom {
+export interface BackendRoom {
   id?: string;
   _id?: string;
   title?: string;
@@ -175,14 +192,34 @@ export const getAllRooms = async (): Promise<RoomType[]> => {
 
     const data = await response.json();
     console.log("API response received successfully");
-    console.log("Received data for", data?.data?.length || 0, "rooms");
-
-    if (!data || !data.data || !Array.isArray(data.data)) {
-      console.error("API response is not in the expected format");
+    
+    // Support different response formats:
+    // 1. { data: [...rooms] }
+    // 2. { rooms: [...rooms] }
+    // 3. Just [...rooms] array directly
+    
+    let roomsArray: BackendRoom[] = [];
+    
+    if (data.data && Array.isArray(data.data)) {
+      console.log("Found rooms in data.data format:", data.data.length);
+      roomsArray = data.data;
+    } else if (data.rooms && Array.isArray(data.rooms)) {
+      console.log("Found rooms in data.rooms format:", data.rooms.length);
+      roomsArray = data.rooms;
+    } else if (Array.isArray(data)) {
+      console.log("Found rooms in direct array format:", data.length);
+      roomsArray = data;
+    } else if (data.success && Array.isArray(data.rooms)) {
+      // Format: { success: true, rooms: [] }
+      console.log("Found rooms in success.rooms format:", data.rooms.length);
+      roomsArray = data.rooms;
+    } else {
+      console.error("API response is not in any expected format:", data);
       return [];
     }
-
-    return data.data.map(mapRoomData);
+    
+    console.log("Processing", roomsArray.length, "rooms");
+    return roomsArray.map(mapRoomData);
   } catch (error) {
     console.error("Failed to fetch rooms from API:", error);
     return [];
@@ -194,8 +231,8 @@ export const getAllRooms = async (): Promise<RoomType[]> => {
  */
 export const getRoomById = async (roomId: string): Promise<RoomType | null> => {
   try {
-    // Use the internal Next.js API proxy route
-    const response = await fetch(`/api/proxy/hotels/rooms/${roomId}`, {
+    // Use the updated API route directly
+    const response = await fetch(`/api/rooms/${roomId}`, {
       method: "GET",
       cache: "no-store",
       headers: {
@@ -226,6 +263,8 @@ export const getRoomById = async (roomId: string): Promise<RoomType | null> => {
     return null;
   }
 };
+
+// This function was moved to the end of the file
 
 /**
  * Fetches top rated rooms from the MongoDB database via API
@@ -282,7 +321,7 @@ export const getRoomsByCategory = async (
   try {
     // Use the internal Next.js API proxy route
     const response = await fetch(
-      `/api/proxy/hotels/rooms/category/${category}`,
+      `/api/rooms/category/${category}`,
       {
         method: "GET",
         cache: "no-store",
@@ -325,7 +364,7 @@ export const getRoomsByCategory = async (
 export const getCategoryRooms = async (): Promise<RoomType[]> => {
   try {
     // Use the internal Next.js API proxy route
-    const response = await fetch(`/api/proxy/hotels/rooms/categories/samples`, {
+    const response = await fetch(`/api/rooms/categories/samples`, {
       method: "GET",
       cache: "no-store",
       headers: {
@@ -375,7 +414,7 @@ export const searchRooms = async (query: string): Promise<RoomType[]> => {
   try {
     // Use the internal Next.js API proxy route
     const response = await fetch(
-      `/api/proxy/hotels/rooms/search?q=${encodeURIComponent(query)}`,
+      `/api/rooms/search?q=${encodeURIComponent(query)}`,
       {
         method: "GET",
         cache: "no-store",
@@ -420,7 +459,7 @@ export const checkRoomAvailability = async (
   try {
     // Use the internal Next.js API proxy route
     const response = await fetch(
-      `/api/proxy/hotels/rooms/${roomId}/availability?checkIn=${checkIn}&checkOut=${checkOut}`,
+      `/api/rooms/${roomId}/availability?checkIn=${checkIn}&checkOut=${checkOut}`,
       {
         method: "GET",
         cache: "no-store",

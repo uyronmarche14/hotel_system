@@ -27,17 +27,17 @@ function LoginFormContent() {
 
   // Get redirect URL, session expired flag, and registration success flag from query params
   useEffect(() => {
-    const redirect = searchParams.get("redirect");
+    const redirect = searchParams?.get("redirect");
     if (redirect) {
       setRedirectUrl(redirect);
     }
 
-    const expired = searchParams.get("session_expired");
+    const expired = searchParams?.get("session_expired");
     if (expired === "true") {
       setSessionExpired(true);
     }
 
-    const registrationSuccess = searchParams.get("registration_success");
+    const registrationSuccess = searchParams?.get("registration_success");
     if (registrationSuccess === "true") {
       setShowSuccessModal(true);
 

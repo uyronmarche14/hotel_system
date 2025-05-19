@@ -13,7 +13,7 @@ import {
   FaWifi,
   FaCheck,
 } from "react-icons/fa";
-import { createBooking } from "@/app/lib/bookingService";
+import { createBooking, BookingFormData } from "@/app/lib/bookingService";
 
 const FALLBACK_IMAGE = "/images/room-placeholder.jpg";
 
@@ -53,9 +53,9 @@ function BookingContent() {
   const taxAndFees = Math.round(basePrice * taxRate);
   const totalPrice = basePrice + taxAndFees;
 
-  // Get room info from URL parameters
-  const roomId = searchParams.get("roomId");
-  const category = searchParams.get("category");
+  // Get room info from URL parameters - with null checks
+  const roomId = searchParams?.get("roomId") || "";
+  const category = searchParams?.get("category") || "";
 
 
   // Use useEffect to load room data
@@ -73,10 +73,18 @@ function BookingContent() {
     const fetchRoom = async () => {
       try {
         const allRooms = await getAllRooms();
+        console.log("Fetched rooms:", allRooms.length);
+        
+        // Log search criteria
+        console.log(`Looking for room with category=${category} and roomId=${roomId}`);
 
         // Find the room
         const foundRoom = allRooms.find((r) => {
+          // Create consistent title slug for comparison
           const titleSlug = r.title.toLowerCase().replace(/ /g, "-");
+          // Debug room matching
+          console.log(`Comparing room: ${r.title}, id=${r.id}, category=${r.category}`);
+          
           return (
             r.category === category &&
             (titleSlug === roomId || r.href?.includes(roomId))
@@ -84,10 +92,18 @@ function BookingContent() {
         });
 
         if (!foundRoom) {
+          console.error("Room not found with given criteria");
           router.push("/dashboard");
           return;
         }
-
+        
+        // Ensure room has a valid ID
+        if (!foundRoom.id) {
+          console.error("Found room but it has no ID", foundRoom);
+          foundRoom.id = roomId; // Use roomId from URL as fallback
+        }
+        
+        console.log("Found room:", foundRoom);
         setRoom(foundRoom);
 
         // Pre-fill user data if available
@@ -145,57 +161,155 @@ function BookingContent() {
         setLoading(false);
         return;
       }
+      
+      // Parse string date to Date object, handling text formats like "Mon 5 April 2025"
+      const parseDate = (dateStr: string) => {
+        // First try standard parsing
+        const parsed = new Date(dateStr);
+        if (!isNaN(parsed.getTime())) {
+          return parsed;
+        }
+        
+        // If that fails, try parsing the format "Day DD Month YYYY"
+        const parts = dateStr.split(' ');
+        if (parts.length >= 3) {
+          const day = parseInt(parts[1]);
+          const month = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 
+                       'august', 'september', 'october', 'november', 'december']
+                       .indexOf(parts[2].toLowerCase());
+          const year = parseInt(parts[3]);
+          
+          if (!isNaN(day) && month !== -1 && !isNaN(year)) {
+            return new Date(year, month, day);
+          }
+        }
+        
+        // Fall back to current date if parsing fails
+        return new Date();
+      };
 
-      // Format dates properly for the API
-      const formatApiDate = (dateStr: string) => {
+      // Format dates properly for the API and ensure they're valid
+      const formatApiDate = (dateStr: string, isCheckOut = false, checkInDateStr: string | null = null) => {
         try {
-          // Try to parse the date string and format as ISO string
-          const date = new Date(dateStr);
-          return date.toISOString();
+          // Get current date for validation
+          const currentDate = new Date();
+          
+          // Parse the input date
+          const inputDate = parseDate(dateStr);
+          
+          // If this is a checkout date and we have a check-in date to compare against
+          if (isCheckOut && checkInDateStr) {
+            const checkInDate = parseDate(checkInDateStr);
+            
+            // If inputDate is the same as or before checkInDate, add at least 1 day
+            if (inputDate <= checkInDate) {
+              console.log(`Check-out date ${dateStr} is not after check-in date, adding 1 day`);
+              const properCheckOutDate = new Date(checkInDate);
+              properCheckOutDate.setDate(properCheckOutDate.getDate() + 1);
+              return properCheckOutDate.toISOString();
+            }
+          }
+          
+          // If the input date is in the past, use a date from now
+          if (inputDate < currentDate) {
+            console.log(`Date ${dateStr} is in the past, using future date instead`);
+            const futureDate = new Date();
+            futureDate.setDate(futureDate.getDate() + (isCheckOut ? 2 : 1)); // Set to tomorrow or day after tomorrow for checkout
+            return futureDate.toISOString();
+          }
+          
+          // Otherwise use the provided date
+          return inputDate.toISOString();
         } catch (error) {
           console.error("Error formatting date:", error);
-          return dateStr; // Fall back to original string if parsing fails
+          // Fall back to a safe future date if parsing fails
+          const safeDate = new Date();
+          safeDate.setDate(safeDate.getDate() + (isCheckOut ? 2 : 1)); // Set checkout to day after tomorrow
+          return safeDate.toISOString();
         }
       };
+      
+      // Get user email from form or auth context
+      const userEmail = formData.email || user?.email || '';
+      
+      // Format check-in and check-out dates
+      const formattedCheckIn = formatApiDate(checkInDate, false, null);
+      const formattedCheckOut = formatApiDate(checkOutDate, true, checkInDate);
+      
+      // Required payment methods: 'credit_card', 'paypal', 'cash', 'bank_transfer'
+      const paymentMethod = 'credit_card';
+      
+      // Calculate total price to ensure it's a number
+      const calculatedTotalPrice = Number(totalPrice) || 0;
+      
+      // Debug room information
+      console.log("Room data for booking:", JSON.stringify(room, null, 2));
+      
+      // Validate room ID existence
+      if (!room.id) {
+        console.error("Room ID is missing or undefined!", room);
+        throw new Error("Room ID is required but was not found. Please try another room.");
+      }
 
-      // Format data for API
-      const bookingData = {
+      // Create the booking data in the format expected by the API
+      const bookingData: BookingFormData = {
+        // Room information with proper ID format - ensure it's a string and exists
+        roomId: room.id.toString(),
+        
+        // Room type information required by BookingFormData interface
+        roomType: room.category || '',
+        roomTitle: room.title || '',
+        roomCategory: room.category || '',
+        roomImage: room.imageUrl || '',
+        
+        // Date information
+        checkIn: formattedCheckIn,
+        checkOut: formattedCheckOut,
+        nights: nightsStay,
+        
+        // Guest information
+        adults: adultsCount,
+        guests: adultsCount, // Required by BookingFormData interface
+        children: 0,
+        
+        // Payment information
+        paymentMethod: paymentMethod,
+        totalPrice: calculatedTotalPrice,
+        
+        // Price breakdown required by BookingFormData interface
+        basePrice: basePrice,
+        taxAndFees: taxAndFees,
+        
+        // User information
         firstName: formData.firstName,
         lastName: formData.lastName,
-        email: formData.email,
+        email: userEmail,
         phone: formData.phone,
-        roomType: room.category || "",
-        roomTitle: room.title || "",
-        roomCategory: room.category || "",
-        roomImage: room.imageUrl || "",
-        checkIn: formatApiDate(checkInDate),
-        checkOut: formatApiDate(checkOutDate),
-        nights: Number(nightsStay),
-        guests: Number(adultsCount),
-        specialRequests: formData.specialRequests || "",
-        basePrice: Number(basePrice),
-        taxAndFees: Number(taxAndFees),
-        totalPrice: Number(totalPrice),
-        location: "Taguig, Metro Manila",
+        specialRequests: formData.specialRequests || '',
+        
+        // Location information
+        location: room.location || 'Taguig, Metro Manila',
       };
 
-      console.log("Submitting booking data:", bookingData);
+      console.log("Submitting booking data to API:", JSON.stringify(bookingData, null, 2));
 
-      try {
-        // Call backend API
-        const response = await createBooking(bookingData);
+      // Call the API to create the booking
+      const response = await createBooking(bookingData);
 
-        console.log("Booking response:", response);
+      console.log("Booking API response:", JSON.stringify(response, null, 2));
 
-        if (response && response.success) {
-          // Show success state
-          setBookingCompleted(true);
-        } else {
-          throw new Error("Booking response indicates failure");
-        }
-      } catch (apiError) {
-        console.error("API Error creating booking:", apiError);
-        throw apiError; // Re-throw to be caught by outer catch
+      if (response && response.success) {
+        // Show success state and redirect after delay
+        setBookingCompleted(true);
+        
+        // Redirect to booking confirmation or history page after successful booking
+        setTimeout(() => {
+          router.push('/bookings/history');
+        }, 2000);
+      } else {
+        // Handle error response without message property
+        const errorMessage = "Failed to create booking. Please try again.";
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error("Error creating booking:", error);

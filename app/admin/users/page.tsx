@@ -80,8 +80,22 @@ export default function UsersManagement() {
         }
 
         const data = await response.json();
-        setUsers(data.data);
-        setFilteredUsers(data.data);
+        console.log('Users API response:', data);
+        
+        // The backend returns users in the 'users' property, not 'data'
+        if (data.users) {
+          setUsers(data.users);
+          setFilteredUsers(data.users);
+        } else if (data.data) {
+          // Fallback for backward compatibility
+          setUsers(data.data);
+          setFilteredUsers(data.data);
+        } else {
+          // If no users are found, set empty arrays
+          setUsers([]);
+          setFilteredUsers([]);
+          console.error('No users data found in API response');
+        }
       } catch (error: unknown) {
         setError(
           error instanceof Error
@@ -99,6 +113,8 @@ export default function UsersManagement() {
 
   useEffect(() => {
     // Filter and search users when criteria change
+    if (!users || users.length === 0) return;
+    
     let result = [...users];
 
     // Apply role filter
@@ -214,7 +230,7 @@ export default function UsersManagement() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredUsers.length > 0 ? (
+                {filteredUsers && filteredUsers.length > 0 ? (
                   filteredUsers.map((user) => {
                     return (
                       <React.Fragment key={user.id}>

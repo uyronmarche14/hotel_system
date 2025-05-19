@@ -7,6 +7,7 @@ export interface BookingFormData {
   lastName: string;
   email: string;
   phone: string;
+  roomId?: string; // Added to match backend requirements
   roomType: string;
   roomTitle: string;
   roomCategory: string;
@@ -14,7 +15,10 @@ export interface BookingFormData {
   checkIn: string;
   checkOut: string;
   nights: number;
-  guests: number;
+  adults?: number; // Added to support backend validation
+  guests?: number; // Made optional since we're now using adults
+  children?: number; // Added to match backend data structure
+  paymentMethod?: string; // Added to match backend requirements
   specialRequests?: string;
   basePrice: number;
   taxAndFees: number;
@@ -199,8 +203,8 @@ export const createBooking = async (
 
     // Check if the API server is accessible
     try {
-      // Use the health endpoint defined in app.js
-      const healthUrl = getApiUrl("/health");
+      // Use the health endpoint defined in app.js - this should be /api/health not /health
+      const healthUrl = getApiUrl("/api/health");
       console.log("Checking health at:", healthUrl);
 
       const pingResponse = await fetch(healthUrl, {
@@ -208,16 +212,25 @@ export const createBooking = async (
         headers: {
           Accept: "application/json",
         },
+        // Reduce timeout for health check
+        signal: AbortSignal.timeout(5000) // 5 second timeout for health check
       });
 
       console.log("Health check response:", pingResponse.status);
 
       if (!pingResponse.ok) {
-        throw new Error("API server is unreachable. Please try again later.");
+        console.error(`Health check failed with status ${pingResponse.status}`);
+        // Continue with the booking attempt even if health check fails
+        // Just log the error and continue with original error
+      } else {
+        // If health check is OK but booking still failed, there might be validation issues
+        if (error instanceof Error && error.message.includes("400")) {
+          throw new Error("Validation failed. Please check your booking details and try again.");
+        }
       }
     } catch (pingError) {
       console.error("API server ping failed:", pingError);
-      throw new Error("API server is unreachable. Please try again later.");
+      // Continue with original error since it's more specific
     }
 
     throw error;
