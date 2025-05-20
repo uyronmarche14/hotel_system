@@ -43,6 +43,13 @@ export default function BookingsPage() {
         setError(null);
 
         const response = await getUserBookings(email);
+        
+        if (!response?.data) {
+          console.error('Booking data is undefined:', response);
+          setBookings([]);
+          return;
+        }
+        
         setBookings(response.data);
       } catch (err) {
         console.error("Error fetching bookings:", err);
@@ -77,7 +84,7 @@ export default function BookingsPage() {
       // Update the booking status in the UI
       setBookings((prevBookings) =>
         prevBookings.map((booking) =>
-          booking._id === bookingId
+          booking.id === bookingId
             ? { ...booking, status: "cancelled", paymentStatus: "refunded" }
             : booking,
         ),
@@ -90,15 +97,16 @@ export default function BookingsPage() {
     }
   };
 
+  // Make sure bookings array exists before filtering
   // Separate upcoming and past bookings
-  const upcomingBookings = bookings.filter(
-    (booking) => booking.status === "confirmed" || booking.status === "pending",
-  );
+  const upcomingBookings = Array.isArray(bookings) ? bookings.filter(
+    (booking) => booking?.status === "confirmed" || booking?.status === "pending",
+  ) : [];
 
-  const pastBookings = bookings.filter(
+  const pastBookings = Array.isArray(bookings) ? bookings.filter(
     (booking) =>
-      booking.status === "completed" || booking.status === "cancelled",
-  );
+      booking?.status === "completed" || booking?.status === "cancelled",
+  ) : [];
 
   // Format date function
   const formatDate = (dateString: string) => {
@@ -119,7 +127,7 @@ export default function BookingsPage() {
   };
 
   // Function to safely get image URLs - handles fallbacks for external URLs
-  const getImageUrl = (url: string) => {
+  const getImageUrl = (url: string | undefined) => {
     // If URL is empty or undefined, return fallback
     if (!url) return FALLBACK_IMAGE;
 
@@ -260,9 +268,9 @@ export default function BookingsPage() {
           </div>
         ) : (
           <div className="space-y-4 sm:space-y-6">
-            {upcomingBookings.map((booking) => (
+            {upcomingBookings.map((booking, index) => (
               <div
-                key={booking._id}
+                key={booking.id || 'booking-' + index}
                 className="bg-white p-4 sm:p-6 rounded-lg shadow"
               >
                 <div className="flex flex-col md:flex-row gap-4 sm:gap-6">
@@ -366,17 +374,17 @@ export default function BookingsPage() {
 
                     <div className="space-y-2 mt-3 md:mt-0">
                       <Link
-                        href={`/bookings/${booking._id}`}
+                        href={`/bookings/${booking.id}`}
                         className="block w-full text-center bg-[#1C3F32] text-white py-2 rounded-md hover:bg-[#1C3F32]/90 transition-colors text-sm sm:text-base"
                       >
                         Manage Booking
                       </Link>
                       <button
-                        onClick={() => handleCancelBooking(booking._id)}
-                        disabled={cancellingId === booking._id}
+                        onClick={() => handleCancelBooking(booking.id)}
+                        disabled={cancellingId === booking.id}
                         className="w-full border border-[#1C3F32] text-[#1C3F32] py-2 rounded-md hover:bg-gray-50 transition-colors text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {cancellingId === booking._id
+                        {cancellingId === booking.id
                           ? "Cancelling..."
                           : "Cancel Booking"}
                       </button>
@@ -403,9 +411,9 @@ export default function BookingsPage() {
           </div>
         ) : (
           <div className="space-y-4 sm:space-y-6">
-            {pastBookings.map((booking) => (
+            {pastBookings.map((booking, index) => (
               <div
-                key={booking._id}
+                key={booking.id || 'booking-' + index}
                 className="bg-white p-4 sm:p-6 rounded-lg shadow"
               >
                 <div className="flex flex-col md:flex-row gap-4 sm:gap-6">
@@ -518,7 +526,7 @@ export default function BookingsPage() {
                     {booking.status === "completed" && (
                       <div className="space-y-2 mt-3 md:mt-0">
                         <Link
-                          href={`/bookings/${booking._id}`}
+                          href={`/bookings/${booking.id}`}
                           className="block w-full text-center border border-[#1C3F32] text-[#1C3F32] py-2 rounded-md hover:bg-gray-50 transition-colors text-sm sm:text-base"
                         >
                           View Details

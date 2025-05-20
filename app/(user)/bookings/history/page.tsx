@@ -14,7 +14,7 @@ import {
   FaBed,
   FaInfoCircle,
 } from "react-icons/fa";
-import { getUserBookingHistory, RoomStat } from "@/app/lib/bookingService";
+import { getBookingHistory, RoomStat } from "@/app/lib/bookingService";
 
 // Fallback image path - this should be in your public directory
 const FALLBACK_IMAGE = "/images/room-placeholder.jpg";
@@ -42,16 +42,61 @@ export default function BookingHistoryPage() {
   }, []);
 
   useEffect(() => {
-    if (!email) return;
-
+    // Using the getBookingHistory function for authenticated users
+    // This works with the user token from cookies instead of requiring email
     const fetchBookingHistory = async () => {
       try {
         setIsLoading(true);
         setError(null);
 
-        const response = await getUserBookingHistory(email);
-        setStats(response.stats);
-        setRoomStats(response.roomStats);
+        const response = await getBookingHistory();
+        console.log('Booking history response:', response);
+        
+        // Handle the updated response format
+        if (response.history) {
+          setStats(response.history.stats || {
+            totalBookings: 0,
+            completedBookings: 0,
+            cancelledBookings: 0,
+            totalRevenue: 0
+          });
+          
+          // Create room stats from bookings data if needed
+          if (!response.roomStats && response.history.bookings) {
+            // Group bookings by room type
+            const bookingsByRoom = {};
+            response.history.bookings.forEach(booking => {
+              const roomType = booking.roomCategory || 'unknown';
+              if (!bookingsByRoom[roomType]) {
+                bookingsByRoom[roomType] = {
+                  roomType,
+                  roomTitle: booking.roomTitle || roomType,
+                  count: 0,
+                  totalRevenue: 0,
+                  imageUrl: booking.roomImage || FALLBACK_IMAGE,
+                  bookings: []
+                };
+              }
+              
+              bookingsByRoom[roomType].count++;
+              bookingsByRoom[roomType].totalRevenue += booking.totalPrice || 0;
+              bookingsByRoom[roomType].bookings.push({
+                id: booking.id,
+                bookingId: booking.bookingId,
+                status: booking.status,
+                checkIn: booking.checkIn,
+                checkOut: booking.checkOut,
+                guests: booking.guests || booking.adults || 1,
+                nights: booking.nights || 1,
+                totalPrice: booking.totalPrice
+              });
+            });
+            
+            setRoomStats(Object.values(bookingsByRoom));
+          } else {
+            setRoomStats(response.roomStats || []);
+          }
+        }
       } catch (err) {
         console.error("Error fetching booking history:", err);
         setError(
@@ -63,7 +108,7 @@ export default function BookingHistoryPage() {
     };
 
     fetchBookingHistory();
-  }, [email]);
+  }, []);
 
   const handleEmailSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

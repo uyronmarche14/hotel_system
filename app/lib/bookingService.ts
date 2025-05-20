@@ -26,13 +26,36 @@ export interface BookingFormData {
   location?: string;
 }
 
-export interface Booking extends BookingFormData {
-  _id: string;
-  user?: string; // Made optional
+export interface Booking {
+  id: string; // Primary key
+  bookingId: string; // Booking reference number
+  roomId: string;
+  userId?: string; // Made optional
+  checkIn: string;
+  checkOut: string;
+  totalPrice: number;
+  basePrice?: number;
+  taxAndFees?: number;
   status: "pending" | "confirmed" | "cancelled" | "completed";
-  paymentStatus: "pending" | "paid" | "refunded";
-  bookingId: string;
+  paymentStatus?: "pending" | "paid" | "refunded";
+  roomTitle?: string;
+  roomImage?: string;
+  roomCategory?: string;
+  roomType?: string;
+  roomLocation?: string;
+  location?: string;
+  nights?: number;
+  paymentMethod?: string;
+  specialRequests?: string;
+  guests?: number;
+  adults?: number; // For backward compatibility
+  children?: number;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 // Interface for booking history

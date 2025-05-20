@@ -1,9 +1,8 @@
-'use client';
-
 import "./globals.css";
 import { Inter, Cinzel_Decorative } from "next/font/google";
 import { Geist } from "next/font/google";
 import { AuthProvider } from "./context/AuthContext";
+import { Metadata } from "next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,6 +20,12 @@ const cinzelDecorative = Cinzel_Decorative({
   variable: "--font-cinzel",
   display: "swap",
 });
+
+export const metadata: Metadata = {
+  title: 'The Solace Manor',
+  description: 'Modern hotel booking system with beautiful UI and best UX practices',
+  viewport: 'width=device-width, initial-scale=1',
+};
 
 export default function RootLayout({
   children,

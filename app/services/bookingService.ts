@@ -11,19 +11,32 @@ const getAuthHeaders = () => {
 
 export interface Booking {
   id: string;
+  bookingId: string;
   roomId: string;
-  userId: string;
+  userId?: string;
   checkIn: string;
   checkOut: string;
   totalPrice: number;
+  basePrice?: number;
+  taxAndFees?: number;
   status: string;
-  bookingId?: string;
+  paymentStatus?: string;
   roomTitle?: string;
+  roomImage?: string;
+  roomCategory?: string;
+  roomType?: string;
+  roomLocation?: string;
   nights?: number;
   paymentMethod?: string;
   specialRequests?: string;
-  adults?: number;
+  guests?: number;
+  adults?: number; // For backward compatibility
   children?: number;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  location?: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -82,16 +95,20 @@ export const createBooking = async (bookingData: Omit<Booking, 'id' | 'createdAt
     // Ensure all required fields are present and properly formatted
     const enhancedBookingData = {
       ...bookingData,
-      // Ensure adults is at least 1
-      adults: bookingData.adults || 1,
+      // Ensure guests/adults is at least 1
+      guests: bookingData.guests || bookingData.adults || 1,
+      adults: bookingData.adults || bookingData.guests || 1, // For backward compatibility
       // Set a default payment method if none provided
       paymentMethod: bookingData.paymentMethod || 'credit_card',
       // Ensure we have proper dates
       checkIn: formatDateForAPI(bookingData.checkIn),
       checkOut: formatDateForAPI(bookingData.checkOut),
+      // Calculate base price and taxes if not provided
+      basePrice: bookingData.basePrice || (bookingData.totalPrice ? bookingData.totalPrice * 0.9 : 0),
+      taxAndFees: bookingData.taxAndFees || (bookingData.totalPrice ? bookingData.totalPrice * 0.1 : 0),
     };
     
-    console.log('Sending booking data:', JSON.stringify(enhancedBookingData));
+    console.log('Creating new booking with data:', JSON.stringify(enhancedBookingData));
     
     const response = await fetch(`/api/bookings`, {
       method: 'POST',

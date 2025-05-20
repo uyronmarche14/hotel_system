@@ -23,7 +23,8 @@ export async function POST(request: NextRequest) {
       "checkOut",
       "totalPrice",
       "nights",
-      "adults",
+      // Field can be either adults or guests (we'll use whichever is available)
+      ...(bookingData.adults ? ["adults"] : ["guests"]),
       "paymentMethod",
     ];
 
@@ -132,25 +133,32 @@ export async function POST(request: NextRequest) {
     console.log(`RoomId validation: Original=${bookingData.roomId}, Valid UUID=${isValidUuid}, Final=${finalRoomId}`);
 
     // Ensure all required fields are in the correct format for the backend
-    // The backend expects snake_case field names
+    // Format the data to match the backend API expectations
     const formattedBookingData = {
-      room_id: finalRoomId,
+      room_id: bookingData.roomId,
       check_in: bookingData.checkIn,
       check_out: bookingData.checkOut,
       total_price: Number(bookingData.totalPrice) || 0,
+      base_price: Number(bookingData.basePrice) || (bookingData.totalPrice ? Number(bookingData.totalPrice) * 0.9 : 0),
+      tax_and_fees: Number(bookingData.taxAndFees) || (bookingData.totalPrice ? Number(bookingData.totalPrice) * 0.1 : 0),
       nights: Number(bookingData.nights) || 1,
-      adults: Number(bookingData.adults) || 1,
-      children: Number(bookingData.children) || 0,
+      guests: Number(bookingData.guests || bookingData.adults) || 1, // Use guests field, fall back to adults if needed
       payment_method: bookingData.paymentMethod || 'credit_card',
+      payment_status: bookingData.paymentStatus || 'pending',
       special_requests: bookingData.specialRequests || '',
-      status: 'pending',
+      status: bookingData.status || 'pending',
       user_id: bookingData.userId || `guest-${Date.now()}`,
-      user_email: bookingData.email || bookingData.userEmail || '',
-      user_name: `${bookingData.firstName} ${bookingData.lastName}`.trim(),
-      // Include these fields for the room info if needed
+      // Personal information
+      first_name: bookingData.firstName || '',
+      last_name: bookingData.lastName || '',
+      email: bookingData.email || '',
+      phone: bookingData.phone || '',
+      // Room information
       room_title: bookingData.roomTitle || '',
       room_category: bookingData.roomCategory || '',
-      room_image: bookingData.roomImage || ''
+      room_type: bookingData.roomType || '',
+      room_image: bookingData.roomImage || '',
+      location: bookingData.location || 'Taguig, Metro Manila'
     };
 
     console.log("Sending formatted booking data to backend:", JSON.stringify(formattedBookingData, null, 2));

@@ -59,10 +59,17 @@ const BookingDropdown = ({ isOpen, onClose }: BookingDropdownProps) => {
         setError(null);
 
         const response = await getUserBookings(user.email);
+        // Check if response.data exists before filtering
+        if (!response?.data) {
+          console.error("Booking data is undefined", response);
+          setBookings([]);
+          return;
+        }
+        
         // Filter for upcoming bookings only (confirmed or pending)
         const upcomingBookings = response.data.filter(
           (booking) =>
-            booking.status === "confirmed" || booking.status === "pending",
+            booking?.status === "confirmed" || booking?.status === "pending",
         );
 
         // Sort by check-in date (closest first)
@@ -125,18 +132,18 @@ const BookingDropdown = ({ isOpen, onClose }: BookingDropdownProps) => {
           </div>
         ) : (
           <div>
-            {bookings.map((booking) => (
+            {bookings.map((booking, index) => (
               <div
-                key={booking._id}
+                key={booking.id || `booking-${index}`}
                 className="p-3 border-b last:border-b-0 hover:bg-gray-50"
               >
                 <div className="flex gap-3">
                   <div className="w-16 h-16 relative rounded overflow-hidden flex-shrink-0">
                     <SafeImage
-                      src={booking.roomImage}
+                      src={booking.roomImage || ''}
                       fallbackSrc={FALLBACK_IMAGE}
                       imageType="room"
-                      alt={booking.roomTitle}
+                      alt={booking.roomTitle || 'Room image'}
                       fill
                       className="object-cover"
                     />
