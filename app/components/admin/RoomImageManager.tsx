@@ -1,24 +1,59 @@
 /**
  * Room Image Manager Component
- * A component for managing room images using Cloudinary
+ * A component for managing room images using direct Cloudinary uploads
  */
 
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { API_URL } from '@/app/lib/constants';
-import { uploadImage, uploadMultipleImages } from '@/app/services/imageService';
-import { getAuthToken } from '@/app/utils/auth-token';
-import { FaImage } from 'react-icons/fa';
-import ImageUploader from '../shared/ImageUploader';
-import ImageGallery from '../shared/ImageGallery';
-import OptimizedImage from '../shared/OptimizedImage';
+import Image from 'next/image';
+import { FiTrash2, FiImage, FiCheck } from 'react-icons/fi';
+import CloudinaryUploader from '../shared/CloudinaryUploader';
+
+// Environment variables
+const API_URL = process.env.NEXT_PUBLIC_URL || 'http://localhost:5000';
+
+// Helper function to get auth token
+const getAuthToken = () => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('token');
+  }
+  return null;
+};
 
 // Debug helper
 const debugLog = (message: string, data: any) => {
   console.log(`[RoomImageManager] ${message}:`, data);
 };
 
+// Simple toast notification component
+const Toast = {
+  success: (message: string) => {
+    console.log('SUCCESS:', message);
+    // In a real app, you'd show a toast UI here
+  },
+  error: (message: string) => {
+    console.error('ERROR:', message);
+    // In a real app, you'd show a toast UI here
+  }
+};
+
+// Simple Button component
+const Button = ({ children, onClick, disabled, className, variant = 'default' }: any) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={disabled}
+    className={`px-3 py-2 rounded ${variant === 'outline' ? 'border border-gray-300 hover:bg-gray-100' : 'bg-blue-600 text-white hover:bg-blue-700'} ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
+  >
+    {children}
+  </button>
+);
+
+// Helper function to join classNames
+const cn = (...classes: any[]) => classes.filter(Boolean).join(' ');
+
+// RoomImageManagerProps interface
 interface RoomImageManagerProps {
   roomId: string;
   initialMainImage?: string;
@@ -26,6 +61,9 @@ interface RoomImageManagerProps {
   onUpdate?: (mainImage: string, images: string[]) => void;
 }
 
+/**
+ * Room Image Manager Component
+ */
 const RoomImageManager: React.FC<RoomImageManagerProps> = ({
   roomId,
   initialMainImage = '',
@@ -33,346 +71,311 @@ const RoomImageManager: React.FC<RoomImageManagerProps> = ({
   onUpdate
 }) => {
   const [mainImage, setMainImage] = useState<string>(initialMainImage);
-  const [additionalImages, setAdditionalImages] = useState<string[]>(initialImages);
+  const [additionalImages, setAdditionalImages] = useState<string[]>(initialImages || []);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
-  const [success, setSuccess] = useState<string>('');
-
+  
   // Format images array excluding the main image
   const formattedAdditionalImages = additionalImages.filter(img => img !== mainImage);
 
-  // Upload main image
+  // Handle successful main image upload
   const handleMainImageUpload = async (imageUrl: string) => {
-    setMainImage(imageUrl);
-    setSuccess('Main image uploaded successfully');
-    
-    // Update room in database with new main image
-    await updateRoomImages(imageUrl, additionalImages);
-    
-    // Notify parent component
-    if (onUpdate) {
-      onUpdate(imageUrl, additionalImages);
-    }
-  };
-
-  // Upload additional images
-  const handleAdditionalImagesUpload = async (imageUrls: string[]) => {
-    if (!imageUrls || imageUrls.length === 0) return;
-    
-    const newImages = [...additionalImages, ...imageUrls];
-    setAdditionalImages(newImages);
-    setSuccess(`${imageUrls.length} additional images uploaded successfully`);
-    
-    // Update room in database with new images array
-    await updateRoomImages(mainImage, newImages);
-    
-    // Notify parent component
-    if (onUpdate) {
-      onUpdate(mainImage, newImages);
-    }
-  };
-
-  // Set an image as main image
-  const setAsMainImage = async (imageUrl: string) => {
-    if (imageUrl === mainImage) return;
-    
-    setIsLoading(true);
-    setError('');
-    setSuccess('');
-    
     try {
-      // Update main image
+      setIsLoading(true);
+      debugLog('Main image uploaded to Cloudinary', imageUrl);
+      
+      // Now we need to tell the backend to update the room with this new image URL
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+      
+      // Call the sync endpoint to update the database
+      const response = await fetch(`${API_URL}/api/cloudinary/sync/rooms/${roomId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          image_url: imageUrl,
+          is_main_image: true
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to sync image: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      debugLog('Sync result', result);
+      
+      // Update state with the new image
       setMainImage(imageUrl);
-      setSuccess('Main image updated successfully');
+      Toast.success('Main image uploaded successfully');
       
-      // Update room in database
-      await updateRoomImages(imageUrl, additionalImages);
-      
-      // Notify parent component
+      // Notify parent component if needed
       if (onUpdate) {
         onUpdate(imageUrl, additionalImages);
       }
     } catch (error: any) {
-      setError(error.message || 'Failed to update main image');
+      console.error('Error syncing main image:', error);
+      setError(error.message || 'Failed to upload main image');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Delete an image
-  const deleteImage = async (imageUrl: string) => {
-    setIsLoading(true);
-    setError('');
-    setSuccess('');
-    
+  // Handle successful additional image upload
+  const handleAdditionalImageUpload = async (imageUrl: string) => {
     try {
-      // Get auth token from centralized utility
-      const token = getAuthToken();
+      setIsLoading(true);
+      debugLog('Additional image uploaded to Cloudinary', imageUrl);
       
-      debugLog('Deleting image', { 
-        imageUrlPrefix: imageUrl ? imageUrl.substring(0, 50) + '...' : 'none',
-        hasToken: !!token,
-        tokenLength: token ? token.length : 0
+      // Now we need to tell the backend to update the room with this new image URL
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+      
+      // Call the sync endpoint to update the database
+      const response = await fetch(`${API_URL}/api/cloudinary/sync/rooms/${roomId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          image_url: imageUrl,
+          is_main_image: false
+        }),
       });
       
-      // Use the correct API path for image deletion
-      const response = await fetch(`${API_URL}/api/images/cloudinary/delete`, {
+      if (!response.ok) {
+        throw new Error(`Failed to sync image: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      debugLog('Sync result', result);
+      
+      // Update state with the new images array
+      setAdditionalImages(prev => [...prev, imageUrl]);
+      Toast.success('Additional image uploaded successfully');
+      
+      // Notify parent component if needed
+      if (onUpdate) {
+        onUpdate(mainImage, [...additionalImages, imageUrl]);
+      }
+    } catch (error: any) {
+      console.error('Error syncing additional image:', error);
+      setError(error.message || 'Failed to upload additional image');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Set image as main image
+  const setAsMainImage = async (imageUrl: string) => {
+    try {
+      setIsLoading(true);
+      
+      // Now we need to tell the backend to update the room with this new main image
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+      
+      // Call the sync endpoint to update the database
+      const response = await fetch(`${API_URL}/api/cloudinary/sync/rooms/${roomId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          image_url: imageUrl,
+          is_main_image: true
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to set main image: ${response.statusText}`);
+      }
+      
+      // Update state
+      setMainImage(imageUrl);
+      Toast.success('Main image updated successfully');
+      
+      // Notify parent component if needed
+      if (onUpdate) {
+        onUpdate(imageUrl, additionalImages);
+      }
+    } catch (error: any) {
+      console.error('Error setting main image:', error);
+      setError(error.message || 'Failed to set main image');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Delete image
+  const deleteImage = async (imageUrl: string) => {
+    try {
+      setIsLoading(true);
+      
+      // Extract public_id from Cloudinary URL
+      const urlParts = imageUrl.split('/');
+      const publicIdWithExtension = urlParts[urlParts.length - 1];
+      const publicId = publicIdWithExtension.split('.')[0];
+      
+      // Request deletion from the backend
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+      
+      const response = await fetch(`${API_URL}/api/cloudinary/delete`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ imageUrl }),
+        body: JSON.stringify({
+          public_id: publicId,
+          resource_type: 'image',
+          room_id: roomId,
+          image_url: imageUrl
+        }),
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete image');
+        throw new Error(`Failed to delete image: ${response.statusText}`);
       }
       
-      // Remove from state
+      // Update state
       if (imageUrl === mainImage) {
-        // If deleting main image, set a new main image if available
-        setMainImage(additionalImages[0] || '');
-        setAdditionalImages(additionalImages.filter(img => img !== additionalImages[0]));
-      } else {
-        // Remove from additional images
-        setAdditionalImages(additionalImages.filter(img => img !== imageUrl));
+        setMainImage('');
       }
       
-      setSuccess('Image deleted successfully');
+      setAdditionalImages(prev => prev.filter(img => img !== imageUrl));
+      Toast.success('Image deleted successfully');
       
-      // Update room in database
-      const newMainImage = imageUrl === mainImage ? (additionalImages[0] || '') : mainImage;
-      const newAdditionalImages = imageUrl === mainImage 
-        ? additionalImages.filter(img => img !== additionalImages[0])
-        : additionalImages.filter(img => img !== imageUrl);
-        
-      await updateRoomImages(newMainImage, newAdditionalImages);
-      
-      // Notify parent component
+      // Notify parent component if needed
       if (onUpdate) {
-        onUpdate(newMainImage, newAdditionalImages);
+        onUpdate(
+          imageUrl === mainImage ? '' : mainImage,
+          additionalImages.filter(img => img !== imageUrl)
+        );
       }
     } catch (error: any) {
+      console.error('Error deleting image:', error);
       setError(error.message || 'Failed to delete image');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Helper function to update room images in database
-  const updateRoomImages = async (mainImageUrl: string, imagesArray: string[]) => {
-    try {
-      setIsUpdating(true);
-      setError('');
-
-      if (!mainImageUrl && !imagesArray.length) {
-        console.error('No images to update');
-        setError('No images selected to update');
-        setIsUpdating(false);
-        return;
-      }
-
-      // Get JWT token
-      const token = await getAuthToken();
-      if (!token) {
-        console.error('Failed to get authentication token');
-        setError('Authentication failed');
-        setIsUpdating(false);
-        return;
-      }
-
-      // Force mainImageUrl to be set if we have images
-      // This ensures we always have a main image
-      const effectiveMainImageUrl = mainImageUrl || (imagesArray.length > 0 ? imagesArray[0] : '');
-      
-      if (!effectiveMainImageUrl) {
-        console.error('No main image URL available');
-        setError('No main image available');
-        setIsUpdating(false);
-        return;
-      }
-
-      console.log('Updating room images with:', { 
-        roomId, 
-        endpoint: `/api/admin/rooms/${roomId}`,
-        mainImageUrl: effectiveMainImageUrl ? effectiveMainImageUrl.substring(0, 30) + '...' : 'none', 
-        imagesCount: imagesArray.length 
-      });
-
-      // Update the room directly with both main image and additional images
-      // Connect directly to the backend instead of going through Next.js API routes
-      const response = await fetch(`${API_URL}/api/admin/rooms/${roomId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          // Use snake_case for the backend fields as per database schema
-          image_url: effectiveMainImageUrl,
-          images: imagesArray
-        }),
-      });
-      
-      console.log('Room update response status:', response.status);
-      
-      if (!response.ok) {
-        let errorMessage = 'Failed to update room images';
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorMessage;
-          console.error('Error updating room images:', errorData);
-        } catch (e) {
-          console.error('Error parsing error response:', e);
-        }
-        throw new Error(errorMessage);
-      }
-      
-      const data = await response.json();
-      console.log('Room update successful:', {
-        success: data.success,
-        room: data.room ? 'received' : 'not received',
-        imageUrl: data.room?.image_url ? 'set' : 'not set',
-        imagesCount: data.room?.images?.length || 0
-      });
-      
-      // Log response status for debugging
-      debugLog('Update response status', { status: response.status, ok: response.ok });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update room images');
-      }
-      
-      debugLog('Images successfully updated', { mainImage: !!mainImageUrl, additionalImages: imagesArray.length });
-      return true;
-    } catch (error: any) {
-      console.error('Error updating room images:', error);
-      setError(error.message || 'Failed to update room images');
-      return false;
-    }
-  };
-
+  // Render component
   return (
-    <div className="room-image-manager p-4 border rounded-lg">
-      <h2 className="text-xl font-bold mb-4">Room Images</h2>
-      
-      {/* Main Image Upload */}
-      <div className="main-image-section mb-6">
-        <h3 className="text-lg font-semibold mb-2">Main Image</h3>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-gray-50 rounded-md">
+      {/* Main image section */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Main Room Image</h3>
         
+        {/* Show main image if available */}
         {mainImage ? (
-          <div className="relative">
-            <OptimizedImage
+          <div className="relative rounded-md overflow-hidden border border-gray-200 aspect-video">
+            <Image
               src={mainImage}
-              type="room"
-              width={400}
-              height={300}
-              alt="Main room image"
-              className="rounded-lg object-cover"
+              alt="Main Room Image"
+              className="object-cover"
+              fill
             />
-            <button 
-              className="btn btn-sm btn-error absolute top-2 right-2"
-              onClick={() => deleteImage(mainImage)}
-              disabled={isLoading}
-            >
-              Delete
-            </button>
+            <div className="absolute top-0 right-0 p-2">
+              <Button 
+                variant="destructive"
+                onClick={() => deleteImage(mainImage)}
+                className="p-1 rounded bg-red-500 text-white"
+                aria-label="Delete main image"
+              >
+                <FiTrash2 className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         ) : (
-          <div className="bg-gray-100 flex flex-col items-center justify-center rounded-lg h-[300px]">
-            <FaImage className="text-4xl text-gray-400 mb-4" />
-            <p className="text-gray-500">No main image set</p>
-            <p className="text-gray-400 text-sm">Upload an image or select one from additional images</p>
+          <div className="flex items-center justify-center p-6 bg-gray-100 border-2 border-dashed border-gray-300 rounded-md text-center">
+            <div className="space-y-2">
+              <FiImage className="w-12 h-12 mx-auto text-gray-400" />
+              <p className="text-gray-500">No main image selected</p>
+            </div>
           </div>
         )}
         
-        <div className="mt-4">
-          <ImageUploader
-            endpoint={`${API_URL}/api/admin/rooms/${roomId}/image?setAsMain=true`}
-            onUploadSuccess={handleMainImageUpload}
-            onUploadError={(err) => setError(err)}
-            buttonText="Upload Main Image"
-            imageType="room"
-          />
-        </div>
+        {/* Main image uploader - direct to Cloudinary */}
+        <CloudinaryUploader
+          onUploadSuccess={(imageUrl: string) => handleMainImageUpload(imageUrl)}
+          onUploadError={(error: Error) => setError(error.message)}
+          buttonText="Upload Main Image"
+          folder="rooms"
+          maxFileSize={5}
+          className="w-full"
+        />
       </div>
-      
-      {/* Additional Images */}
-      <div className="additional-images-section mb-6">
-        <h3 className="text-lg font-semibold mb-2">Additional Images</h3>
+
+      {/* Additional images section */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Additional Room Images</h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          {formattedAdditionalImages.map((image, index) => (
-            <div key={`add-img-${index}`} className="relative">
-              <OptimizedImage
-                src={image}
-                type="room"
-                width={250}
-                height={150}
-                alt={`Room image ${index + 1}`}
-                className="rounded-lg object-cover"
-              />
-              <div className="absolute top-2 right-2 flex space-x-2">
-                <button 
-                  className="btn btn-xs btn-primary"
-                  onClick={() => setAsMainImage(image)}
-                  disabled={isLoading}
-                >
-                  Set as Main
-                </button>
-                <button 
-                  className="btn btn-xs btn-error"
-                  onClick={() => deleteImage(image)}
-                  disabled={isLoading}
-                >
-                  Delete
-                </button>
+        {formattedAdditionalImages.length > 0 ? (
+          <div className="grid grid-cols-2 gap-3">
+            {formattedAdditionalImages.map((img, index) => (
+              <div key={index} className="relative rounded-md overflow-hidden border border-gray-200 aspect-video">
+                <Image
+                  src={img}
+                  alt={`Room Image ${index + 1}`}
+                  className="object-cover"
+                  fill
+                />
+                <div className="absolute top-0 right-0 p-2 flex gap-1">
+                  <Button 
+                    variant="destructive"
+                    onClick={() => deleteImage(img)}
+                    className="p-1 rounded bg-red-500 text-white"
+                    aria-label={`Delete image ${index + 1}`}
+                  >
+                    <FiTrash2 className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => setAsMainImage(img)}
+                    aria-label={`Set as main image`}
+                    className="p-1 rounded bg-white hover:bg-gray-100"
+                  >
+                    <FiCheck className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
-            </div>
-          ))}
-          
-          {formattedAdditionalImages.length === 0 && (
-            <div className="bg-gray-100 flex items-center justify-center rounded-lg h-[150px] col-span-2">
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center p-6 bg-gray-100 border-2 border-dashed border-gray-300 rounded-md text-center">
+            <div className="space-y-2">
+              <FiImage className="w-12 h-12 mx-auto text-gray-400" />
               <p className="text-gray-500">No additional images</p>
             </div>
-          )}
-        </div>
+          </div>
+        )}
         
-        <ImageUploader
-          endpoint={`${API_URL}/api/admin/rooms/${roomId}/images`}
-          onUploadSuccess={(url) => handleAdditionalImagesUpload([url])}
-          onUploadError={(err) => setError(err)}
-          buttonText="Add More Images"
-          imageType="room"
+        {/* Additional images uploader - direct to Cloudinary */}
+        <CloudinaryUploader
+          onUploadSuccess={(imageUrl: string) => handleAdditionalImageUpload(imageUrl)}
+          onUploadError={(error: Error) => setError(error.message)}
+          buttonText="Upload Additional Image"
+          folder="rooms"
+          maxFileSize={5}
+          className="w-full"
         />
       </div>
-      
-      {/* Gallery Preview */}
-      <div className="gallery-preview-section">
-        <h3 className="text-lg font-semibold mb-2">Gallery Preview</h3>
-        <ImageGallery
-          images={additionalImages}
-          mainImage={mainImage}
-          imageType="room"
-        />
-      </div>
-      
-      {/* Status Messages */}
-      {error && (
-        <div className="mt-4 p-2 bg-red-100 text-red-700 rounded">
-          {error}
-        </div>
-      )}
-      
-      {success && (
-        <div className="mt-4 p-2 bg-green-100 text-green-700 rounded">
-          {success}
-        </div>
-      )}
     </div>
   );
 };
