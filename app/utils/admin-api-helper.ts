@@ -22,8 +22,19 @@ export async function fetchWithAdminAuth<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
-  // Get the authentication token
-  const token = Cookies.get('token');
+  // Get the authentication token from all possible storage locations
+  const token = Cookies.get('token') || 
+               Cookies.get('authToken') || 
+               localStorage.getItem('token') || 
+               localStorage.getItem('solace_manor_token');
+  
+  // Debug token retrieval
+  console.log('Auth token check:', {
+    cookieToken: !!Cookies.get('token'),
+    cookieAuthToken: !!Cookies.get('authToken'),
+    localStorageToken: !!localStorage.getItem('token'),
+    solaceToken: !!localStorage.getItem('solace_manor_token')
+  });
   
   if (!token) {
     throw new Error('Authentication required. Please log in again.');

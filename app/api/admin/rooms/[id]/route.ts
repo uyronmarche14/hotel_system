@@ -82,6 +82,8 @@ export async function PUT(request: NextRequest) {
     const url = new URL(request.url);
     const pathParts = url.pathname.split('/');
     const id = pathParts[pathParts.length - 1];
+    
+    console.log(`Processing PUT request for room ID: ${id}`);
 
     // Get the token from the authorization header
     const token = request.headers.get("authorization")?.split(" ")[1];
@@ -92,19 +94,85 @@ export async function PUT(request: NextRequest) {
         { status: 401 },
       );
     }
-
-    // Parse the request body
-    const body = await request.json();
+    
+    // Define valid room fields based on your database schema
+    const validRoomFields = [
+      'id', 'title', 'room_number', 'roomNumber', 'type', 'category', 'price',
+      'location', 'description', 'full_description', 'fullDescription', 'capacity', 
+      'max_occupancy', 'maxOccupancy', 'amenities', 'additional_amenities', 'additionalAmenities', 
+      'features', 'images', 'image_url', 'imageUrl', 'href', 'rating', 'reviews', 
+      'bed_type', 'bedType', 'room_size', 'roomSize', 'view_type', 'viewType', 'is_available', 'isAvailable'
+    ];
+    
+    // Check content type to determine how to handle the request
+    const contentType = request.headers.get('content-type') || '';
+    let backendBody;
+    let requestData: any = {};
+    
+    if (contentType.includes('multipart/form-data')) {
+      // Handle multipart/form-data submission
+      console.log('Processing multipart/form-data request');
+      const formData = await request.formData();
+      
+      // Forward the multipart form data to the backend API
+      const backendFormData = new FormData();
+      
+      // Only transfer valid fields to the new FormData object
+      for (const [key, value] of formData.entries()) {
+        if (validRoomFields.includes(key)) {
+          backendFormData.append(key, value);
+        } else {
+          console.log(`Skipping field '${key}' as it's not in database schema`);
+        }
+      }
+      
+      // Set request body to the form data
+      backendBody = backendFormData;
+      console.log(`Updating room ${id} with form data keys:`, [...backendFormData.keys()]);
+    } else {
+      // Handle JSON submission (from RoomImageManager)
+      console.log('Processing JSON request');
+      requestData = await request.json();
+      
+      // Filter out invalid fields
+      const filteredData: Record<string, any> = {};
+      
+      for (const [key, value] of Object.entries(requestData)) {
+        if (validRoomFields.includes(key)) {
+          filteredData[key] = value;
+        } else {
+          console.log(`Skipping field '${key}' as it's not in database schema`);
+        }
+      }
+      
+      // Log key data points for debugging
+      console.log('Image data being sent to backend:', {
+        hasImageUrl: !!filteredData.image_url,
+        imagesLength: Array.isArray(filteredData.images) ? filteredData.images.length : 'not an array',
+        fieldsIncluded: Object.keys(filteredData)
+      });
+      
+      // Set request body to the JSON data
+      backendBody = JSON.stringify(filteredData);
+    }
+    
+    // Set headers based on content type
+    const headers: HeadersInit = {
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+    };
+    
+    // Only set Content-Type for JSON requests
+    if (!contentType.includes('multipart/form-data')) {
+      headers['Content-Type'] = 'application/json';
+    }
 
     // Forward the request to the backend API
+    console.log(`Sending request to ${API_URL}/api/admin/rooms/${id}`);
     const response = await fetch(`${API_URL}/api/admin/rooms/${id}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(body),
+      headers,
+      body: backendBody,
     });
 
     // Parse the response as text first to help with debugging

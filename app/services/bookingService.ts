@@ -93,7 +93,7 @@ export const createBooking = async (bookingData: Omit<Booking, 'id' | 'createdAt
     
     console.log('Sending booking data:', JSON.stringify(enhancedBookingData));
     
-    const response = await fetch(`/api/bookings`, {
+    const response = await fetch(`${API_URL}/api/bookings`, {
       method: 'POST',
       headers: {
         ...getAuthHeaders()

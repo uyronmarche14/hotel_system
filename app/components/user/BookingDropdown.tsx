@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { getUserBookings, Booking } from "@/app/lib/bookingService";
+import { getUserBookings, Booking } from "@/app/services/bookingService";
 import { useAuth } from "@/app/context/AuthContext";
 import { FaCalendarAlt, FaChevronRight } from "react-icons/fa";
 import SafeImage from "@/app/components/ui/SafeImage";
@@ -58,16 +58,18 @@ const BookingDropdown = ({ isOpen, onClose }: BookingDropdownProps) => {
         setIsLoading(true);
         setError(null);
 
-        const response = await getUserBookings(user.email);
+        const bookings = await getUserBookings();
+        console.log('Bookings response:', bookings);
+        
         // Filter for upcoming bookings only (confirmed or pending)
-        const upcomingBookings = response.data.filter(
-          (booking) =>
+        const upcomingBookings = bookings.filter(
+          (booking: Booking) =>
             booking.status === "confirmed" || booking.status === "pending",
         );
 
         // Sort by check-in date (closest first)
         upcomingBookings.sort(
-          (a, b) =>
+          (a: Booking, b: Booking) =>
             new Date(a.checkIn).getTime() - new Date(b.checkIn).getTime(),
         );
 
@@ -127,16 +129,16 @@ const BookingDropdown = ({ isOpen, onClose }: BookingDropdownProps) => {
           <div>
             {bookings.map((booking) => (
               <div
-                key={booking._id}
+                key={booking.id?.toString() || booking.bookingId}
                 className="p-3 border-b last:border-b-0 hover:bg-gray-50"
               >
                 <div className="flex gap-3">
                   <div className="w-16 h-16 relative rounded overflow-hidden flex-shrink-0">
                     <SafeImage
-                      src={booking.roomImage}
+                      src={booking.roomTitle ? `/images/rooms/${booking.roomId}.jpg` : undefined}
                       fallbackSrc={FALLBACK_IMAGE}
                       imageType="room"
-                      alt={booking.roomTitle}
+                      alt={booking.roomTitle || 'Room'}
                       fill
                       className="object-cover"
                     />
@@ -155,7 +157,7 @@ const BookingDropdown = ({ isOpen, onClose }: BookingDropdownProps) => {
                       </span>
                     </div>
                     <p className="text-xs text-gray-500 mt-1">
-                      {booking.guests} guests • {booking.nights} nights
+                      {booking.adults || 1} guests • {booking.nights || 1} nights
                     </p>
                   </div>
                 </div>

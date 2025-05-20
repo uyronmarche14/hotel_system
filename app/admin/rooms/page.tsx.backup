@@ -2,7 +2,6 @@
 
 import { useState, useEffect, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { API_URL } from "@/app/lib/constants";
 import { 
   FaStar, 
   FaStarHalfAlt, 
@@ -397,14 +396,12 @@ export default function RoomsManagement() {
         });
       }
       
-      // Determine the API URL and method based on whether we're creating or editing
-      // Connect directly to the backend instead of going through Next.js API routes
-      const url = currentRoom.id 
-        ? `${API_URL}/api/admin/rooms/${currentRoom.id}`
-        : `${API_URL}/api/admin/rooms`;
-      const method = currentRoom.id ? 'PUT' : 'POST';
-      
-      console.log('Using direct backend connection URL:', url);
+      // Use the Next.js API route instead of direct API call
+      const url = isEditing
+        ? `/api/admin/rooms/${currentRoom.id}`
+        : `/api/admin/rooms`;
+
+      const method = isEditing ? "PUT" : "POST";
 
       // Debugging: log all form fields before cleaning
       console.log("Form fields before cleanup:", [...formData.keys()]);
@@ -661,36 +658,47 @@ export default function RoomsManagement() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {rooms && rooms.length > 0 ? (
-                  rooms.map((room) => (
-                    <tr key={room.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10 bg-gray-100 rounded-md overflow-hidden">
-                            {room.imageUrl ? (
-                              <Image
-                                src={room.imageUrl}
-                                alt={room.title || room.roomNumber}
-                                width={40}
-                                height={40}
-                                className="object-cover"
-                              />
-                            ) : (
-                              <FaBed className="text-gray-400 m-2" />
-                            )}
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
-                              {room.title || `Room ${room.roomNumber}`}
+                  rooms.map((room) => {
+                    // Debug image URL
+                    if (room.imageUrl) {
+                      console.log(`Room ${room.id} image URL: ${room.imageUrl.substring(0, 50)}...`);
+                    }
+                    
+                    return (
+                      <tr key={room.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 h-10 w-10 bg-gray-100 rounded-md overflow-hidden">
+                              {room.imageUrl ? (
+                                <Image
+                                  src={room.imageUrl}
+                                  alt={room.title || room.roomNumber}
+                                  width={40}
+                                  height={40}
+                                  className="object-cover"
+                                  onError={(e) => {
+                                    console.error('Image load error for room:', room.id);
+                                    const imgElement = e.currentTarget as HTMLImageElement;
+                                    imgElement.style.display = 'none';
+                                  }}
+                                />
+                              ) : (
+                                <FaBed className="text-gray-400 m-2" />
+                              )}
                             </div>
-                            <div className="text-xs text-gray-500 flex items-center">
-                              <FaDoorOpen className="mr-1" />
-                              {room.roomNumber}
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-gray-900">
+                                {room.title || `Room ${room.roomNumber}`}
+                              </div>
+                              <div className="text-xs text-gray-500 flex items-center">
+                                <FaDoorOpen className="mr-1" />
+                                {room.roomNumber}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-700 capitalize">
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-700 capitalize">
                           <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mr-1">
                             {room.type}
                           </span>

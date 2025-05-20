@@ -1,7 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { RoomType } from "../services/roomService";
+import OptimizedImage from "./shared/OptimizedImage";
+import { isCloudinaryUrl } from "../utils/cloudinaryImage";
 
 interface RoomCardProps {
   room: RoomType;
@@ -12,25 +13,7 @@ const RoomCard = ({ room }: RoomCardProps) => {
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
 
-  // Always use Cloudinary placeholder as fallback
-  const cloudinaryFallback =
-    "https://res.cloudinary.com/ddnxfpziq/image/upload/v1747146600/room-placeholder_mnyxqz.jpg";
-
-  // Determine image source with support for Supabase URLs
-  const getImageSrc = () => {
-    if (imageError) return cloudinaryFallback;
-    if (!imageUrl) return cloudinaryFallback;
-    
-    // Support for Supabase storage URLs
-    if (imageUrl.includes('supabase') || imageUrl.startsWith('https://')) {
-      return imageUrl;
-    }
-    
-    // Use Cloudinary fallback if not recognized URL format
-    return cloudinaryFallback;
-  };
-  
-  const imgSrc = getImageSrc();
+  // We'll handle fallback in OptimizedImage component
 
   return (
     <Link href={href} className="block h-full">
@@ -41,17 +24,19 @@ const RoomCard = ({ room }: RoomCardProps) => {
               <div className="w-8 h-8 border-2 border-[#1C3F32] border-t-transparent rounded-full animate-spin"></div>
             </div>
           )}
-          <Image
-            src={imgSrc}
+          <OptimizedImage
+            src={imageUrl}
             alt={title}
             fill
-            unoptimized={true}
+            type="room"
+            quality="auto"
+            format="auto"
             className={`object-cover transition-transform duration-300 group-hover:scale-105 ${
               imageLoading ? "opacity-0" : "opacity-100"
             }`}
             onLoad={() => setImageLoading(false)}
             onError={() => {
-              console.log("Image failed to load:", imgSrc);
+              console.log("Image failed to load:", imageUrl);
               setImageError(true);
               setImageLoading(false);
             }}
