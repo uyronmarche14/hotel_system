@@ -36,10 +36,13 @@ export default function Dashboard() {
 
     const fetchRooms = async () => {
       try {
+        console.log('Dashboard: Starting to fetch rooms');
         setIsLoading(true);
 
         // First check if the API is connected
         const isConnected = await checkConnection();
+        console.log('Dashboard: API connection check result:', isConnected);
+        
         if (!isConnected) {
           setError("Unable to connect to the server. Please try again later.");
           setShowErrorToast(true);
@@ -47,12 +50,28 @@ export default function Dashboard() {
           return;
         }
 
-        const [topRated, byCategory] = await Promise.all([
-          getTopRatedRooms(5),
-          getCategoryRooms(),
-        ]);
-
+        // Fetch top rated rooms first
+        console.log('Dashboard: Fetching top rated rooms');
+        const topRated = await getTopRatedRooms(5);
+        console.log('Dashboard: Received top rated rooms:', topRated.length);
+        
+        // Log the first room's image details for debugging
+        if (topRated.length > 0) {
+          console.log('Dashboard: First top rated room image URL:', topRated[0].imageUrl);
+        }
+        
         setTopRatedRooms(topRated);
+        
+        // Then fetch category rooms
+        console.log('Dashboard: Fetching category rooms');
+        const byCategory = await getCategoryRooms();
+        console.log('Dashboard: Received category rooms:', byCategory.length);
+        
+        // Log the first category room's image details
+        if (byCategory.length > 0) {
+          console.log('Dashboard: First category room image URL:', byCategory[0].imageUrl);
+        }
+        
         setCategoryRooms(byCategory);
       } catch (error: Error | unknown) {
         console.error("Error fetching rooms:", error);

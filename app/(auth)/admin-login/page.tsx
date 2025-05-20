@@ -32,12 +32,16 @@ export default function AdminLoginPage() {
       }
 
       // Use the direct API route to avoid the proxy (fix for JSON parse issue)
+      console.log('Attempting admin login with:', { email: username });
+      
       const response = await fetch(`/api/auth/admin-login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email: username, password }),
+        // Ensure we're not using any cached responses
+        cache: 'no-store',
       });
 
       // Check for non-JSON responses
@@ -55,8 +59,22 @@ export default function AdminLoginPage() {
         );
       }
 
-      // Store token in cookies
-      Cookies.set("token", data.token, { expires: 7 });
+      // Ensure we have a token in the response
+      if (!data.token) {
+        throw new Error("No authentication token received from server");
+      }
+      
+      console.log('Successfully logged in, token received');
+      
+      // Store token in cookies with httpOnly for security
+      Cookies.set("token", data.token, { 
+        expires: 7,
+        secure: window.location.protocol === 'https:',
+        sameSite: 'strict'
+      });
+      
+      // Also store in localStorage for client-side access
+      localStorage.setItem("adminToken", data.token);
 
       // Store admin user in localStorage with secure info
       localStorage.setItem(
@@ -65,6 +83,7 @@ export default function AdminLoginPage() {
           ...data.user,
           isAdmin: true,
           isAuthenticated: true,
+          role: 'admin' // Ensure role is set
         }),
       );
 

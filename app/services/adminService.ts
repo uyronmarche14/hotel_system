@@ -4,11 +4,28 @@ import { User } from "./userService";
 import { Booking } from "./bookingService";
 import { RoomType } from "./roomService";
 
+/**
+ * Get the admin authentication token from either cookies or localStorage
+ * @returns The authentication token or undefined if not found
+ */
+export const getAdminToken = (): string | undefined => {
+  // Try to get from cookies first
+  let token = Cookies.get("token");
+  
+  // If not in cookies, try localStorage as fallback
+  if (!token) {
+    token = localStorage.getItem("adminToken") || undefined;
+  }
+  
+  return token;
+};
+
 const getAuthHeaders = () => {
-  const token = Cookies.get('token');
+  const token = getAdminToken();
   return {
     'Content-Type': 'application/json',
     'Authorization': token ? `Bearer ${token}` : '',
+    'Accept': 'application/json'
   };
 };
 

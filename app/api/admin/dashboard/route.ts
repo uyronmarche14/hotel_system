@@ -57,6 +57,27 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Ensure we return data in a consistent format that the frontend expects
+    // Transform the data if needed
+    if (data.success && data.dashboard) {
+      // Backend returns { success: true, dashboard: { ... } }
+      // Frontend expects either { success: true, data: { ... } } or the raw data
+      return NextResponse.json({
+        success: true,
+        data: {
+          totalUsers: data.dashboard.totalUsers || 0,
+          totalBookings: data.dashboard.totalBookings || 0,
+          activeBookings: data.dashboard.statusCounts?.confirmed || 0,
+          totalRooms: data.dashboard.totalRooms || 0,
+          recentBookings: data.dashboard.recentBookings?.length || 0,
+          totalRevenue: data.dashboard.totalRevenue || 0,
+        },
+        // Also include the original dashboard data for completeness
+        dashboard: data.dashboard
+      });
+    }
+    
+    // Just pass through the original response if it's in a different format
     return NextResponse.json(data);
   } catch (error: unknown) {
     console.error("Admin dashboard fetch error:", error);

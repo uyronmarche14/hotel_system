@@ -22,11 +22,11 @@ export const isCloudinaryUrl = (url: string): boolean => {
 export const optimizeCloudinaryImage = (
   url: string, 
   options: {
-    width?: number;
-    height?: number;
-    quality?: number | 'auto';
-    format?: 'auto' | 'webp' | 'jpg' | 'png';
-    crop?: 'fill' | 'scale' | 'fit' | 'thumb' | 'crop';
+    width?: number | undefined;
+    height?: number | undefined;
+    quality?: number | 'auto' | undefined;
+    format?: 'auto' | 'webp' | 'jpg' | 'png' | undefined;
+    crop?: 'fill' | 'scale' | 'fit' | 'thumb' | 'crop' | undefined;
   } = {}
 ): string => {
   if (!url || !isCloudinaryUrl(url)) {

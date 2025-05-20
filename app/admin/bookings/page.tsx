@@ -81,10 +81,32 @@ export default function BookingsManagement() {
       if (!checkAdminAuth()) return;
 
       try {
+        // Try to get token from multiple sources
+        let token = Cookies.get("token") || undefined;
+        
+        // If not in cookie, try localStorage (our backup location)
+        if (!token) {
+          const localToken = localStorage.getItem('adminToken');
+          if (localToken) {
+            token = localToken;
+            console.log("Using adminToken from localStorage");
+          }
+        }
+        
+        if (!token) {
+          console.error("No admin auth token found - redirecting to login");
+          router.push("/admin-login");
+          return;
+        }
+        
+        console.log("Fetching admin bookings with auth token");
+        
         const response = await fetch(`/api/admin/bookings`, {
           headers: {
-            Authorization: `Bearer ${Cookies.get("token")}`,
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
           },
+          credentials: 'include', // Include cookies in the request
         });
 
         if (!response.ok) {
@@ -96,8 +118,57 @@ export default function BookingsManagement() {
         }
 
         const data = await response.json();
-        setBookings(data.data);
-        setFilteredBookings(data.data);
+        console.log('API Response structure:', Object.keys(data));
+        
+        // Handle nested data structures that might come from backend
+        let bookingsData = null;
+        
+        // Check all possible response formats
+        if (data.bookings) {
+          // Format: { bookings: [...] }
+          bookingsData = data.bookings;
+          console.log(`Found ${bookingsData.length} bookings in data.bookings`);
+        } else if (data.data && Array.isArray(data.data)) {
+          // Format: { data: [...] }
+          bookingsData = data.data;
+          console.log(`Found ${bookingsData.length} bookings in data.data array`);
+        } else if (data.data && data.data.bookings) {
+          // Format: { data: { bookings: [...] } }
+          bookingsData = data.data.bookings;
+          console.log(`Found ${bookingsData.length} bookings in data.data.bookings`);
+        }
+        
+        // If we still don't have the bookings data, try to get it directly from debug endpoint
+        if (!bookingsData) {
+          console.log('No bookings found in standard response formats, trying debug endpoint');
+          try {
+            const debugResponse = await fetch('/api/debug/bookings/sample', {
+              headers: {
+                'Accept': 'application/json'
+              }
+            });
+            
+            if (debugResponse.ok) {
+              const debugData = await debugResponse.json();
+              if (debugData.bookings && Array.isArray(debugData.bookings)) {
+                bookingsData = debugData.bookings;
+                console.log(`Successfully fetched ${bookingsData.length} bookings from debug endpoint`);
+              }
+            }
+          } catch (debugError) {
+            console.error('Error fetching from debug endpoint:', debugError);
+          }
+        }
+        
+        // If we have bookings data, update state
+        if (bookingsData && Array.isArray(bookingsData)) {
+          console.log(`Setting ${bookingsData.length} bookings to state`);
+          setBookings(bookingsData);
+          setFilteredBookings(bookingsData);
+        } else {
+          console.error('Could not find bookings data in any response format:', data);
+          throw new Error('No booking data found in any API response format');
+        }
       } catch (err: unknown) {
         const errorMessage =
           err instanceof Error

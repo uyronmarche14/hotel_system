@@ -28,21 +28,39 @@ export interface RoomType {
 }
 
 /**
- * Validate and fix image URLs with Cloudinary fallback
+ * Validate and fix image URLs with proper fallbacks
  */
 const validateImageUrl = (url: string | undefined): string => {
-  // Placeholder for missing images - using placehold.co instead of broken Cloudinary URL
+  // Placeholder for missing images
   const imageFallback = "https://placehold.co/600x400/png?text=Room+Image";
 
-  if (!url) return imageFallback;
+  // Handle missing values
+  if (!url || url.trim() === '' || url === 'null' || url === 'undefined') {
+    return imageFallback;
+  }
   
-  // If it's an empty string, return the fallback
-  if (url.trim() === '') return imageFallback;
-
-  // If it's a Supabase storage URL, return it as is
+  // Handle Supabase storage URLs
   if (url.includes('supabase.co') || url.includes('supabase.in')) {
-    console.log('Found Supabase storage URL:', url);
+    // Ensure the URL is properly formatted
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      // Add https:// if it's missing
+      const properUrl = url.startsWith('//') ? `https:${url}` : `https://${url}`;
+      console.log('Fixed Supabase URL format:', properUrl);
+      return properUrl;
+    }
     return url;
+  }
+  
+  // If it's a path to Supabase storage but doesn't include the full domain
+  if (url.includes('/storage/v1/object/') || url.includes('/storage/v1/upload/')) {
+    // Assuming API_URL might contain the Supabase project URL
+    const supabaseBaseUrl = API_URL.includes('supabase') 
+      ? API_URL 
+      : 'https://your-project.supabase.co';
+      
+    // If it starts with a slash, remove it for joining
+    const cleanPath = url.startsWith('/') ? url.substring(1) : url;
+    return `${supabaseBaseUrl}/${cleanPath}`;
   }
   
   // If it's already a Cloudinary URL, return it
@@ -55,27 +73,25 @@ const validateImageUrl = (url: string | undefined): string => {
     return url;
   }
 
-  // If it's a relative URL referencing the placeholder, use Cloudinary
-  if (
-    url.includes("room-placeholder") ||
-    url.includes("placeholder") ||
-    url === 'null' || 
-    url === 'undefined'
-  ) {
-    return imageFallback;
-  }
-  
-  // For local file paths that might be incorrectly formatted
-  if (url.includes('/storage/')) {
-    console.log('Converting local storage path to proper URL');
+  // Handle relative URLs that might be referencing public assets
+  if (url.startsWith('/images/') || url.startsWith('/assets/')) {
+    // These are likely public directory assets
     return url;
   }
+  
+  // For local file paths that might be from Supabase storage
+  if (url.includes('/storage/')) {
+    console.log('Found storage path, constructing proper URL:', url);
+    // If API_URL points to your backend, construct a proper URL
+    return `${API_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+  }
 
-  // If it's a relative URL but doesn't start with slash, add one
+  // If it's a relative URL but doesn't start with slash, add one for consistency
   if (!url.startsWith("/")) {
     return `/${url}`;
   }
 
+  // Return the URL if none of the above conditions match
   return url;
 };
 
@@ -85,7 +101,8 @@ export interface BackendRoom {
   title?: string;
   price?: number;
   location?: string;
-  imageUrl?: string;
+  imageUrl?: string; // Frontend expects this
+  image_url?: string; // Supabase uses this
   href?: string;
   rating?: number;
   reviews?: number;
@@ -109,33 +126,44 @@ export interface BackendRoom {
 /**
  * Helper function to map backend room data to frontend format
  */
-const mapRoomData = (room: BackendRoom): RoomType => ({
-  id: room.id || room._id,
-  title: room.title || "",
-  price: room.price || 0,
-  location: room.location || "",
-  imageUrl: validateImageUrl(room.imageUrl),
-  href:
-    room.href ||
-    `/hotelRoomDetails/${room.category}/${room.title?.toLowerCase().replace(/\s+/g, "-") || "room"}`,
-  rating: room.rating || 0,
-  reviews: room.reviews || 0,
-  description: room.description || "",
-  category: room.category || "standard",
-  fullDescription: room.fullDescription || "",
-  features: room.features || [],
-  maxOccupancy: room.maxOccupancy || 2,
-  bedType: room.bedType || "",
-  roomSize: room.roomSize || "",
-  viewType: room.viewType || "",
-  additionalAmenities: room.additionalAmenities || [],
-  amenities: room.amenities || [],
-  images: Array.isArray(room.images) ? room.images.map(validateImageUrl) : [],
-  roomNumber: room.roomNumber || "",
-  type: room.type || "standard",
-  isAvailable: room.isAvailable !== undefined ? room.isAvailable : true,
-  capacity: room.capacity || 1,
-});
+const mapRoomData = (room: BackendRoom): RoomType => {
+  // Handle the schema mismatch between Supabase and frontend
+  // Supabase uses image_url, frontend expects imageUrl
+  const imageUrlToUse = room.imageUrl || room.image_url;
+  
+  console.log('Original room data image URLs:', { 
+    imageUrl: room.imageUrl, 
+    image_url: room.image_url 
+  });
+  
+  return {
+    id: room.id || room._id,
+    title: room.title || "",
+    price: room.price || 0,
+    location: room.location || "",
+    imageUrl: validateImageUrl(imageUrlToUse),
+    href:
+      room.href ||
+      `/hotelRoomDetails/${room.category}/${room.title?.toLowerCase().replace(/\s+/g, "-") || "room"}`,
+    rating: room.rating || 0,
+    reviews: room.reviews || 0,
+    description: room.description || "",
+    category: room.category || "standard",
+    fullDescription: room.fullDescription || "",
+    features: room.features || [],
+    maxOccupancy: room.maxOccupancy || 2,
+    bedType: room.bedType || "",
+    roomSize: room.roomSize || "",
+    viewType: room.viewType || "",
+    additionalAmenities: room.additionalAmenities || [],
+    amenities: room.amenities || [],
+    images: Array.isArray(room.images) ? room.images.map(validateImageUrl) : [],
+    roomNumber: room.roomNumber || "",
+    type: room.type || "standard",
+    isAvailable: room.isAvailable !== undefined ? room.isAvailable : true,
+    capacity: room.capacity || 1,
+  };
+};
 
 /**
  * Fetches all rooms from the MongoDB database via API
@@ -271,6 +299,7 @@ export const getRoomById = async (roomId: string): Promise<RoomType | null> => {
  */
 export const getTopRatedRooms = async (limit = 5): Promise<RoomType[]> => {
   try {
+    console.log(`Fetching top rated rooms with limit: ${limit}`);
     // First try direct API route
     const response = await fetch(
       `/api/rooms/top-rated?limit=${limit}`,
@@ -292,6 +321,7 @@ export const getTopRatedRooms = async (limit = 5): Promise<RoomType[]> => {
       console.error("Error response body:", errorText.substring(0, 500));
 
       // If dedicated endpoint fails, fallback to sorting client-side
+      console.log("Falling back to client-side sorting for top rated rooms");
       const allRooms = await getAllRooms();
       return [...allRooms]
         .sort((a, b) => (b.rating || 0) - (a.rating || 0))
@@ -299,13 +329,24 @@ export const getTopRatedRooms = async (limit = 5): Promise<RoomType[]> => {
     }
 
     const data = await response.json();
+    console.log(`Received top rated rooms data: ${data?.data?.length || 0} items`);
 
     if (!data || !data.data || !Array.isArray(data.data)) {
       console.error("API response is not in the expected format:", data);
       return [];
     }
 
-    return data.data.map(mapRoomData);
+    // Map and process the room data, logging the first item for debugging
+    const mappedRooms = data.data.map(mapRoomData);
+    
+    if (mappedRooms.length > 0) {
+      console.log('First top rated room:', { 
+        title: mappedRooms[0].title,
+        imageUrl: mappedRooms[0].imageUrl 
+      });
+    }
+    
+    return mappedRooms;
   } catch (error) {
     console.error("Failed to fetch top rated rooms:", error);
     return [];
@@ -363,6 +404,7 @@ export const getRoomsByCategory = async (
  */
 export const getCategoryRooms = async (): Promise<RoomType[]> => {
   try {
+    console.log('Fetching category rooms samples');
     // Use the internal Next.js API proxy route
     const response = await fetch(`/api/rooms/categories/samples`, {
       method: "GET",
@@ -381,9 +423,12 @@ export const getCategoryRooms = async (): Promise<RoomType[]> => {
       console.error("Error response body:", errorText.substring(0, 500));
 
       // If dedicated endpoint fails, get categories manually from all rooms
+      console.log('Falling back to client-side category extraction');
       const allRooms = await getAllRooms();
       const categories = [...new Set(allRooms.map((room) => room.category))];
-      return categories.map((category) => {
+      console.log(`Found ${categories.length} unique categories`);
+      
+      const categoryRooms = categories.map((category) => {
         const roomsInCategory = allRooms.filter(
           (room) => room.category === category,
         );
@@ -391,16 +436,36 @@ export const getCategoryRooms = async (): Promise<RoomType[]> => {
           (a, b) => (b.rating || 0) - (a.rating || 0),
         )[0];
       });
+      
+      // Log the first category room for debugging
+      if (categoryRooms.length > 0) {
+        console.log('First category room:', { 
+          title: categoryRooms[0].title,
+          category: categoryRooms[0].category,
+          imageUrl: categoryRooms[0].imageUrl 
+        });
+      }
+      
+      return categoryRooms;
     }
 
     const data = await response.json();
+    console.log(`Received category rooms data: ${data?.data?.length || 0} items`);
 
     if (!data || !data.data || !Array.isArray(data.data)) {
       console.error("API response is not in the expected format:", data);
       return [];
     }
 
-    return data.data.map(mapRoomData);
+    // Map and process the room data
+    const mappedRooms = data.data.map(room => {
+      // Ensure image URLs are correctly processed
+      const mappedRoom = mapRoomData(room);
+      console.log(`Processed category room: ${mappedRoom.title}, Image URL: ${mappedRoom.imageUrl}`);
+      return mappedRoom;
+    });
+    
+    return mappedRooms;
   } catch (error) {
     console.error("Failed to fetch category rooms:", error);
     return [];

@@ -9,8 +9,9 @@ import {
   FaMapMarkerAlt,
   FaEdit,
   FaHistory,
+  FaUser,
 } from "react-icons/fa";
-import SafeImage from "@/app/components/ui/SafeImage";
+import OptimizedImage from "@/app/components/shared/OptimizedImage";
 import { useAuth } from "@/app/context/AuthContext";
 import Link from "next/link";
 import { API_URL } from "@/app/lib/constants";
@@ -100,6 +101,23 @@ export default function ProfilePage() {
   // Cast user to extended type
   const extendedUser = user as unknown as ExtendedUser;
 
+  // Process profile picture URL properly
+  const processProfilePicture = (pic: string | undefined): string | null => {
+    if (!pic) return null;
+    
+    // Handle different URL formats
+    if (pic.startsWith('/uploads')) {
+      return `${API_URL}${pic}`;
+    } else if (pic.startsWith('http')) {
+      return pic;
+    } else if (pic.includes('cloudinary') || pic.includes('cdn')) {
+      return pic; // Already a full URL
+    } else {
+      // Could be some other format, return as is
+      return pic;
+    }
+  };
+
   // User data with defaults for missing fields
   const userData = {
     name: extendedUser.name || "Guest User",
@@ -112,10 +130,7 @@ export default function ProfilePage() {
         })
       : "Recently",
     address: extendedUser.address || "No address provided",
-    profilePic:
-      extendedUser.profilePic && extendedUser.profilePic.startsWith("/uploads")
-        ? `${API_URL}${extendedUser.profilePic}`
-        : extendedUser.profilePic,
+    profilePic: processProfilePicture(extendedUser.profilePic),
     upcomingBookings: bookings.upcoming,
     pastBookings: bookings.past,
   };
@@ -139,13 +154,17 @@ export default function ProfilePage() {
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         {/* Header with profile image */}
         <div className="bg-gradient-to-r from-gray-800 to-[#1C3F32] text-white p-8 flex flex-col md:flex-row items-center gap-6">
-          <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white flex-shrink-0">
-            <SafeImage
+          <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white flex-shrink-0" style={{ minHeight: '128px', minWidth: '128px' }}>
+            <OptimizedImage
               src={userData.profilePic}
-              imageType="profile"
-              alt={userData.name}
-              fill
+              type="profile"
+              alt={userData.name || 'User profile'}
+              fill={true}
+              sizes="128px"
               className="object-cover"
+              fallbackSrc="https://placehold.co/128x128/gray/white?text=User"
+              style={{ height: '100%', width: '100%' }}
+              priority={true}
             />
           </div>
           <div className="text-center md:text-left">

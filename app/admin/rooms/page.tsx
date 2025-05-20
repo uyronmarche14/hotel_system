@@ -450,20 +450,25 @@ export default function RoomsManagement() {
         hasCookieToken: !!Cookies.get("token"),
         hasAuthCookieToken: !!Cookies.get("authToken"),
         userRole: userData?.role,
-        tokenLength: token ? token.length : 0,
+        tokenLength: token ? token.length : 0
       });
       
-      // Check all cookies for debugging
-      console.log("All cookies:", document.cookie);
+      // If token not found in cookies, try localStorage
+      if (!token) {
+        token = localStorage.getItem('adminToken');
+        console.log("Trying adminToken from localStorage:", !!token);
+      }
       
       if (!token) {
-        // Token is missing - redirect to login
+        console.error("No auth token found - redirecting to login");
         setError("Your session has expired. Please login again.");
         setTimeout(() => {
           router.push("/admin-login");
         }, 2000);
         return;
       }
+      
+      console.log("Using admin token for API request");
       
       // Final check of what we're submitting
       console.log("Submitting room data with files:", {
@@ -472,16 +477,22 @@ export default function RoomsManagement() {
         allKeys: [...formData.keys()]
       });
 
+      console.log(`Sending ${method} request to ${url}`);
+      
       const response = await fetch(url, {
         method,
         headers: {
           // Don't set Content-Type for FormData, the browser will set it correctly with boundary
-          Authorization: `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
         },
         body: formData,
         // Ensure we're not using any cached responses
         cache: 'no-store',
+        credentials: 'include', // Include cookies in the request
       });
+      
+      console.log(`Response status: ${response.status} ${response.statusText}`);
 
       const data = await response.json();
 

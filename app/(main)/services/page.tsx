@@ -11,6 +11,7 @@ import {
   FaSearch,
 } from "react-icons/fa";
 import Image from "next/image";
+import OptimizedImage from "@/app/components/shared/OptimizedImage";
 import {
   RoomType,
   getAllRooms,
@@ -486,20 +487,16 @@ const SearchResultsContent = () => {
                       key={index}
                       className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col md:flex-row hover:shadow-md transition-shadow"
                     >
-                      <div className="md:w-64 h-48 md:h-full relative flex-shrink-0">
-                        {!imageError[room.title] ? (
-                          <Image
-                            src={room.imageUrl}
-                            alt={room.title}
-                            fill
-                            className="object-cover"
-                            onError={() => handleImageError(room.title)}
-                          />
-                        ) : (
-                          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400">
-                            <p className="text-sm">Image not available</p>
-                          </div>
-                        )}
+                      <div className="md:w-64 h-48 md:h-auto relative flex-shrink-0" style={{ minHeight: '200px' }}>
+                        <OptimizedImage
+                          src={imageError[room.title] ? undefined : room.imageUrl}
+                          fallbackSrc="https://placehold.co/600x400/png?text=Room+Image"
+                          alt={room.title || 'Room image'}
+                          fill={true}
+                          type="room"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
+                          className="object-cover"
+                        />
                       </div>
 
                       <div className="p-4 md:p-6 flex-1 flex flex-col">

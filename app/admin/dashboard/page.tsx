@@ -11,6 +11,7 @@ import {
 } from "react-icons/fa";
 import AdminLayout from "@/app/components/layouts/AdminLayout";
 import Cookies from "js-cookie";
+import { getAdminToken } from "@/app/services/adminService";
 
 interface DashboardStats {
   totalUsers: number;
@@ -49,7 +50,7 @@ export default function Dashboard() {
   useEffect(() => {
     const checkAdminAuth = () => {
       const user = localStorage.getItem("user");
-      if (!user || !Cookies.get("token")) {
+      if (!user || !getAdminToken()) {
         router.push("/admin-login");
         return false;
       }
@@ -71,10 +72,16 @@ export default function Dashboard() {
       if (!checkAdminAuth()) return;
 
       try {
+        setIsLoading(true);
+        setError(null);
+        
+        const token = getAdminToken();
         const response = await fetch("/api/admin/dashboard", {
           headers: {
-            Authorization: `Bearer ${Cookies.get("token")}`,
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
           },
+          cache: "no-store",
         });
 
         if (!response.ok) {
@@ -92,13 +99,45 @@ export default function Dashboard() {
           throw error;
         }
 
-        const data = (await response.json()) as ApiResponse<DashboardStats>;
-        setStats(data.data);
+        // Use direct fetch to debug endpoint if needed
+        const data = await response.json();
+        console.log('Dashboard API response:', data);
+
+        // Safely extract data from various possible response formats
+        if (data?.data) {
+          // Format: { success: true, data: { ... } }
+          console.log('Using data from standard response format');
+          setStats(data.data);
+        } else if (data?.dashboard) {
+          // Format: { success: true, dashboard: { ... } }
+          console.log('Transforming dashboard data format');
+          setStats({
+            totalUsers: data.dashboard.totalUsers || 0,
+            totalBookings: data.dashboard.totalBookings || 0,
+            activeBookings: data.dashboard.statusCounts?.confirmed || 0,
+            totalRooms: data.dashboard.totalRooms || 0,
+            recentBookings: data.dashboard.recentBookings?.length || 0,
+            totalRevenue: data.dashboard.totalRevenue || 0,
+          });
+        } else if (data?.success === false) {
+          // Error response
+          throw new Error(data.message || "Failed to fetch dashboard data");
+        } else {
+          // Attempt to use the data directly, or fallback to defaults
+          console.warn('Using direct data or default values');
+          setStats({
+            totalUsers: data?.totalUsers || 0,
+            totalBookings: data?.totalBookings || 0,
+            activeBookings: data?.activeBookings || 0,
+            totalRooms: data?.totalRooms || 0,
+            recentBookings: data?.recentBookings || 0,
+            totalRevenue: data?.totalRevenue || 0,
+          });
+        }
       } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "An unexpected error occurred";
-        setError(errorMessage);
         console.error("Dashboard stats fetch error:", err);
+        const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
+        setError(errorMessage);
       } finally {
         setIsLoading(false);
       }
@@ -213,7 +252,7 @@ export default function Dashboard() {
               </div>
               <div className="ml-4">
                 <h2 className="text-lg font-semibold text-gray-700">
-                  Recent Bookings (30d)
+                  Recent Bookings
                 </h2>
                 <p className="text-3xl font-bold text-gray-800">
                   {stats.recentBookings}

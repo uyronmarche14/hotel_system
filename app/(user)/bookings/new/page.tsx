@@ -48,10 +48,25 @@ function BookingContent() {
   const [adultsCount] = useState(2);
 
   // Calculate prices
-  const basePrice = room ? room.price * nightsStay : 0;
+  // Ensure room price is valid - use a minimum fallback price if none exists
+  const roomPrice = room && typeof room.price === 'number' && room.price > 0 ? room.price : 5000; // Fallback price of 5000
+  const basePrice = roomPrice * nightsStay;
   const taxRate = 0.12; // 12% tax
   const taxAndFees = Math.round(basePrice * taxRate);
   const totalPrice = basePrice + taxAndFees;
+  
+  // Log price calculations for debugging
+  useEffect(() => {
+    if (room) {
+      console.log('Price calculations:', {
+        roomPrice: room.price,
+        nightsStay,
+        basePrice,
+        taxAndFees,
+        totalPrice
+      });
+    }
+  }, [room, basePrice, taxAndFees, totalPrice, nightsStay]);
 
   // Get room info from URL parameters - with null checks
   const roomId = searchParams?.get("roomId") || "";

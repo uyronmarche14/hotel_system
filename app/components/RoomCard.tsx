@@ -10,15 +10,15 @@ interface RoomCardProps {
 
 const RoomCard = ({ room }: RoomCardProps) => {
   const { title, price, location, imageUrl, href } = room;
+  // We'll handle image loading state but let the OptimizedImage handle errors and fallbacks
   const [imageLoading, setImageLoading] = useState(true);
-  const [imageError, setImageError] = useState(false);
 
   // We'll handle fallback in OptimizedImage component
 
   return (
     <Link href={href} className="block h-full">
       <div className="group rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 h-full flex flex-col">
-        <div className="relative h-48 w-full bg-gray-200">
+        <div className="relative h-48 w-full bg-gray-200" style={{ minHeight: '192px' }}>
           {imageLoading && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-8 h-8 border-2 border-[#1C3F32] border-t-transparent rounded-full animate-spin"></div>
@@ -26,19 +26,21 @@ const RoomCard = ({ room }: RoomCardProps) => {
           )}
           <OptimizedImage
             src={imageUrl}
-            alt={title}
-            fill
+            alt={title || 'Room image'}
+            fill={true}
             type="room"
-            quality="auto"
+            cloudinaryQuality="auto"
             format="auto"
+            priority={true} // Load images with priority
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
             className={`object-cover transition-transform duration-300 group-hover:scale-105 ${
               imageLoading ? "opacity-0" : "opacity-100"
             }`}
-            onLoad={() => setImageLoading(false)}
-            onError={() => {
-              console.log("Image failed to load:", imageUrl);
-              setImageError(true);
-              setImageLoading(false);
+            style={{ height: '100%', width: '100%' }} // Ensure parent has dimensions
+            fallbackSrc="https://placehold.co/600x400/png?text=Room+Image" // Explicit fallback
+            onLoad={() => {
+              // Use setTimeout to avoid React state update warnings
+              setTimeout(() => setImageLoading(false), 100);
             }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
