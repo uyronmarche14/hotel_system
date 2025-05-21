@@ -128,7 +128,9 @@ export const generateSrcSet = (url: string): string => {
     return '';
   }
   
-  const breakpoints = [640, 768, 1024, 1280, 1536, 1920];
+  // Reduced number of breakpoints to optimize payload size and improve performance
+  // Key breakpoints that cover most device widths without excessive duplication
+  const breakpoints = [640, 1024, 1920];
   
   return breakpoints
     .map(width => {

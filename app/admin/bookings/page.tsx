@@ -19,6 +19,7 @@ import AdminLayout from "@/app/components/layouts/AdminLayout";
 import Cookies from "js-cookie";
 import ErrorToast from "@/app/components/ErrorToast";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
+import { getAdminToken } from "@/app/services/adminService";
 
 interface Booking {
   id: string;
@@ -59,7 +60,9 @@ export default function BookingsManagement() {
   useEffect(() => {
     const checkAdminAuth = () => {
       const user = localStorage.getItem("user");
-      if (!user || !Cookies.get("token")) {
+      const token = getAdminToken(); // Use the centralized token retrieval function
+      
+      if (!user || !token) {
         router.push("/admin-login");
         return false;
       }
@@ -81,17 +84,8 @@ export default function BookingsManagement() {
       if (!checkAdminAuth()) return;
 
       try {
-        // Try to get token from multiple sources
-        let token = Cookies.get("token") || undefined;
-        
-        // If not in cookie, try localStorage (our backup location)
-        if (!token) {
-          const localToken = localStorage.getItem('adminToken');
-          if (localToken) {
-            token = localToken;
-            console.log("Using adminToken from localStorage");
-          }
-        }
+        // Use the centralized token retrieval function
+        const token = getAdminToken();
         
         if (!token) {
           console.error("No admin auth token found - redirecting to login");
@@ -99,7 +93,7 @@ export default function BookingsManagement() {
           return;
         }
         
-        console.log("Fetching admin bookings with auth token");
+        // Fetch bookings with auth token
         
         const response = await fetch(`/api/admin/bookings`, {
           headers: {
@@ -118,7 +112,7 @@ export default function BookingsManagement() {
         }
 
         const data = await response.json();
-        console.log('API Response structure:', Object.keys(data));
+        // Process API response
         
         // Handle nested data structures that might come from backend
         let bookingsData = null;
@@ -127,20 +121,20 @@ export default function BookingsManagement() {
         if (data.bookings) {
           // Format: { bookings: [...] }
           bookingsData = data.bookings;
-          console.log(`Found ${bookingsData.length} bookings in data.bookings`);
+          // Found bookings in data.bookings format
         } else if (data.data && Array.isArray(data.data)) {
           // Format: { data: [...] }
           bookingsData = data.data;
-          console.log(`Found ${bookingsData.length} bookings in data.data array`);
+          // Found bookings in data.data array format
         } else if (data.data && data.data.bookings) {
           // Format: { data: { bookings: [...] } }
           bookingsData = data.data.bookings;
-          console.log(`Found ${bookingsData.length} bookings in data.data.bookings`);
+          // Found bookings in data.data.bookings format
         }
         
         // If we still don't have the bookings data, try to get it directly from debug endpoint
         if (!bookingsData) {
-          console.log('No bookings found in standard response formats, trying debug endpoint');
+          // Trying alternate endpoint as fallback
           try {
             const debugResponse = await fetch('/api/debug/bookings/sample', {
               headers: {
@@ -152,7 +146,7 @@ export default function BookingsManagement() {
               const debugData = await debugResponse.json();
               if (debugData.bookings && Array.isArray(debugData.bookings)) {
                 bookingsData = debugData.bookings;
-                console.log(`Successfully fetched ${bookingsData.length} bookings from debug endpoint`);
+                // Successfully fetched from alternate endpoint
               }
             }
           } catch (debugError) {
@@ -162,7 +156,7 @@ export default function BookingsManagement() {
         
         // If we have bookings data, update state
         if (bookingsData && Array.isArray(bookingsData)) {
-          console.log(`Setting ${bookingsData.length} bookings to state`);
+          // Update state with fetched bookings
           setBookings(bookingsData);
           setFilteredBookings(bookingsData);
         } else {

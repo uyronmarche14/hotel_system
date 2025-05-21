@@ -210,7 +210,7 @@ export default function BookingHistoryPage() {
   }
 
   // No history found
-  if (roomStats.length === 0) {
+  if (!roomStats || roomStats.length === 0) {
     return (
       <main className="container mx-auto px-4 py-6 sm:py-8 max-w-6xl">
         <div className="flex justify-between items-center mb-6">
