@@ -23,7 +23,6 @@ const nextConfig: NextConfig = {
   // Disable strict mode temporarily to fix errors
   reactStrictMode: false,
   // Improve stability
-  swcMinify: false,
   // Ensure images work correctly
   images: {
     domains: ['res.cloudinary.com', 'via.placeholder.com', 'example.com', 'localhost'],
