@@ -1,9 +1,7 @@
-'use client';
-
 import "./globals.css";
 import { Inter, Cinzel_Decorative } from "next/font/google";
 import { Geist } from "next/font/google";
-import { AuthProvider } from "./context/AuthContext";
+import ClientLayout from "./components/ClientLayout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,9 +28,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`inter w-full min-h-screen overflow-x-hidden ${geistSans.variable} ${inter.variable} ${cinzelDecorative.variable} font-sans antialiased`}>
-        <AuthProvider>
+        <ClientLayout>
           {children}
-        </AuthProvider>
+        </ClientLayout>
       </body>
     </html>
   );

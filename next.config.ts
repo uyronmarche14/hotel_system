@@ -16,8 +16,8 @@ const nextConfig: NextConfig = {
   },
   // Disable strict mode temporarily to fix errors
   reactStrictMode: false,
-  // Use standalone output to improve build reliability with route groups
-  output: 'standalone',
+  // Temporarily disable standalone output to fix client reference manifest issues
+  // output: 'standalone',
   // Ensure images work correctly
   images: {
     domains: ['res.cloudinary.com', 'via.placeholder.com', 'example.com', 'localhost'],
@@ -54,9 +54,20 @@ const nextConfig: NextConfig = {
     // Help with potential module resolution issues
     optimizeCss: true,
     // Ensure vendor chunks are properly created
-    optimizePackageImports: ['react-icons'],
-    // Externalize packages that might cause client reference issues
-    serverComponentsExternalPackages: ['react-icons', '@fortawesome/fontawesome-svg-core'],
+    optimizePackageImports: ['react-icons', '@mui/material', 'date-fns'],
+    // Add these new settings to help with client reference issues
+    serverActions: {
+      allowedOrigins: ['localhost:3000'],
+    },
+  },
+  // Externalize packages that might cause client reference issues (updated for Next.js 15.3.0)
+  serverExternalPackages: ['@fortawesome/fontawesome-svg-core'],
+  // Add webpack configuration to help with module resolution
+  webpack: (config) => {
+    // Optimize for client reference resolution
+    config.resolve.fallback = { ...config.resolve.fallback, fs: false };
+    
+    return config;
   },
   // Add proxy configuration to avoid CORS issues
   async rewrites() {
