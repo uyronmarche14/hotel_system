@@ -14,15 +14,10 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true
   },
-  // Prevents incomplete compilation artifacts from being used
-  onDemandEntries: {
-    maxInactiveAge: 60 * 60 * 1000,
-    pagesBufferLength: 2,
-  },
-  // Prevents experimental features from causing build issues
   // Disable strict mode temporarily to fix errors
   reactStrictMode: false,
-  // Improve stability
+  // Use standalone output to improve build reliability with route groups
+  output: 'standalone',
   // Ensure images work correctly
   images: {
     domains: ['res.cloudinary.com', 'via.placeholder.com', 'example.com', 'localhost'],
@@ -60,6 +55,8 @@ const nextConfig: NextConfig = {
     optimizeCss: true,
     // Ensure vendor chunks are properly created
     optimizePackageImports: ['react-icons'],
+    // Externalize packages that might cause client reference issues
+    serverComponentsExternalPackages: ['react-icons', '@fortawesome/fontawesome-svg-core'],
   },
   // Add proxy configuration to avoid CORS issues
   async rewrites() {
