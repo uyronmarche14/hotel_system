@@ -317,9 +317,11 @@ function BookingContent() {
         // Show success state and redirect after delay
         setBookingCompleted(true);
         
-        // Redirect to booking confirmation or history page after successful booking
+        // Redirect to booking receipt page after successful booking
         setTimeout(() => {
-          router.push('/bookings/history');
+          // Navigate to receipt page with the booking ID
+          const bookingId = response.data?.id || response.data?.bookingId;
+          router.push(`/bookings/receipt/${bookingId}`);
         }, 2000);
       } else {
         // Handle error response without message property
