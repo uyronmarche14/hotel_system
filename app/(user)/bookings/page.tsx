@@ -366,10 +366,10 @@ export default function BookingsPage() {
 
                     <div className="space-y-2 mt-3 md:mt-0">
                       <Link
-                        href={`/bookings/${booking._id}`}
+                        href={`/bookings/receipt/${booking._id}`}
                         className="block w-full text-center bg-[#1C3F32] text-white py-2 rounded-md hover:bg-[#1C3F32]/90 transition-colors text-sm sm:text-base"
                       >
-                        Manage Booking
+                        View Receipt
                       </Link>
                       <button
                         onClick={() => handleCancelBooking(booking._id)}
@@ -518,10 +518,10 @@ export default function BookingsPage() {
                     {booking.status === "completed" && (
                       <div className="space-y-2 mt-3 md:mt-0">
                         <Link
-                          href={`/bookings/${booking._id}`}
+                          href={`/bookings/receipt/${booking._id}`}
                           className="block w-full text-center border border-[#1C3F32] text-[#1C3F32] py-2 rounded-md hover:bg-gray-50 transition-colors text-sm sm:text-base"
                         >
-                          View Details
+                          View Receipt
                         </Link>
                       </div>
                     )}
