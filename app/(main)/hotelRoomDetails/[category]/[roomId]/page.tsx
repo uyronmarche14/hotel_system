@@ -48,18 +48,84 @@ const RoomDetails = () => {
     const fetchRoomData = async () => {
       setLoading(true);
       try {
-        const allRooms = await getAllRooms();
-
-        // Find room that matches either by title slug or by roomId
-        const foundRoom = allRooms.find((r) => {
+        console.log('Room details: Fetching room data for', { category, roomId });
+        
+        // Make direct API call to get all rooms with cache busting
+        const response = await fetch(`/api/rooms?limit=50`, {
+          method: 'GET',
+          cache: 'no-store',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Pragma': 'no-cache',
+            'Cache-Control': 'no-cache, no-store, must-revalidate'
+          }
+        });
+        
+        console.log('Room details API response status:', response.status);
+        
+        let allRooms: RoomType[] = [];
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Room details: Received room data from API');
+          
+          // Handle different API response formats
+          let roomsArray = [];
+          if (data.data && Array.isArray(data.data)) {
+            roomsArray = data.data;
+          } else if (data.rooms && Array.isArray(data.rooms)) {
+            roomsArray = data.rooms;
+          } else if (Array.isArray(data)) {
+            roomsArray = data;
+          }
+          
+          // Map room data for consistent format
+          allRooms = roomsArray.map((room: any) => ({
+            id: room.id || room._id || `room-${Date.now()}`,
+            _id: room._id,
+            title: room.title || "",
+            price: room.price || 0,
+            location: room.location || "",
+            imageUrl: room.imageUrl || room.image_url || "https://placehold.co/800x600/1C3F32/FFFFFF.png?text=Hotel+Room",
+            href: `/hotelRoomDetails/${room.category || 'standard'}/${room.title.toLowerCase().replace(/ /g, '-')}`,
+            rating: room.rating || 0,
+            reviews: room.reviews || 0,
+            description: room.description || "",
+            category: room.category || "standard",
+            fullDescription: room.fullDescription || "",
+            features: room.features || [],
+            maxOccupancy: room.maxOccupancy || 2,
+            bedType: room.bedType || "",
+            roomSize: room.roomSize || "",
+            viewType: room.viewType || "",
+            additionalAmenities: room.additionalAmenities || [],
+            amenities: room.amenities || [],
+            images: Array.isArray(room.images) ? room.images : [],
+            roomNumber: room.roomNumber || "",
+            type: room.type || "standard",
+            isAvailable: room.isAvailable !== undefined ? room.isAvailable : true,
+            capacity: room.capacity || 1,
+          }));
+        } else {
+          // Fallback to using service function if direct API call fails
+          console.log('Room details: Direct API call failed, using service function');
+          allRooms = await getAllRooms();
+        }
+        
+        console.log(`Room details: Fetched ${allRooms.length} rooms, searching for match`);
+        
+        // First try to find room by exact category and room ID match
+        let foundRoom = allRooms.find((r) => {
           const titleSlug = r.title.toLowerCase().replace(/ /g, "-");
           return (
             r.category === category &&
-            (titleSlug === roomId || r.href?.includes(roomId))
+            (titleSlug === roomId || r.id === roomId || r.href?.includes(roomId))
           );
         });
 
         if (foundRoom) {
+          console.log('Found matching room:', foundRoom.title);
           setRoom(foundRoom);
 
           // Filter related rooms (same category, different room)
@@ -82,6 +148,24 @@ const RoomDetails = () => {
           // Filter special offers (high price rooms for discount)
           const special = allRooms.filter((r) => r.price > 5000).slice(0, 3);
           setSpecialRooms(special);
+        } else {
+          console.log('Room not found in database for:', { category, roomId });
+          
+          // Do not create a fallback room - simply leave room as null
+          // This will trigger the 'Room not found' message in the UI
+          
+          // If we have other rooms in the database, we can still show recommendations
+          if (allRooms.length >= 3) {
+            // Use existing rooms if available for recommendations
+            setRelatedRooms(allRooms.slice(0, 3));
+            setPopularRooms(allRooms.slice(0, 3));
+            setSpecialRooms(allRooms.slice(0, 3));
+          } else {
+            // Just set empty arrays for all room sections
+            setRelatedRooms([]);
+            setPopularRooms([]);
+            setSpecialRooms([]);
+          }
         }
       } catch (error) {
         console.error("Error fetching room data:", error);
@@ -123,6 +207,7 @@ const RoomDetails = () => {
     );
   }
 
+  // Show a proper message when a room is not found in the database
   if (!room) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -130,22 +215,23 @@ const RoomDetails = () => {
           <h1 className="text-2xl font-bold text-red-600 mb-4">
             Room not found
           </h1>
-          <p className="text-gray-600 mb-6">
-            The room you&apos;re looking for doesn&apos;t exist or has been
-            removed.
+          <p className="text-gray-800 mb-6">
+            The room you&apos;re looking for doesn&apos;t exist in our database or has been removed.
           </p>
-          <Link
-            href={`/hotelRoomDetails/${category}`}
-            className="inline-block bg-[#1C3F32] text-white px-6 py-2 rounded-md hover:bg-[#1C3F32]/90 transition-colors mr-4"
-          >
-            Back to Category
-          </Link>
-          <Link
-            href="/dashboard"
-            className="inline-block bg-gray-200 text-gray-800 px-6 py-2 rounded-md hover:bg-gray-300 transition-colors"
-          >
-            Back to Dashboard
-          </Link>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link
+              href="/dashboard"
+              className="inline-block bg-[#1C3F32] text-white px-6 py-3 rounded-md hover:bg-[#15332a] transition-colors"
+            >
+              Return to Dashboard
+            </Link>
+            <Link
+              href="/services"
+              className="inline-block bg-gray-200 text-gray-800 px-6 py-3 rounded-md hover:bg-gray-300 transition-colors"
+            >
+              Browse All Rooms
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -261,12 +347,17 @@ const RoomDetails = () => {
       {/* Hero Image */}
       <div className="relative h-[446px] w-full mb-6 rounded-lg overflow-hidden shadow-lg">
         <Image
-          src={room.imageUrl}
+          src={room.imageUrl || "https://placehold.co/1200x800/1C3F32/FFFFFF.png?text=" + encodeURIComponent(room.title || "Hotel Room")}
           alt={room.title}
           className="object-cover"
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 75vw"
           priority
+          onError={(e) => {
+            // If the image fails to load, use a placeholder
+            const imgElement = e.target as HTMLImageElement;
+            imgElement.src = "https://placehold.co/1200x800/1C3F32/FFFFFF.png?text=" + encodeURIComponent(room.title || "Hotel Room");
+          }}
         />
       </div>
 

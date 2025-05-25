@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import RoomCard from "@/app/components/RoomCard";
 import ErrorToast from "@/app/components/ErrorToast";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
@@ -14,12 +15,45 @@ import {
 } from "@/app/services/roomService";
 
 export default function Dashboard() {
+  const router = useRouter();
   const [topRatedRooms, setTopRatedRooms] = useState<RoomType[]>([]);
   const [categoryRooms, setCategoryRooms] = useState<RoomType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showErrorToast, setShowErrorToast] = useState(false);
   const [apiConnected, setApiConnected] = useState<boolean | null>(null);
+  
+  // Search form states
+  const [location, setLocation] = useState<string>("Philippines");
+  const [checkIn, setCheckIn] = useState<string>("2025-05-26");
+  const [checkOut, setCheckOut] = useState<string>("2025-05-28");
+  const [guests, setGuests] = useState<string>("1 Adult");
+
+  // Handle search form submission
+  const handleSearch = () => {
+    const formattedCheckIn = new Date(checkIn).toLocaleDateString('en-US', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+    });
+    
+    const formattedCheckOut = new Date(checkOut).toLocaleDateString('en-US', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+    });
+    
+    // Create the search query string
+    const searchParams = new URLSearchParams({
+      location,
+      checkIn: formattedCheckIn,
+      checkOut: formattedCheckOut,
+      guests
+    });
+    
+    // Navigate to the services page with the search parameters
+    router.push(`/services?${searchParams.toString()}`);
+  };
 
   useEffect(() => {
     const checkConnection = async () => {
@@ -129,50 +163,59 @@ export default function Dashboard() {
         className="w-full px-4 mx-auto bg-white shadow-md relative z-[20] -mt-8 sm:-mt-16 max-w-[95%] sm:max-w-6xl"
       >
         <div className="container mx-auto">
-          <div className="bg-white rounded-lg p-3 sm:p-4 flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 items-start sm:items-center justify-between">
-            {/* Location Input */}
+          <div className="flex flex-col sm:flex-row sm:items-end gap-4 p-6 bg-white/90 rounded-md shadow-md">
+            {/* Location */}
             <div className="flex-1 min-w-[200px] w-full sm:w-auto">
               <label
-                htmlFor="location-input"
+                htmlFor="location-select"
                 className="block text-sm text-[#1C3F32]/70 mb-1"
               >
                 Where are you headed?
               </label>
-              <input
-                id="location-input"
-                type="text"
-                placeholder="Philippines"
+              <select
+                id="location-select"
                 className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-[#1C3F32]/70"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+              >
+                <option>Philippines</option>
+                <option>Cebu</option>
+                <option>Bohol</option>
+                <option>Palawan</option>
+              </select>
+            </div>
+
+            {/* Check In */}
+            <div className="flex-1 min-w-[200px] w-full sm:w-auto">
+              <label
+                htmlFor="checkin-date"
+                className="block text-sm text-[#1C3F32]/70 mb-1"
+              >
+                Check In
+              </label>
+              <input
+                type="date"
+                id="checkin-date"
+                className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-[#1C3F32]/70"
+                value={checkIn}
+                onChange={(e) => setCheckIn(e.target.value)}
               />
             </div>
 
-            {/* Check-in Date */}
+            {/* Check Out */}
             <div className="flex-1 min-w-[200px] w-full sm:w-auto">
               <label
-                htmlFor="check-in-date"
+                htmlFor="checkout-date"
                 className="block text-sm text-[#1C3F32]/70 mb-1"
               >
-                Check in
+                Check Out
               </label>
               <input
-                id="check-in-date"
                 type="date"
+                id="checkout-date"
                 className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-[#1C3F32]/70"
-              />
-            </div>
-
-            {/* Check-out Date */}
-            <div className="flex-1 min-w-[200px] w-full sm:w-auto">
-              <label
-                htmlFor="check-out-date"
-                className="block text-sm text-[#1C3F32]/70 mb-1"
-              >
-                Check out
-              </label>
-              <input
-                id="check-out-date"
-                type="date"
-                className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-[#1C3F32]/70"
+                value={checkOut}
+                onChange={(e) => setCheckOut(e.target.value)}
               />
             </div>
 
@@ -187,6 +230,8 @@ export default function Dashboard() {
               <select
                 id="guests-select"
                 className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3F32] text-[#1C3F32]/70"
+                value={guests}
+                onChange={(e) => setGuests(e.target.value)}
               >
                 <option>1 Adult</option>
                 <option>2 Adults</option>
@@ -195,13 +240,14 @@ export default function Dashboard() {
               </select>
             </div>
 
-            {/* Book Now Button */}
+            {/* Search Button */}
             <div className="w-full sm:w-auto mt-3 sm:mt-0 flex justify-center sm:justify-start">
               <Button
                 size="md"
                 icon={<FaSearch />}
                 className="sm:mt-6"
                 aria-label="Search for rooms"
+                onClick={handleSearch}
               >
                 Search Rooms
               </Button>

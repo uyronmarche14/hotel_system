@@ -79,14 +79,65 @@ const SearchResultsContent = () => {
     const fetchRooms = async () => {
       setIsLoading(true);
       try {
-        const rooms = await getAllRooms();
+        // Use a direct API call with no limit to get ALL rooms (more than 22)
+        const response = await fetch(`/api/rooms?limit=100`, {
+          method: 'GET',
+          cache: 'no-store',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Pragma': 'no-cache',
+            'Cache-Control': 'no-cache, no-store, must-revalidate'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`API request failed: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Handle different API response formats
+        let roomsArray = [];
+        if (data.data && Array.isArray(data.data)) {
+          roomsArray = data.data;
+        } else if (data.rooms && Array.isArray(data.rooms)) {
+          roomsArray = data.rooms;
+        } else if (Array.isArray(data)) {
+          roomsArray = data;
+        }
+        
+        // Process the rooms data
+        const rooms = roomsArray.map((room: any) => ({
+          id: room.id || room._id,
+          title: room.title || "",
+          price: room.price || 0,
+          location: room.location || "",
+          imageUrl: room.imageUrl || room.image_url || "https://placehold.co/600x400/png?text=Room+Image",
+          href: `/rooms/${room.id || room._id}`,
+          rating: room.rating || 0,
+          reviews: room.reviews || 0,
+          description: room.description || "",
+          category: room.category || "",
+          bedType: room.bedType || "",
+          maxOccupancy: room.maxOccupancy || 2,
+        }));
+        
+        console.log(`Total rooms fetched directly: ${rooms.length}`);
         setAllRooms(rooms);
 
         // If category is provided in URL, filter by it
         if (category) {
-          const categoryRooms = await getRoomsByCategory(category);
+          // Filter rooms based on category match in title, description, or category field
+          const categoryRooms = rooms.filter((room: RoomType) => 
+            room.category.toLowerCase().includes(category.toLowerCase()) ||
+            room.title.toLowerCase().includes(category.toLowerCase()) ||
+            (room.description && room.description.toLowerCase().includes(category.toLowerCase()))
+          );
+          console.log(`Category rooms filtered for ${category}: ${categoryRooms.length}`);
           setFilteredRooms(categoryRooms);
         } else {
+          // No filtering - show all rooms
           setFilteredRooms(rooms);
         }
       } catch (error) {
@@ -106,14 +157,40 @@ const SearchResultsContent = () => {
   const getCategories = (): { id: string; name: string; count: number }[] => {
     if (allRooms.length === 0) return [];
 
+    // Extract all unique categories from rooms data
     const categories = [...new Set(allRooms.map((room) => room.category))];
+    
+    // If standard and suite categories aren't in the list, add them
+    const requiredCategories = ['standard', 'suite', 'deluxe', 'executive', 'family'];
+    
+    // Add any missing category types to ensure comprehensive filtering
+    requiredCategories.forEach(reqCategory => {
+      if (!categories.includes(reqCategory) && !categories.some(cat => cat.includes(reqCategory))) {
+        // Only add if there are matching rooms (avoid empty categories)
+        const matchingRooms = allRooms.filter(room => 
+          room.title.toLowerCase().includes(reqCategory) || 
+          (room.description && room.description.toLowerCase().includes(reqCategory))
+        );
+        if (matchingRooms.length > 0) {
+          categories.push(reqCategory);
+        }
+      }
+    });
+    
+    // Sort categories alphabetically for better UX
+    categories.sort();
+    
     return categories.map((cat) => ({
       id: cat,
       name: cat
         .split("-")
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" "),
-      count: allRooms.filter((room) => room.category === cat).length,
+      count: allRooms.filter((room) => 
+        room.category === cat || 
+        room.title.toLowerCase().includes(cat) || 
+        (room.description && room.description.toLowerCase().includes(cat))
+      ).length,
     }));
   };
 
@@ -133,11 +210,24 @@ const SearchResultsContent = () => {
   };
 
   const handleCategoryChange = (category: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(category)
-        ? prev.filter((c) => c !== category)
-        : [...prev, category],
-    );
+    console.log('Category selected:', category);
+    
+    // Toggle category selection
+    setSelectedCategories((prev) => {
+      const isAlreadySelected = prev.includes(category);
+      
+      // If already selected, remove it from the array
+      if (isAlreadySelected) {
+        return prev.filter((c) => c !== category);
+      } 
+      // If not selected, add it to the array
+      else {
+        return [...prev, category];
+      }
+    });
+    
+    // Immediately apply filter - this will trigger the useEffect that filters rooms
+    console.log('Applying category filter:', category);
   };
 
   const handleImageError = (roomId: string) => {
@@ -164,7 +254,22 @@ const SearchResultsContent = () => {
 
   // Handle room selection
   const handleSelectRoom = (room: RoomType) => {
-    router.push(room.href);
+    console.log('Selected room:', room.title, 'category:', room.category);
+    
+    // Create a slug from the room title if it doesn't exist
+    const titleSlug = room.title.toLowerCase().replace(/ /g, '-');
+    
+    // Use room.href if it exists and is properly formatted, otherwise construct the URL manually
+    if (room.href && room.href.startsWith('/hotelRoomDetails/')) {
+      console.log('Using existing href:', room.href);
+      router.push(room.href);
+    } else {
+      // Ensure we have a category, defaulting to 'standard' if missing
+      const category = room.category || 'standard';
+      const detailsUrl = `/hotelRoomDetails/${category}/${titleSlug}`;
+      console.log('Navigating to constructed URL:', detailsUrl);
+      router.push(detailsUrl);
+    }
   };
 
   // Filter logic
@@ -199,11 +304,20 @@ const SearchResultsContent = () => {
       );
     }
 
-    // Filter by selected categories
+    // Filter by selected categories - enhanced to include room title and description
     if (selectedCategories.length > 0) {
-      filtered = filtered.filter((room) =>
-        selectedCategories.includes(room.category),
-      );
+      filtered = filtered.filter((room) => {
+        // Check if room's category is directly in selected categories
+        if (selectedCategories.includes(room.category)) {
+          return true;
+        }
+        
+        // Check if room's title or description contains any selected category
+        return selectedCategories.some(category => 
+          room.title.toLowerCase().includes(category.toLowerCase()) || 
+          (room.description && room.description.toLowerCase().includes(category.toLowerCase()))
+        );
+      });
     }
 
     setFilteredRooms(filtered);
@@ -346,7 +460,48 @@ const SearchResultsContent = () => {
                 Room Type
               </h3>
               <div className="space-y-2">
-                {getCategories().map((category) => (
+                {/* Standard Room Type - Explicitly added */}
+                <label
+                  className="flex items-center mb-2 text-gray-700 hover:text-gray-900 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedCategories.includes('standard')}
+                    onChange={() => handleCategoryChange('standard')}
+                    className="mr-2 text-brand-green focus:ring-brand-green h-4 w-4"
+                  />
+                  Standard{" "}
+                  <span className="ml-1 text-gray-500 text-sm">
+                    ({allRooms.filter(room => 
+                      room.title.toLowerCase().includes('standard') || 
+                      (room.description && room.description.toLowerCase().includes('standard'))
+                    ).length})
+                  </span>
+                </label>
+                
+                {/* Suite Room Type - Explicitly added */}
+                <label
+                  className="flex items-center mb-2 text-gray-700 hover:text-gray-900 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedCategories.includes('suite')}
+                    onChange={() => handleCategoryChange('suite')}
+                    className="mr-2 text-brand-green focus:ring-brand-green h-4 w-4"
+                  />
+                  Suite{" "}
+                  <span className="ml-1 text-gray-500 text-sm">
+                    ({allRooms.filter(room => 
+                      room.title.toLowerCase().includes('suite') || 
+                      (room.description && room.description.toLowerCase().includes('suite'))
+                    ).length})
+                  </span>
+                </label>
+                
+                {/* Dynamically generated categories */}
+                {getCategories().filter(cat => 
+                  !['standard', 'suite'].includes(cat.id.toLowerCase())
+                ).map((category) => (
                   <label
                     key={category.id}
                     className="flex items-center mb-2 text-gray-700 hover:text-gray-900 cursor-pointer"

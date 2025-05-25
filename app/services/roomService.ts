@@ -1,7 +1,8 @@
 import { API_URL } from "../lib/constants";
 
 export interface RoomType {
-  id?: string;
+  id: string;
+  _id?: string; // Added to support MongoDB/Supabase format inconsistencies
   title: string;
   price: number;
   location: string;
@@ -36,6 +37,12 @@ const validateImageUrl = (url: string | undefined): string => {
 
   // Handle missing values
   if (!url || url.trim() === '' || url === 'null' || url === 'undefined') {
+    return imageFallback;
+  }
+  
+  // Check if URL is a local path that might not exist
+  if (url.startsWith('/images/') || url.includes('/rooms/fallback-room')) {
+    console.log('Converting local image path to placeholder:', url);
     return imageFallback;
   }
   
@@ -136,15 +143,23 @@ const mapRoomData = (room: BackendRoom): RoomType => {
     image_url: room.image_url 
   });
   
+  const category = room.category || "standard";
+  const titleSlug = (room.title || "").toLowerCase().replace(/ /g, "-");
+
+  // Ensure href is properly formatted for navigation
+  const href = room.href || `/hotelRoomDetails/${category}/${titleSlug}`;
+
+  // Ensure we always have a valid ID for the room
+  const roomId = room.id || room._id || `room-${Date.now()}`;
+  
   return {
-    id: room.id || room._id,
+    id: roomId as string, // Force type assertion to handle TypeScript error
+    _id: room._id,
     title: room.title || "",
     price: room.price || 0,
     location: room.location || "",
     imageUrl: validateImageUrl(imageUrlToUse),
-    href:
-      room.href ||
-      `/hotelRoomDetails/${room.category}/${room.title?.toLowerCase().replace(/\s+/g, "-") || "room"}`,
+    href: href,
     rating: room.rating || 0,
     reviews: room.reviews || 0,
     description: room.description || "",
@@ -196,8 +211,11 @@ export const getAllRooms = async (): Promise<RoomType[]> => {
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-      },
-      next: { revalidate: 300 }, // Cache for 5 minutes to reduce load on backend
+        // Add a cache-busting parameter to prevent caching
+        'Pragma': 'no-cache',
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
+      }
+      // Removed revalidation to ensure we always get fresh data
     });
 
     // Race between the timeout and the fetch
@@ -247,6 +265,14 @@ export const getAllRooms = async (): Promise<RoomType[]> => {
     }
     
     console.log("Processing", roomsArray.length, "rooms");
+    
+    // Log if no rooms are returned from API
+    if (roomsArray.length === 0) {
+      console.log("No rooms returned from API - this might indicate a database issue");
+      // Return empty array instead of fallback data
+      // This will ensure the UI shows no rooms when there are none in the database
+    }
+    
     return roomsArray.map(mapRoomData);
   } catch (error) {
     console.error("Failed to fetch rooms from API:", error);
@@ -255,47 +281,80 @@ export const getAllRooms = async (): Promise<RoomType[]> => {
 };
 
 /**
- * Fetches a room by ID from the MongoDB database via API
+ * Fetches a single room by ID from the MongoDB database via API
  */
-export const getRoomById = async (roomId: string): Promise<RoomType | null> => {
+export const getRoomById = async (id: string): Promise<RoomType | null> => {
   try {
-    // Use the updated API route directly
-    const response = await fetch(`/api/rooms/${roomId}`, {
+    console.log(`Fetching room with ID: ${id}`);
+    
+    // First try to get the room from all rooms to ensure we have data even if direct API call fails
+    const allRooms = await getAllRooms();
+    const foundRoom = allRooms.find(room => room.id === id || room._id === id);
+    
+    if (foundRoom) {
+      console.log('Found room in getAllRooms cache:', foundRoom.title);
+      
+      // Ensure image URL is valid and has a proper fallback
+      if (!foundRoom.imageUrl || foundRoom.imageUrl.includes('/images/rooms/')) {
+        foundRoom.imageUrl = "https://placehold.co/800x600/1C3F32/FFFFFF.png?text=" + encodeURIComponent(foundRoom.title || "Hotel Room");
+      }
+      
+      return foundRoom;
+    }
+    
+    // If not found in cache, try direct API call
+    console.log('Room not found in cache, trying direct API call');
+    const response = await fetch(`/api/rooms/${id}`, {
       method: "GET",
       cache: "no-store",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
+        'Pragma': 'no-cache',
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
       },
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
       console.error(
         `API request failed with status ${response.status} - ${response.statusText}`,
       );
-      console.error("Error response body:", errorText.substring(0, 500));
       return null;
     }
 
     const data = await response.json();
+    console.log('API response for room details:', data);
 
-    if (!data || !data.data) {
+    if (!data || (!data.data && !data.room)) {
       console.error("API response is not in the expected format:", data);
       return null;
     }
 
-    return mapRoomData(data.data);
+    // Handle both potential response formats
+    const roomData = data.data || data.room;
+    
+    if (!roomData) {
+      console.error("No room data found in the response");
+      return null;
+    }
+
+    const mappedRoom = mapRoomData(roomData);
+    
+    // Double-check the image URL is valid
+    if (!mappedRoom.imageUrl || mappedRoom.imageUrl.includes('/images/rooms/')) {
+      mappedRoom.imageUrl = "https://placehold.co/800x600/1C3F32/FFFFFF.png?text=" + encodeURIComponent(mappedRoom.title || "Hotel Room");
+    }
+    
+    return mappedRoom;
   } catch (error) {
-    console.error(`Failed to fetch room ${roomId} from API:`, error);
+    console.error(`Failed to fetch room by ID ${id}:`, error);
     return null;
   }
 };
 
-// This function was moved to the end of the file
 
 /**
- * Fetches top rated rooms from the MongoDB database via API
+ * Fetches rooms sorted by lowest price first (previously top rated)
  */
 export const getTopRatedRooms = async (limit = 5): Promise<RoomType[]> => {
   try {
@@ -336,12 +395,15 @@ export const getTopRatedRooms = async (limit = 5): Promise<RoomType[]> => {
       return [];
     }
 
-    // Map and process the room data, logging the first item for debugging
-    const mappedRooms = data.data.map(mapRoomData);
+    // Map room data and sort by price (lowest first)
+    const mappedRooms = data.data.map(mapRoomData)
+      .sort((a: RoomType, b: RoomType) => (a.price || 0) - (b.price || 0))
+      .slice(0, limit);
     
     if (mappedRooms.length > 0) {
-      console.log('First top rated room:', { 
+      console.log('First budget-friendly room:', { 
         title: mappedRooms[0].title,
+        price: mappedRooms[0].price,
         imageUrl: mappedRooms[0].imageUrl 
       });
     }
@@ -458,7 +520,7 @@ export const getCategoryRooms = async (): Promise<RoomType[]> => {
     }
 
     // Map and process the room data
-    const mappedRooms = data.data.map(room => {
+    const mappedRooms = data.data.map((room: BackendRoom) => {
       // Ensure image URLs are correctly processed
       const mappedRoom = mapRoomData(room);
       console.log(`Processed category room: ${mappedRoom.title}, Image URL: ${mappedRoom.imageUrl}`);
@@ -551,6 +613,9 @@ export const checkRoomAvailability = async (
     return false;
   }
 };
+
+// The getFallbackRooms function has been removed to ensure direct database connectivity
+// All room data will now come directly from the Supabase backend
 
 /**
  * Checks if the API is connected and accessible

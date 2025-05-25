@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useAuth } from "@/app/context/AuthContext";
 import { format } from "date-fns";
 import { FaCalendarAlt, FaUser, FaLocationArrow, FaCheck, FaPrint, FaEnvelope, FaDownload } from "react-icons/fa";
+import ReviewSection from "@/app/components/reviews/ReviewSection";
 
 const BookingReceipt = () => {
   const params = useParams();
@@ -18,6 +19,7 @@ const BookingReceipt = () => {
   const bookingId = Array.isArray(params?.bookingId) 
     ? params.bookingId[0] 
     : params?.bookingId as string;
+    
 
   // Sample booking data to ensure the receipt always works
   const sampleBooking = {
@@ -330,6 +332,14 @@ const BookingReceipt = () => {
             <p>Thank you for choosing Solace Hotel</p>
             <p className="mt-2">123 Acacia Street, Central Signal Village, Taguig City, Metro Manila, Philippines</p>
           </div>
+          
+          {/* Reviews Section */}
+          <ReviewSection
+            bookingId={sampleBooking._id}
+            roomId={sampleBooking.roomId}
+            roomTitle={sampleBooking.roomTitle}
+            checkOutDate={sampleBooking.checkOut}
+          />
         </div>
       </div>
 

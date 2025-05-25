@@ -3,20 +3,44 @@ import { useState } from "react";
 import { RoomType } from "../services/roomService";
 import OptimizedImage from "./shared/OptimizedImage";
 import { isCloudinaryUrl } from "../utils/cloudinaryImage";
+import { useRouter } from "next/navigation";
 
 interface RoomCardProps {
   room: RoomType;
 }
 
 const RoomCard = ({ room }: RoomCardProps) => {
-  const { title, price, location, imageUrl, href } = room;
+  const { title, price, location, imageUrl, href, category } = room;
+  const router = useRouter();
   // We'll handle image loading state but let the OptimizedImage handle errors and fallbacks
   const [imageLoading, setImageLoading] = useState(true);
+  
+  // Handle click on room card - ensure proper navigation
+  const handleRoomClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    console.log('Room card clicked:', { title, category, href });
+    
+    if (href && href.startsWith('/hotelRoomDetails/')) {
+      console.log('Navigating to:', href);
+      router.push(href);
+    } else if (category) {
+      // Fallback if href is missing or malformed
+      const titleSlug = title.toLowerCase().replace(/ /g, "-");
+      const properUrl = `/hotelRoomDetails/${category}/${titleSlug}`;
+      console.log('Generated URL for navigation:', properUrl);
+      router.push(properUrl);
+    } else {
+      // Last resort fallback
+      console.log('No category available, using standard category');
+      const titleSlug = title.toLowerCase().replace(/ /g, "-");
+      router.push(`/hotelRoomDetails/standard/${titleSlug}`);
+    }
+  };
 
   // We'll handle fallback in OptimizedImage component
 
   return (
-    <Link href={href} className="block h-full">
+    <Link href={href} className="block h-full" onClick={handleRoomClick}>
       <div className="group rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 h-full flex flex-col">
         <div className="relative h-48 w-full bg-gray-200" style={{ minHeight: '192px' }}>
           {imageLoading && (
