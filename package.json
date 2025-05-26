@@ -20,6 +20,7 @@
     "critters": "^0.0.23",
     "date-fns": "^4.1.0",
     "html-to-image": "^1.11.13",
+    "html2canvas": "^1.4.1",
     "js-cookie": "^3.0.5",
     "next": "15.3.0",
     "node-fetch": "^3.3.2",

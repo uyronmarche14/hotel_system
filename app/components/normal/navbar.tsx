@@ -397,6 +397,13 @@ const Navbar = () => {
                   >
                     Booking History
                   </Link>
+                  <Link
+                    href="/bookings"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-white/90 hover:text-white text-sm py-1 cinzel"
+                  >
+                    My Receipts
+                  </Link>
                   <button
                     onClick={() => {
                       setMobileMenuOpen(false);

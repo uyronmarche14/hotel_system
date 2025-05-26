@@ -12,7 +12,8 @@ import {
   FaSignOutAlt,
   FaBars,
   FaTimes,
-  FaUserCircle
+  FaUserCircle,
+  FaFileInvoiceDollar
 } from 'react-icons/fa';
 import Cookies from 'js-cookie';
 
@@ -118,6 +119,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { name: 'Users', path: '/admin/users', icon: <FaUsers /> },
     { name: 'Bookings', path: '/admin/bookings', icon: <FaCalendarAlt /> },
     { name: 'Rooms', path: '/admin/rooms', icon: <FaBed /> },
+    { name: 'Receipts', path: '/admin/receipts', icon: <FaFileInvoiceDollar /> },
   ];
 
   return (
