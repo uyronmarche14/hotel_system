@@ -283,67 +283,87 @@ export const getAllRooms = async (): Promise<RoomType[]> => {
 /**
  * Fetches a single room by ID from the MongoDB database via API
  */
+// Simple in-memory cache for room details
+const roomCache = new Map<string, { data: RoomType, timestamp: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * Fetches a single room by ID from the MongoDB database via API
+ * Optimized to strictly use ID lookup and avoid fetching all rooms
+ */
 export const getRoomById = async (id: string): Promise<RoomType | null> => {
   try {
-    console.log(`Fetching room with ID: ${id}`);
+    if (!id) return null;
     
-    // First try to get the room from all rooms to ensure we have data even if direct API call fails
-    const allRooms = await getAllRooms();
-    const foundRoom = allRooms.find(room => room.id === id || room._id === id);
+    // Check cache first
+    const cached = roomCache.get(id);
+    if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
+      console.log(`Returning cached room data for ID: ${id}`);
+      return cached.data;
+    }
+
+    console.log(`Fetching room by ID directly: ${id}`);
+
+    // UUID regex check to determine strategy
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
     
-    if (foundRoom) {
-      console.log('Found room in getAllRooms cache:', foundRoom.title);
-      
-      // Ensure image URL is valid and has a proper fallback
-      if (!foundRoom.imageUrl || foundRoom.imageUrl.includes('/images/rooms/')) {
-        foundRoom.imageUrl = "https://placehold.co/800x600/1C3F32/FFFFFF.png?text=" + encodeURIComponent(foundRoom.title || "Hotel Room");
+    // If it's a slug, we might need to search or use fallback
+    // But commonly, bookings should use UUID.
+    // If it's NOT a UUID, it might be a slug.
+    
+    let roomData: BackendRoom | null = null;
+    
+    if (isUUID) {
+      // Direct API call for UUID
+      const response = await fetch(`/api/rooms/${id}`, {
+        method: "GET",
+        cache: "no-store",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data && (data.data || data.room)) {
+           roomData = data.data || data.room;
+        }
+      } else {
+        console.warn(`Direct fetch for room ${id} failed: ${response.status}`);
       }
-      
-      return foundRoom;
-    }
-    
-    // If not found in cache, try direct API call
-    console.log('Room not found in cache, trying direct API call');
-    const response = await fetch(`/api/rooms/${id}`, {
-      method: "GET",
-      cache: "no-store",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        'Pragma': 'no-cache',
-        'Cache-Control': 'no-cache, no-store, must-revalidate'
-      },
-    });
-
-    if (!response.ok) {
-      console.error(
-        `API request failed with status ${response.status} - ${response.statusText}`,
-      );
-      return null;
     }
 
-    const data = await response.json();
-    console.log('API response for room details:', data);
-
-    if (!data || (!data.data && !data.room)) {
-      console.error("API response is not in the expected format:", data);
-      return null;
-    }
-
-    // Handle both potential response formats
-    const roomData = data.data || data.room;
-    
+    // Fallback: If not found via ID (or if it was a slug), try getAllRooms 
+    // This maintains backward compatibility for slug-based access but is slower.
     if (!roomData) {
-      console.error("No room data found in the response");
-      return null;
+        console.log(`Room ${id} not found via direct ID fetch (or is slug), falling back to search`);
+        const allRooms = await getAllRooms();
+        // Match by ID or Slug or Title
+        const found = allRooms.find(r => 
+           r.id === id || 
+           r._id === id || 
+           r.title.toLowerCase().replace(/ /g, "-") === id ||
+           r.category === id // Edge case
+        );
+        
+        if (found) {
+            // Cache the result
+            roomCache.set(id, { data: found, timestamp: Date.now() });
+            return found;
+        }
+        return null;
     }
 
+    // Map and Cache direct result
     const mappedRoom = mapRoomData(roomData);
     
-    // Double-check the image URL is valid
+    // Ensure image URL is valid
     if (!mappedRoom.imageUrl || mappedRoom.imageUrl.includes('/images/rooms/')) {
-      mappedRoom.imageUrl = "https://placehold.co/800x600/1C3F32/FFFFFF.png?text=" + encodeURIComponent(mappedRoom.title || "Hotel Room");
+       mappedRoom.imageUrl = validateImageUrl(mappedRoom.imageUrl);
     }
+    
+    roomCache.set(id, { data: mappedRoom, timestamp: Date.now() });
     
     return mappedRoom;
   } catch (error) {

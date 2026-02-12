@@ -17,7 +17,7 @@ import {
   getAllRooms,
   getRoomsByCategory,
 } from "@/app/services/roomService";
-import Button from "@/app/components/ui/buttons";
+import Button from "@/app/components/ui/Button";
 
 const StarRating = ({ rating }: { rating: number }) => {
   const stars = [];

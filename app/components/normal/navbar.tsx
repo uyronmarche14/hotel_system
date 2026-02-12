@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import Button from "@/app/components/ui/buttons";
+import Button from "@/app/components/ui/Button";
 import { FaBars, FaTimes, FaCalendarCheck } from "react-icons/fa";
 import { useAuth } from "@/app/context/AuthContext";
 import { usePathname } from "next/navigation";

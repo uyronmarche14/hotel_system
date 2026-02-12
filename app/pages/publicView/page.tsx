@@ -11,7 +11,7 @@ import {
 } from "react-icons/fa";
 import Image from "next/image";
 import { getAllRooms, RoomType } from "@/app/services/roomService";
-import Button from "@/app/components/ui/buttons";
+import Button from "@/app/components/ui/Button";
 
 const StarRating = ({ rating }: { rating: number }) => {
   const stars = [];

@@ -25,8 +25,8 @@ const RoomCard = ({ room }: RoomCardProps) => {
       router.push(href);
     } else if (category) {
       // Fallback if href is missing or malformed
-      const titleSlug = title.toLowerCase().replace(/ /g, "-");
-      const properUrl = `/hotelRoomDetails/${category}/${titleSlug}`;
+      const titleSlug = encodeURIComponent(title.toLowerCase().replace(/ /g, "-"));
+      const properUrl = `/hotelRoomDetails/${category || 'standard'}/${titleSlug}`;
       console.log('Generated URL for navigation:', properUrl);
       router.push(properUrl);
     } else {

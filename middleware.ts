@@ -39,7 +39,7 @@ export function middleware(request: NextRequest) {
   if (isUserProtectedRoute && !isUserAuthenticated) {
     console.log('Redirecting to login, protected route without user token');
     const loginUrl = new URL('/login', request.url)
-    loginUrl.searchParams.set('redirect', pathname)
+    loginUrl.searchParams.set('redirect', `${pathname}${request.nextUrl.search}`)
     
     // Set a flag in the URL for the client to know this was a redirect
     loginUrl.searchParams.set('session_expired', 'true')

@@ -104,7 +104,9 @@ const CheckAvailabilityPage = () => {
       }
 
       const apiBase = API_URL.endsWith("/") ? API_URL.slice(0, -1) : API_URL;
-      const endpoint = `${apiBase}/api/bookings/check-availability?roomCategory=${category}&roomTitle=${encodeURIComponent(room.title)}&checkIn=${formattedFirstDay}&checkOut=${formattedLastDay}`;
+      // Backend expects roomId (UUID), checkIn, checkOut
+      // We must pass the room ID, not the title
+      const endpoint = `${apiBase}/api/bookings/check-availability?roomId=${room.id}&checkIn=${formattedFirstDay}&checkOut=${formattedLastDay}`;
 
       console.log("Fetching availability data from:", endpoint);
 
@@ -163,6 +165,12 @@ const CheckAvailabilityPage = () => {
   const verifyAvailabilityBeforeBooking = async () => {
     if (!checkInDate || !checkOutDate || !room) return false;
 
+    // Ensure checkOut is after checkIn
+    if (checkOutDate <= checkInDate) {
+      setError("Check-out date must be after check-in date");
+      return false;
+    }
+
     setIsChecking(true);
     try {
       const token = Cookies.get("token");
@@ -173,7 +181,9 @@ const CheckAvailabilityPage = () => {
 
       // Construct API endpoint - ensure no double slashes in URL
       const apiBase = API_URL.endsWith("/") ? API_URL.slice(0, -1) : API_URL;
-      const endpoint = `${apiBase}/api/bookings/check-availability?roomCategory=${category}&roomTitle=${encodeURIComponent(room.title)}&checkIn=${formattedCheckIn}&checkOut=${formattedCheckOut}&guests=${guests}`;
+      
+      // Backend expects roomId, checkIn, checkOut
+      const endpoint = `${apiBase}/api/bookings/check-availability?roomId=${room.id}&checkIn=${formattedCheckIn}&checkOut=${formattedCheckOut}&guests=${guests}`;
 
       console.log("Verifying final availability before booking:", endpoint);
 

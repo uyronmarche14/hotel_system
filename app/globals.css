@@ -44,9 +44,9 @@
   --font-cinzel: "Cinzel Decorative", cursive;
   --font-inter: "Inter";
   --font-geist-sans: "Geist", sans-serif;
-  --text-dark: #333333;
-  --text-medium: #555555;
-  --input-text: #333333;
+  --text-dark: #000000;
+  --text-medium: #000000;
+  --input-text: #000000;
 }
 
 @media (prefers-color-scheme: dark) {

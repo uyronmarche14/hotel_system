@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/app/context/AuthContext";
-import { getAllRooms, RoomType } from "@/app/services/roomService";
+import { getAllRooms, getRoomById, RoomType } from "@/app/services/roomService";
 import {
   FaMapMarkerAlt,
   FaCalendarAlt,
@@ -80,45 +80,38 @@ function BookingContent() {
       return;
     }
 
-    if (!roomId || !category) {
+    if (!roomId) {
       router.push("/dashboard");
       return;
     }
 
     const fetchRoom = async () => {
       try {
-        const allRooms = await getAllRooms();
-        console.log("Fetched rooms:", allRooms.length);
+        console.log(`Fetching room details for ID: ${roomId}`);
         
-        // Log search criteria
-        console.log(`Looking for room with category=${category} and roomId=${roomId}`);
-
-        // Find the room
-        const foundRoom = allRooms.find((r) => {
-          // Create consistent title slug for comparison
-          const titleSlug = r.title.toLowerCase().replace(/ /g, "-");
-          // Debug room matching
-          console.log(`Comparing room: ${r.title}, id=${r.id}, category=${r.category}`);
-          
-          return (
-            r.category === category &&
-            (titleSlug === roomId || r.href?.includes(roomId))
-          );
-        });
+        // Use optimized getRoomById which handles both UUIDs (fast) and Slugs (fallback)
+        const foundRoom = await getRoomById(roomId);
 
         if (!foundRoom) {
-          console.error("Room not found with given criteria");
+          console.error("Room not found via ID or Slug");
           router.push("/dashboard");
           return;
         }
         
+        // Verify category match if provided (optional validation)
+        if (category && foundRoom.category !== category) {
+             console.warn(`Room category mismatch. Expected: ${category}, Found: ${foundRoom.category}`);
+             // We can choose to redirect or just log warning. 
+             // Proceeding is safer for UX if ID matches.
+        }
+
         // Ensure room has a valid ID
         if (!foundRoom.id) {
           console.error("Found room but it has no ID", foundRoom);
           foundRoom.id = roomId; // Use roomId from URL as fallback
         }
         
-        console.log("Found room:", foundRoom);
+        console.log("Found room:", foundRoom.title);
         setRoom(foundRoom);
 
         // Pre-fill user data if available
@@ -320,7 +313,7 @@ function BookingContent() {
         // Redirect to booking receipt page after successful booking
         setTimeout(() => {
           // Navigate to receipt page with the booking ID
-          const bookingId = response.data?.id || response.data?.bookingId;
+          const bookingId = response.data?._id || response.data?.bookingId;
           router.push(`/bookings/receipt/${bookingId}`);
         }, 2000);
       } else {

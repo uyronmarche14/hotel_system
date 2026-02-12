@@ -178,13 +178,21 @@ const RoomDetails = () => {
   }, [category, roomId]);
 
   const handleBookNow = () => {
+    // Use the actual room ID from the fetched room object, not the slug from URL
+    const bookingRoomId = room?.id;
+    
+    if (!bookingRoomId) {
+      console.error("No valid room ID found for booking");
+      return;
+    }
+
     if (isAuthenticated) {
       // Proceed with booking if authenticated - use the path in the user route group
-      router.push(`/bookings/new?roomId=${roomId}&category=${category}`);
+      router.push(`/bookings/new?roomId=${bookingRoomId}&category=${category}`);
     } else {
       // Redirect to login if not authenticated
       router.push(
-        `/login?redirect=/bookings/new?roomId=${roomId}&category=${category}`,
+        `/login?redirect=/bookings/new?roomId=${bookingRoomId}&category=${category}`,
       );
     }
   };
